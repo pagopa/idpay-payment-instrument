@@ -25,7 +25,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     for (PaymentInstrument pi : instrumentList) {
       if (!pi.getUserId().equals(userId)) {
         throw new PaymentInstrumentException(HttpStatus.FORBIDDEN.value(),
-            "Payment instrument already in use by another citizen");
+            PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_ALREADY_ACTIVE);
       } else if (pi.getInitiativeId().equals(initiativeId)) {
         return;
       }
@@ -43,7 +43,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
             initiativeId, userId, hpan, PaymentInstrumentConstants.STATUS_ACTIVE)
         .orElseThrow(() -> new PaymentInstrumentException(HttpStatus.NOT_FOUND.value(),
             String.format(
-                "The instrument with hpan %s is not active for user %s on the initiative with id %s",
+                PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_NOT_FOUND,
                 hpan, userId, initiativeId)));
 
     instrument.setStatus(PaymentInstrumentConstants.STATUS_INACTIVE);
