@@ -17,8 +17,8 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
   private PaymentInstrumentRepository paymentInstrumentRepository;
 
   @Override
-  public void enrollInstrument(String initiativeId, String userId, String hpan,
-      String channel, LocalDateTime activationDate) {
+  public void enrollInstrument(String initiativeId, String userId, String hpan, String channel,
+      LocalDateTime activationDate) {
     List<PaymentInstrument> instrumentList = paymentInstrumentRepository.findByHpanAndStatus(hpan,
         PaymentInstrumentConstants.STATUS_ACTIVE);
 
@@ -40,11 +40,9 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
   public void deactivateInstrument(String initiativeId, String userId, String hpan,
       LocalDateTime deactivationDate) {
     PaymentInstrument instrument = paymentInstrumentRepository.findByInitiativeIdAndUserIdAndHpanAndStatus(
-            initiativeId, userId, hpan, PaymentInstrumentConstants.STATUS_ACTIVE)
-        .orElseThrow(() -> new PaymentInstrumentException(HttpStatus.NOT_FOUND.value(),
-            String.format(
-                PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_NOT_FOUND,
-                hpan, userId, initiativeId)));
+        initiativeId, userId, hpan, PaymentInstrumentConstants.STATUS_ACTIVE).orElseThrow(
+        () -> new PaymentInstrumentException(HttpStatus.NOT_FOUND.value(),
+            PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_NOT_FOUND));
 
     instrument.setStatus(PaymentInstrumentConstants.STATUS_INACTIVE);
     instrument.setDeactivationDate(deactivationDate);

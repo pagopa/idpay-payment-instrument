@@ -20,7 +20,7 @@ public class PaymentInstrument {
   }
 
   @Id
-  private String paymentInstrId;
+  private String id;
 
   private String userId;
 

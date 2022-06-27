@@ -42,8 +42,6 @@ class PaymentInstrumentControllerTest {
   private static final String INITIATIVE_ID = "TEST_INITIATIVE_ID";
   private static final String HPAN = "TEST_HPAN";
   private static final String CHANNEL = "TEST_CHANNEL";
-  private static final String TEST_ERROR_NOT_FOUND = String.format(PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_NOT_FOUND, HPAN, USER_ID, INITIATIVE_ID);
-
   private static final LocalDateTime TEST_DATE = LocalDateTime.now();
   private static final EnrollmentBodyDTO ENROLLMENT_BODY_DTO = new EnrollmentBodyDTO(USER_ID,
       INITIATIVE_ID, HPAN, CHANNEL,
@@ -145,7 +143,7 @@ class PaymentInstrumentControllerTest {
   void deactivate_not_found() throws Exception {
     ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
-    Mockito.doThrow(new PaymentInstrumentException(HttpStatus.NOT_FOUND.value(), TEST_ERROR_NOT_FOUND)).when(paymentInstrumentServiceMock)
+    Mockito.doThrow(new PaymentInstrumentException(HttpStatus.NOT_FOUND.value(), PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_NOT_FOUND)).when(paymentInstrumentServiceMock)
         .deactivateInstrument(INITIATIVE_ID, USER_ID, HPAN, TEST_DATE);
 
     MvcResult res = mvc.perform(MockMvcRequestBuilders.delete(BASE_URL + DEACTIVATE_URL)
@@ -157,7 +155,7 @@ class PaymentInstrumentControllerTest {
     ErrorDTO error = objectMapper.readValue(res.getResponse().getContentAsString(), ErrorDTO.class);
 
     assertEquals(HttpStatus.NOT_FOUND.value(), error.getCode());
-    assertEquals(TEST_ERROR_NOT_FOUND, error.getMessage());
+    assertEquals(PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_NOT_FOUND, error.getMessage());
   }
 
 }
