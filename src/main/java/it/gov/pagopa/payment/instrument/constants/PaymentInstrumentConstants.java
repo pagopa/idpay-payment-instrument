@@ -4,8 +4,7 @@ public final class PaymentInstrumentConstants {
 
   public static final String STATUS_INACTIVE = "INACTIVE";
   public static final String STATUS_ACTIVE = "ACTIVE";
-  public static final String CHANNEL_APP_IO = "APP_IO";
-  public static final String CHANNEL_ISSUER = "ISSUER";
+  public static final String ERROR_MANDATORY_FIELD = "The field is mandatory!";
 
   private PaymentInstrumentConstants() {
   }
