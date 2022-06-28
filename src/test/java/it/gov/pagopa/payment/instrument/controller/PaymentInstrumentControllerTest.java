@@ -66,7 +66,7 @@ class PaymentInstrumentControllerTest {
     Mockito.doNothing().when(paymentInstrumentServiceMock)
         .enrollInstrument(INITIATIVE_ID, USER_ID, HPAN, CHANNEL, TEST_DATE);
 
-    Mockito.when(paymentInstrumentServiceMock.countByInitiativeIdAndUserId(INITIATIVE_ID, USER_ID))
+    Mockito.when(paymentInstrumentServiceMock.countByInitiativeIdAndUserIdAndStatus(INITIATIVE_ID, USER_ID, PaymentInstrumentConstants.STATUS_ACTIVE))
         .thenReturn(TEST_COUNT);
 
     MvcResult res = mvc.perform(MockMvcRequestBuilders.put(BASE_URL + ENROLL_URL)
@@ -126,7 +126,7 @@ class PaymentInstrumentControllerTest {
     Mockito.doNothing().when(paymentInstrumentServiceMock)
         .deactivateInstrument(INITIATIVE_ID, USER_ID, HPAN, TEST_DATE);
 
-    Mockito.when(paymentInstrumentServiceMock.countByInitiativeIdAndUserId(INITIATIVE_ID, USER_ID))
+    Mockito.when(paymentInstrumentServiceMock.countByInitiativeIdAndUserIdAndStatus(INITIATIVE_ID, USER_ID, PaymentInstrumentConstants.STATUS_ACTIVE))
         .thenReturn(TEST_COUNT);
 
     MvcResult res = mvc.perform(MockMvcRequestBuilders.delete(BASE_URL + DEACTIVATE_URL)

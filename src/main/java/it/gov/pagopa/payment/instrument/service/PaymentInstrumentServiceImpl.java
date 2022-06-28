@@ -50,7 +50,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
   }
 
   @Override
-  public int countByInitiativeIdAndUserId(String initiativeId, String userId) {
-    return paymentInstrumentRepository.countByInitiativeIdAndUserId(initiativeId, userId);
+  public int countByInitiativeIdAndUserIdAndStatus(String initiativeId, String userId, String status) {
+    return paymentInstrumentRepository.countByInitiativeIdAndUserIdAndStatus(initiativeId, userId, status);
   }
 }

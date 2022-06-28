@@ -123,12 +123,6 @@ class PaymentInstrumentServiceTest {
 
   @Test
   void deactivateInstrument_not_found() {
-//    Mockito.doThrow(new PaymentInstrumentException(HttpStatus.NOT_FOUND.value(),
-//            PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_NOT_FOUND))
-//        .when(paymentInstrumentRepositoryMock)
-//        .findByInitiativeIdAndUserIdAndHpanAndStatus(INITIATIVE_ID, USER_ID, HPAN,
-//            PaymentInstrumentConstants.STATUS_ACTIVE);
-
     Mockito.when(
             paymentInstrumentRepositoryMock.findByInitiativeIdAndUserIdAndHpanAndStatus(INITIATIVE_ID,
                 USER_ID, HPAN, PaymentInstrumentConstants.STATUS_ACTIVE))
@@ -145,10 +139,10 @@ class PaymentInstrumentServiceTest {
   @Test
   void countByInitiativeIdAndUserId_ok() {
     Mockito.when(
-            paymentInstrumentRepositoryMock.countByInitiativeIdAndUserId(INITIATIVE_ID, USER_ID))
+            paymentInstrumentRepositoryMock.countByInitiativeIdAndUserIdAndStatus(INITIATIVE_ID, USER_ID, PaymentInstrumentConstants.STATUS_ACTIVE))
         .thenReturn(TEST_COUNT);
 
-    int actual = paymentInstrumentService.countByInitiativeIdAndUserId(INITIATIVE_ID, USER_ID);
+    int actual = paymentInstrumentService.countByInitiativeIdAndUserIdAndStatus(INITIATIVE_ID, USER_ID, PaymentInstrumentConstants.STATUS_ACTIVE);
 
     assertEquals(TEST_COUNT, actual);
   }

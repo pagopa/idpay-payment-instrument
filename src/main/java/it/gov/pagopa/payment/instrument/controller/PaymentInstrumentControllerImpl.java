@@ -1,5 +1,6 @@
 package it.gov.pagopa.payment.instrument.controller;
 
+import it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants;
 import it.gov.pagopa.payment.instrument.dto.DeactivationBodyDTO;
 import it.gov.pagopa.payment.instrument.dto.EnrollmentBodyDTO;
 import it.gov.pagopa.payment.instrument.dto.InstrumentResponseDTO;
@@ -21,8 +22,8 @@ public class PaymentInstrumentControllerImpl implements PaymentInstrumentControl
         body.getHpan(),
         body.getChannel(),
         body.getActivationDate());
-    int nInstr = paymentInstrumentService.countByInitiativeIdAndUserId(body.getInitiativeId(),
-        body.getUserId());
+    int nInstr = paymentInstrumentService.countByInitiativeIdAndUserIdAndStatus(body.getInitiativeId(),
+        body.getUserId(), PaymentInstrumentConstants.STATUS_ACTIVE);
     return new ResponseEntity<>(new InstrumentResponseDTO(nInstr), HttpStatus.OK);
   }
 
@@ -30,8 +31,8 @@ public class PaymentInstrumentControllerImpl implements PaymentInstrumentControl
   public ResponseEntity<InstrumentResponseDTO> deleteInstrument(DeactivationBodyDTO body) {
     paymentInstrumentService.deactivateInstrument(body.getInitiativeId(), body.getUserId(),
         body.getHpan(), body.getDeactivationDate());
-    int nInstr = paymentInstrumentService.countByInitiativeIdAndUserId(body.getInitiativeId(),
-        body.getUserId());
+    int nInstr = paymentInstrumentService.countByInitiativeIdAndUserIdAndStatus(body.getInitiativeId(),
+        body.getUserId(), PaymentInstrumentConstants.STATUS_ACTIVE);
     return new ResponseEntity<>(new InstrumentResponseDTO(nInstr), HttpStatus.OK);
   }
 }
