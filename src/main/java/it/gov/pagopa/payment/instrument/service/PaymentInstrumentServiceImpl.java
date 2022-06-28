@@ -48,4 +48,9 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     instrument.setDeactivationDate(deactivationDate);
     paymentInstrumentRepository.save(instrument);
   }
+
+  @Override
+  public int countByInitiativeIdAndUserId(String initiativeId, String userId) {
+    return paymentInstrumentRepository.countByInitiativeIdAndUserId(initiativeId, userId);
+  }
 }

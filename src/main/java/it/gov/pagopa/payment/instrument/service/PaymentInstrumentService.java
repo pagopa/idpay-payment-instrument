@@ -9,4 +9,6 @@ public interface PaymentInstrumentService {
 
   void deactivateInstrument(String initiativeId, String userId, String hpan, LocalDateTime deactivationDate);
 
+  int countByInitiativeIdAndUserId(String initiativeId, String userId);
+
 }

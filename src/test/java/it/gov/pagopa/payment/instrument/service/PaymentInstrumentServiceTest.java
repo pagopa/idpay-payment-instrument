@@ -38,6 +38,7 @@ class PaymentInstrumentServiceTest {
   private static final String HPAN = "TEST_HPAN";
   private static final String CHANNEL = "TEST_CHANNEL";
   private static final LocalDateTime TEST_DATE = LocalDateTime.now();
+  private static final int TEST_COUNT = 2;
   private static final PaymentInstrument TEST_INSTRUMENT = new PaymentInstrument(INITIATIVE_ID,
       USER_ID, HPAN, PaymentInstrumentConstants.STATUS_ACTIVE, CHANNEL, TEST_DATE);
   private static final List<PaymentInstrument> TEST_INSTRUMENT_LIST = new ArrayList<>();
@@ -139,5 +140,16 @@ class PaymentInstrumentServiceTest {
       assertEquals(HttpStatus.NOT_FOUND.value(), e.getCode());
       assertEquals(PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_NOT_FOUND, e.getMessage());
     }
+  }
+
+  @Test
+  void countByInitiativeIdAndUserId_ok() {
+    Mockito.when(
+            paymentInstrumentRepositoryMock.countByInitiativeIdAndUserId(INITIATIVE_ID, USER_ID))
+        .thenReturn(TEST_COUNT);
+
+    int actual = paymentInstrumentService.countByInitiativeIdAndUserId(INITIATIVE_ID, USER_ID);
+
+    assertEquals(TEST_COUNT, actual);
   }
 }

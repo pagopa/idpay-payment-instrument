@@ -2,6 +2,7 @@ package it.gov.pagopa.payment.instrument.controller;
 
 import it.gov.pagopa.payment.instrument.dto.DeactivationBodyDTO;
 import it.gov.pagopa.payment.instrument.dto.EnrollmentBodyDTO;
+import it.gov.pagopa.payment.instrument.dto.InstrumentResponseDTO;
 import it.gov.pagopa.payment.instrument.service.PaymentInstrumentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -15,17 +16,22 @@ public class PaymentInstrumentControllerImpl implements PaymentInstrumentControl
   PaymentInstrumentService paymentInstrumentService;
 
   @Override
-  public ResponseEntity<Void> enrollInstrument(EnrollmentBodyDTO body) {
-    paymentInstrumentService.enrollInstrument(body.getInitiativeId(), body.getUserId(), body.getHpan(),
+  public ResponseEntity<InstrumentResponseDTO> enrollInstrument(EnrollmentBodyDTO body) {
+    paymentInstrumentService.enrollInstrument(body.getInitiativeId(), body.getUserId(),
+        body.getHpan(),
         body.getChannel(),
         body.getActivationDate());
-    return new ResponseEntity<>(HttpStatus.OK);
+    int nInstr = paymentInstrumentService.countByInitiativeIdAndUserId(body.getInitiativeId(),
+        body.getUserId());
+    return new ResponseEntity<>(new InstrumentResponseDTO(nInstr), HttpStatus.OK);
   }
 
   @Override
-  public ResponseEntity<Void> deleteInstrument(DeactivationBodyDTO body) {
+  public ResponseEntity<InstrumentResponseDTO> deleteInstrument(DeactivationBodyDTO body) {
     paymentInstrumentService.deactivateInstrument(body.getInitiativeId(), body.getUserId(),
         body.getHpan(), body.getDeactivationDate());
-    return new ResponseEntity<>(HttpStatus.OK);
+    int nInstr = paymentInstrumentService.countByInitiativeIdAndUserId(body.getInitiativeId(),
+        body.getUserId());
+    return new ResponseEntity<>(new InstrumentResponseDTO(nInstr), HttpStatus.OK);
   }
 }
