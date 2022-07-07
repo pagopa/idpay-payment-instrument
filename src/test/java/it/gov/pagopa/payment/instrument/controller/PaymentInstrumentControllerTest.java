@@ -9,10 +9,14 @@ import it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants;
 import it.gov.pagopa.payment.instrument.dto.DeactivationBodyDTO;
 import it.gov.pagopa.payment.instrument.dto.EnrollmentBodyDTO;
 import it.gov.pagopa.payment.instrument.dto.ErrorDTO;
+import it.gov.pagopa.payment.instrument.dto.HpanDTO;
+import it.gov.pagopa.payment.instrument.dto.HpanGetDTO;
 import it.gov.pagopa.payment.instrument.dto.InstrumentResponseDTO;
 import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
 import it.gov.pagopa.payment.instrument.service.PaymentInstrumentService;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
@@ -42,6 +46,8 @@ class PaymentInstrumentControllerTest {
   private static final String CHANNEL = "TEST_CHANNEL";
   private static final LocalDateTime TEST_DATE = LocalDateTime.now();
   private static final int TEST_COUNT = 2;
+
+  private static final String GETHPAN_URL = "/instrument/" + INITIATIVE_ID + "/" + USER_ID;
   private static final EnrollmentBodyDTO ENROLLMENT_BODY_DTO = new EnrollmentBodyDTO(USER_ID,
       INITIATIVE_ID, HPAN, CHANNEL, TEST_DATE);
   private static final EnrollmentBodyDTO ENROLLMENT_BODY_DTO_EMPTY = new EnrollmentBodyDTO("", "",
@@ -50,6 +56,10 @@ class PaymentInstrumentControllerTest {
       INITIATIVE_ID, HPAN, TEST_DATE);
   private static final DeactivationBodyDTO DEACTIVATION_BODY_DTO_EMPTY = new DeactivationBodyDTO("",
       "", "", TEST_DATE);
+
+  private static final HpanDTO HPAN_DTO_TEST = new HpanDTO(HPAN, CHANNEL);
+
+  private static final HpanGetDTO  HPANGETDTO = new HpanGetDTO();
 
   @MockBean
   PaymentInstrumentService paymentInstrumentServiceMock;
@@ -64,7 +74,9 @@ class PaymentInstrumentControllerTest {
     Mockito.doNothing().when(paymentInstrumentServiceMock)
         .enrollInstrument(INITIATIVE_ID, USER_ID, HPAN, CHANNEL, TEST_DATE);
 
-    Mockito.when(paymentInstrumentServiceMock.countByInitiativeIdAndUserIdAndStatus(INITIATIVE_ID, USER_ID, PaymentInstrumentConstants.STATUS_ACTIVE))
+    Mockito.when(
+            paymentInstrumentServiceMock.countByInitiativeIdAndUserIdAndStatus(INITIATIVE_ID, USER_ID,
+                PaymentInstrumentConstants.STATUS_ACTIVE))
         .thenReturn(TEST_COUNT);
 
     MvcResult res = mvc.perform(MockMvcRequestBuilders.put(BASE_URL + ENROLL_URL)
@@ -124,7 +136,9 @@ class PaymentInstrumentControllerTest {
     Mockito.doNothing().when(paymentInstrumentServiceMock)
         .deactivateInstrument(INITIATIVE_ID, USER_ID, HPAN, TEST_DATE);
 
-    Mockito.when(paymentInstrumentServiceMock.countByInitiativeIdAndUserIdAndStatus(INITIATIVE_ID, USER_ID, PaymentInstrumentConstants.STATUS_ACTIVE))
+    Mockito.when(
+            paymentInstrumentServiceMock.countByInitiativeIdAndUserIdAndStatus(INITIATIVE_ID, USER_ID,
+                PaymentInstrumentConstants.STATUS_ACTIVE))
         .thenReturn(TEST_COUNT);
 
     MvcResult res = mvc.perform(MockMvcRequestBuilders.delete(BASE_URL + DEACTIVATE_URL)
@@ -174,5 +188,22 @@ class PaymentInstrumentControllerTest {
 
     assertEquals(HttpStatus.NOT_FOUND.value(), error.getCode());
     assertEquals(PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_NOT_FOUND, error.getMessage());
+  }
+
+  @Test
+  void getHpan_ok() throws Exception {
+    List<HpanDTO> hpanDTOList = new ArrayList<>();
+    hpanDTOList.add(HPAN_DTO_TEST);
+    HPANGETDTO.setHpanList(hpanDTOList);
+
+    Mockito.when(paymentInstrumentServiceMock.gethpan(INITIATIVE_ID, USER_ID))
+        .thenReturn(HPANGETDTO);
+
+    mvc.perform(
+            MockMvcRequestBuilders.get(BASE_URL + GETHPAN_URL)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .accept(MediaType.APPLICATION_JSON_VALUE))
+        .andExpect(MockMvcResultMatchers.status().isOk())
+        .andReturn();
   }
 }
