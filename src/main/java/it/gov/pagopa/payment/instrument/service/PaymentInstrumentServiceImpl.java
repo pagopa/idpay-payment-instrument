@@ -1,10 +1,13 @@
 package it.gov.pagopa.payment.instrument.service;
 
 import it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants;
+import it.gov.pagopa.payment.instrument.dto.HpanDTO;
+import it.gov.pagopa.payment.instrument.dto.HpanGetDTO;
 import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
 import it.gov.pagopa.payment.instrument.model.PaymentInstrument;
 import it.gov.pagopa.payment.instrument.repository.PaymentInstrumentRepository;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -50,7 +53,28 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
   }
 
   @Override
-  public int countByInitiativeIdAndUserIdAndStatus(String initiativeId, String userId, String status) {
-    return paymentInstrumentRepository.countByInitiativeIdAndUserIdAndStatus(initiativeId, userId, status);
+  public int countByInitiativeIdAndUserIdAndStatus(String initiativeId, String userId,
+      String status) {
+    return paymentInstrumentRepository.countByInitiativeIdAndUserIdAndStatus(initiativeId, userId,
+        status);
+  }
+
+  @Override
+  public HpanGetDTO gethpan(String initiativeId, String userId) {
+    List<PaymentInstrument> paymentInstrument = paymentInstrumentRepository.findByInitiativeIdAndUserId(
+        initiativeId, userId);
+
+    HpanGetDTO hpanGetDTO = new HpanGetDTO();
+    List<HpanDTO> hpanDTOList = new ArrayList<>();
+
+    for (PaymentInstrument paymentInstruments : paymentInstrument) {
+      HpanDTO hpanDTO = new HpanDTO();
+      hpanDTO.setHpan(paymentInstruments.getHpan());
+      hpanDTO.setChannel(paymentInstruments.getChannel());
+      hpanDTOList.add(hpanDTO);
+    }
+    hpanGetDTO.setHpanList(hpanDTOList);
+
+    return hpanGetDTO;
   }
 }

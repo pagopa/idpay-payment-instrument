@@ -3,6 +3,7 @@ package it.gov.pagopa.payment.instrument.controller;
 import it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants;
 import it.gov.pagopa.payment.instrument.dto.DeactivationBodyDTO;
 import it.gov.pagopa.payment.instrument.dto.EnrollmentBodyDTO;
+import it.gov.pagopa.payment.instrument.dto.HpanGetDTO;
 import it.gov.pagopa.payment.instrument.dto.InstrumentResponseDTO;
 import it.gov.pagopa.payment.instrument.service.PaymentInstrumentService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,5 +35,11 @@ public class PaymentInstrumentControllerImpl implements PaymentInstrumentControl
     int nInstr = paymentInstrumentService.countByInitiativeIdAndUserIdAndStatus(body.getInitiativeId(),
         body.getUserId(), PaymentInstrumentConstants.STATUS_ACTIVE);
     return new ResponseEntity<>(new InstrumentResponseDTO(nInstr), HttpStatus.OK);
+  }
+
+  @Override
+  public ResponseEntity<HpanGetDTO> getHpan(String initiativeId, String userId) {
+    HpanGetDTO hpanGetDTO = paymentInstrumentService.gethpan(initiativeId, userId);
+    return new ResponseEntity<>(hpanGetDTO , HttpStatus.OK);
   }
 }

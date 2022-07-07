@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants;
+import it.gov.pagopa.payment.instrument.dto.HpanDTO;
+import it.gov.pagopa.payment.instrument.dto.HpanGetDTO;
 import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
 import it.gov.pagopa.payment.instrument.model.PaymentInstrument;
 import it.gov.pagopa.payment.instrument.repository.PaymentInstrumentRepository;
@@ -145,5 +147,26 @@ class PaymentInstrumentServiceTest {
     int actual = paymentInstrumentService.countByInitiativeIdAndUserIdAndStatus(INITIATIVE_ID, USER_ID, PaymentInstrumentConstants.STATUS_ACTIVE);
 
     assertEquals(TEST_COUNT, actual);
+  }
+
+  @Test
+  void getHpan(){
+    List<PaymentInstrument> paymentInstruments = new ArrayList<>();
+    paymentInstruments.add(TEST_INSTRUMENT);
+
+    HpanDTO hpanDTO = new HpanDTO(HPAN,CHANNEL);
+    HpanGetDTO hpanGetDTO = new HpanGetDTO();
+    List<HpanDTO> hpanDTOList = new ArrayList<>();
+    hpanDTOList.add(hpanDTO);
+    hpanGetDTO.setHpanList(hpanDTOList);
+
+    Mockito.when(paymentInstrumentRepositoryMock.findByInitiativeIdAndUserId(INITIATIVE_ID,USER_ID))
+        .thenReturn(paymentInstruments);
+
+    paymentInstrumentService.gethpan(INITIATIVE_ID,USER_ID);
+
+    assertEquals(hpanDTO.getHpan(), TEST_INSTRUMENT.getHpan());
+    assertEquals(hpanDTO.getChannel(), TEST_INSTRUMENT.getChannel());
+
   }
 }
