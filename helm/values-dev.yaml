@@ -56,7 +56,7 @@ microservice-chart:
       memory: "256Mi"
       cpu: "40m"
     limits:
-      memory: "1Gi"
+      memory: "2Gi"
       cpu: "200m"
 
 #  autoscaling:
@@ -79,6 +79,11 @@ microservice-chart:
 #          metricAggregationType: Count
 #          targetValue: "30"
 
+  envConfigMapExternals:
+    idpay-common:
+      TZ: tz
+      JAVA_TOOL_OPTIONS: java_tool_options
+
   envConfig:
     MONGODB_DBNAME: idpay
     APPLICATIONINSIGHTS_ROLE_NAME: "idpaypaymentinstrument"
@@ -88,6 +93,7 @@ microservice-chart:
   envSecret:
     aks-api-url: cstar-d-weu-dev01-aks-apiserver-url
     MONGODB_URI: mongodb-connection-string
+#    APPLICATIONINSIGHTS_CONNECTION_STRING: appinsights-instrumentation-key
 
   keyvault:
     name: "cstar-d-idpay-kv"
