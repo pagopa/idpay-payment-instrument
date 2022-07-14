@@ -47,7 +47,7 @@ public interface PaymentInstrumentController {
    * @param userId
    * @return
    */
-  @GetMapping("/instrument/{initiativeId}/{userId}")
+  @GetMapping("/{initiativeId}/{userId}")
   ResponseEntity<HpanGetDTO> getHpan(@PathVariable("initiativeId") String initiativeId ,@PathVariable String userId);
 
 }

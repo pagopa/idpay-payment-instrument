@@ -64,6 +64,11 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     List<PaymentInstrument> paymentInstrument = paymentInstrumentRepository.findByInitiativeIdAndUserId(
         initiativeId, userId);
 
+    if(paymentInstrument.isEmpty()){
+      throw new PaymentInstrumentException(HttpStatus.NOT_FOUND.value(),
+          PaymentInstrumentConstants.ERROR_INITIATIVE_USER);
+    }
+
     HpanGetDTO hpanGetDTO = new HpanGetDTO();
     List<HpanDTO> hpanDTOList = new ArrayList<>();
 
