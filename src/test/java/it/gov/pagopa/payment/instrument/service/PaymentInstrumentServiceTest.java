@@ -142,28 +142,50 @@ class PaymentInstrumentServiceTest {
   @Test
   void countByInitiativeIdAndUserId_ok() {
     Mockito.when(
-            paymentInstrumentRepositoryMock.countByInitiativeIdAndUserIdAndStatus(INITIATIVE_ID, USER_ID, PaymentInstrumentConstants.STATUS_ACTIVE))
+            paymentInstrumentRepositoryMock.countByInitiativeIdAndUserIdAndStatus(INITIATIVE_ID,
+                USER_ID, PaymentInstrumentConstants.STATUS_ACTIVE))
         .thenReturn(TEST_COUNT);
 
-    int actual = paymentInstrumentService.countByInitiativeIdAndUserIdAndStatus(INITIATIVE_ID, USER_ID, PaymentInstrumentConstants.STATUS_ACTIVE);
+    int actual = paymentInstrumentService.countByInitiativeIdAndUserIdAndStatus(INITIATIVE_ID,
+        USER_ID, PaymentInstrumentConstants.STATUS_ACTIVE);
 
     assertEquals(TEST_COUNT, actual);
   }
 
   @Test
-  void getHpan(){
+  void getHpan_ok() {
     List<PaymentInstrument> paymentInstruments = new ArrayList<>();
     paymentInstruments.add(TEST_INSTRUMENT);
 
-    Mockito.when(paymentInstrumentRepositoryMock.findByInitiativeIdAndUserId(INITIATIVE_ID,USER_ID))
+    Mockito.when(
+            paymentInstrumentRepositoryMock.findByInitiativeIdAndUserId(INITIATIVE_ID, USER_ID))
         .thenReturn(paymentInstruments);
+    try {
+      HpanGetDTO hpanGetDTO = paymentInstrumentService.gethpan(INITIATIVE_ID, USER_ID);
+      HpanDTO actual = hpanGetDTO.getHpanList().get(0);
+      assertEquals(TEST_INSTRUMENT.getHpan(), actual.getHpan());
+      assertEquals(TEST_INSTRUMENT.getChannel(), actual.getChannel());
+      assertFalse(hpanGetDTO.getHpanList().isEmpty());
+    } catch (PaymentInstrumentException e) {
+      Assertions.fail();
+    }
 
-    HpanGetDTO hpanGetDTO = paymentInstrumentService.gethpan(INITIATIVE_ID,USER_ID);
+  }
 
-    HpanDTO actual = hpanGetDTO.getHpanList().get(0);
-    assertEquals(TEST_INSTRUMENT.getHpan(),actual.getHpan());
-    assertEquals(TEST_INSTRUMENT.getChannel(), actual.getChannel());
-    assertFalse(hpanGetDTO.getHpanList().isEmpty());
+  @Test
+  void getHpan_ko() {
+    List<PaymentInstrument> paymentInstruments = new ArrayList<>();
+
+    Mockito.when(
+            paymentInstrumentRepositoryMock.findByInitiativeIdAndUserId(INITIATIVE_ID, USER_ID))
+        .thenReturn(paymentInstruments);
+    try {
+      paymentInstrumentService.gethpan(INITIATIVE_ID, USER_ID);
+      Assertions.fail();
+    } catch (PaymentInstrumentException e) {
+      assertEquals(HttpStatus.NOT_FOUND.value(), e.getCode());
+      assertEquals(PaymentInstrumentConstants.ERROR_INITIATIVE_USER, e.getMessage());
+    }
 
   }
 }
