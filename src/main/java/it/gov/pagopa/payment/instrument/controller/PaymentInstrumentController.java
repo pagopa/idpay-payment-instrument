@@ -29,7 +29,8 @@ public interface PaymentInstrumentController {
    * @return
    */
   @PutMapping("/enroll")
-  ResponseEntity<InstrumentResponseDTO> enrollInstrument(@Valid @RequestBody EnrollmentBodyDTO body);
+  ResponseEntity<InstrumentResponseDTO> enrollInstrument(
+      @Valid @RequestBody EnrollmentBodyDTO body);
 
   /**
    * Deactivation of a Payment Instrument
@@ -38,7 +39,8 @@ public interface PaymentInstrumentController {
    * @return
    */
   @DeleteMapping("/deactivate")
-  ResponseEntity<InstrumentResponseDTO> deleteInstrument(@Valid @RequestBody DeactivationBodyDTO body);
+  ResponseEntity<InstrumentResponseDTO> deleteInstrument(
+      @Valid @RequestBody DeactivationBodyDTO body);
 
   /**
    * Enrollment of a Payment Instrument
@@ -48,6 +50,7 @@ public interface PaymentInstrumentController {
    * @return
    */
   @GetMapping("/{initiativeId}/{userId}")
-  ResponseEntity<HpanGetDTO> getHpan(@PathVariable("initiativeId") String initiativeId ,@PathVariable String userId);
+  ResponseEntity<HpanGetDTO> getHpan(@PathVariable("initiativeId") String initiativeId,
+      @PathVariable("userId") String userId);
 
 }
