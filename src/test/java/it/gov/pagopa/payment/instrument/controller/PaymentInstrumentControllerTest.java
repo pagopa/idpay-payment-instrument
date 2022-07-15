@@ -47,7 +47,7 @@ class PaymentInstrumentControllerTest {
   private static final LocalDateTime TEST_DATE = LocalDateTime.now();
   private static final int TEST_COUNT = 2;
 
-  private static final String GETHPAN_URL = "/instrument/" + INITIATIVE_ID + "/" + USER_ID;
+  private static final String GETHPAN_URL = "/" + INITIATIVE_ID + "/" + USER_ID;
   private static final EnrollmentBodyDTO ENROLLMENT_BODY_DTO = new EnrollmentBodyDTO(USER_ID,
       INITIATIVE_ID, HPAN, CHANNEL, TEST_DATE);
   private static final EnrollmentBodyDTO ENROLLMENT_BODY_DTO_EMPTY = new EnrollmentBodyDTO("", "",
@@ -59,13 +59,16 @@ class PaymentInstrumentControllerTest {
 
   private static final HpanDTO HPAN_DTO_TEST = new HpanDTO(HPAN, CHANNEL);
 
-  private static final HpanGetDTO  HPANGETDTO = new HpanGetDTO();
+  private static final HpanGetDTO HPANGETDTO = new HpanGetDTO();
 
   @MockBean
   PaymentInstrumentService paymentInstrumentServiceMock;
 
   @Autowired
   protected MockMvc mvc;
+
+  @Autowired
+  ObjectMapper objectMapper;
 
   @Test
   void enroll_ok() throws Exception {
@@ -205,5 +208,25 @@ class PaymentInstrumentControllerTest {
                 .accept(MediaType.APPLICATION_JSON_VALUE))
         .andExpect(MockMvcResultMatchers.status().isOk())
         .andReturn();
+  }
+
+  @Test
+  void getHpan_ko() throws Exception {
+
+    Mockito.doThrow(new PaymentInstrumentException(HttpStatus.NOT_FOUND.value(),
+            PaymentInstrumentConstants.ERROR_INITIATIVE_USER)).when(paymentInstrumentServiceMock)
+        .gethpan(INITIATIVE_ID, USER_ID);
+
+    MvcResult res = mvc.perform(
+            MockMvcRequestBuilders.get(BASE_URL + GETHPAN_URL)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .accept(MediaType.APPLICATION_JSON_VALUE))
+        .andExpect(MockMvcResultMatchers.status().isNotFound())
+        .andReturn();
+
+    ErrorDTO error = objectMapper.readValue(res.getResponse().getContentAsString(), ErrorDTO.class);
+
+    assertEquals(HttpStatus.NOT_FOUND.value(), error.getCode());
+    assertEquals(PaymentInstrumentConstants.ERROR_INITIATIVE_USER, error.getMessage());
   }
 }
