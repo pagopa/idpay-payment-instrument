@@ -87,8 +87,8 @@ microservice-chart:
 
   envConfigMapExternals:
     idpay-common:
-      TZ: tz
-      JAVA_TOOL_OPTIONS: java_tool_options
+      TZ: TZ
+      JAVA_TOOL_OPTIONS: JAVA_TOOL_OPTIONS
       
   envSecret:
     aks-api-url: cstar-d-weu-dev01-aks-apiserver-url
