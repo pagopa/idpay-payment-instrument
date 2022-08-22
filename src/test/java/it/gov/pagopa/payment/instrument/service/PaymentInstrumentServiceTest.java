@@ -29,7 +29,6 @@ import org.springframework.http.HttpStatus;
 @ExtendWith(MockitoExtension.class)
 @WebMvcTest(value = {PaymentInstrumentService.class})
 class PaymentInstrumentServiceTest {
-
   @MockBean
   PaymentInstrumentRepository paymentInstrumentRepositoryMock;
   @MockBean
@@ -44,6 +43,7 @@ class PaymentInstrumentServiceTest {
   private static final String INITIATIVE_ID_OTHER = "TEST_INITIATIVE_ID_OTHER";
   private static final String HPAN = "TEST_HPAN";
   private static final String CHANNEL = "TEST_CHANNEL";
+  private static final String OPERATION_TYPE = "ADD_INSTRUMENT";
   private static final LocalDateTime TEST_DATE = LocalDateTime.now();
   private static final int TEST_COUNT = 2;
   private static final PaymentInstrument TEST_INSTRUMENT = new PaymentInstrument(INITIATIVE_ID,
@@ -63,9 +63,9 @@ class PaymentInstrumentServiceTest {
     Mockito.doAnswer(invocationOnMock -> {
       enrollmentQueueDTO.setUserId(USER_ID);
       enrollmentQueueDTO.setInitiativeId(INITIATIVE_ID);
-      enrollmentQueueDTO.setChannel(CHANNEL);
+      enrollmentQueueDTO.setOperationType(OPERATION_TYPE);
       enrollmentQueueDTO.setHpan(HPAN);
-      enrollmentQueueDTO.setQueueDate(LocalDateTime.now().toString());
+      enrollmentQueueDTO.setOperationDate(LocalDateTime.now());
       return null;
     }).when(producer).sendInstrument(Mockito.any(EnrollmentQueueDTO.class));
 
@@ -73,9 +73,9 @@ class PaymentInstrumentServiceTest {
       paymentInstrumentService.enrollInstrument(INITIATIVE_ID, USER_ID, HPAN, CHANNEL, TEST_DATE);
       assertEquals(USER_ID, enrollmentQueueDTO.getUserId());
       assertEquals(INITIATIVE_ID, enrollmentQueueDTO.getInitiativeId());
-      assertEquals(CHANNEL, enrollmentQueueDTO.getChannel());
+      assertEquals(OPERATION_TYPE, enrollmentQueueDTO.getOperationType());
       assertEquals(HPAN, enrollmentQueueDTO.getHpan());
-      assertNotNull(enrollmentQueueDTO.getQueueDate());
+      assertNotNull(enrollmentQueueDTO.getOperationDate());
     } catch (PaymentInstrumentException e) {
       Assertions.fail();
     }

@@ -1,5 +1,6 @@
 package it.gov.pagopa.payment.instrument.dto;
 
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,7 +15,7 @@ public class EnrollmentQueueDTO {
   private String userId;
   private String initiativeId;
   private String hpan;
-  private String channel;
-  private String queueDate;
+  private String operationType;
+  private LocalDateTime operationDate;
 
 }

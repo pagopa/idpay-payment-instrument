@@ -46,8 +46,8 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
         .userId(newInstrument.getUserId())
         .initiativeId(newInstrument.getInitiativeId())
         .hpan(newInstrument.getHpan())
-        .channel(newInstrument.getChannel())
-        .queueDate(LocalDateTime.now().toString())
+        .operationType("ADD_INSTRUMENT")
+        .operationDate(LocalDateTime.now())
         .build();
     ruleEngineProducer.sendInstrument(enrollmentQueueDTO);
   }
