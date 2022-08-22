@@ -1,0 +1,20 @@
+package it.gov.pagopa.payment.instrument.event;
+
+import it.gov.pagopa.payment.instrument.dto.EnrollmentQueueDTO;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.stream.function.StreamBridge;
+import org.springframework.stereotype.Component;
+
+@Component
+public class RuleEngineProducer {
+  @Value("${spring.cloud.stream.bindings.paymentInstrumentQueue-out-0.binder}")
+  private String binderInstrument;
+  @Autowired
+  StreamBridge streamBridge;
+
+  public void sendInstrument(EnrollmentQueueDTO enrollmentQueueDTO){
+    streamBridge.send("paymentInstrumentQueue-out-0", binderInstrument, enrollmentQueueDTO);
+  }
+
+}

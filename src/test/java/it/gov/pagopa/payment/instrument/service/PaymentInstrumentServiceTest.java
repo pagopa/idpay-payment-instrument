@@ -5,8 +5,10 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants;
+import it.gov.pagopa.payment.instrument.dto.EnrollmentQueueDTO;
 import it.gov.pagopa.payment.instrument.dto.HpanDTO;
 import it.gov.pagopa.payment.instrument.dto.HpanGetDTO;
+import it.gov.pagopa.payment.instrument.event.RuleEngineProducer;
 import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
 import it.gov.pagopa.payment.instrument.model.PaymentInstrument;
 import it.gov.pagopa.payment.instrument.repository.PaymentInstrumentRepository;
@@ -30,6 +32,8 @@ class PaymentInstrumentServiceTest {
 
   @MockBean
   PaymentInstrumentRepository paymentInstrumentRepositoryMock;
+  @MockBean
+  RuleEngineProducer producer;
 
   @Autowired
   PaymentInstrumentService paymentInstrumentService;
@@ -55,8 +59,23 @@ class PaymentInstrumentServiceTest {
     Mockito.when(paymentInstrumentRepositoryMock.findByHpanAndStatus(HPAN,
         PaymentInstrumentConstants.STATUS_ACTIVE)).thenReturn(new ArrayList<>());
 
+    final EnrollmentQueueDTO enrollmentQueueDTO = new EnrollmentQueueDTO();
+    Mockito.doAnswer(invocationOnMock -> {
+      enrollmentQueueDTO.setUserId(USER_ID);
+      enrollmentQueueDTO.setInitiativeId(INITIATIVE_ID);
+      enrollmentQueueDTO.setChannel(CHANNEL);
+      enrollmentQueueDTO.setHpan(HPAN);
+      enrollmentQueueDTO.setQueueDate(LocalDateTime.now().toString());
+      return null;
+    }).when(producer).sendInstrument(Mockito.any(EnrollmentQueueDTO.class));
+
     try {
       paymentInstrumentService.enrollInstrument(INITIATIVE_ID, USER_ID, HPAN, CHANNEL, TEST_DATE);
+      assertEquals(USER_ID, enrollmentQueueDTO.getUserId());
+      assertEquals(INITIATIVE_ID, enrollmentQueueDTO.getInitiativeId());
+      assertEquals(CHANNEL, enrollmentQueueDTO.getChannel());
+      assertEquals(HPAN, enrollmentQueueDTO.getHpan());
+      assertNotNull(enrollmentQueueDTO.getQueueDate());
     } catch (PaymentInstrumentException e) {
       Assertions.fail();
     }
