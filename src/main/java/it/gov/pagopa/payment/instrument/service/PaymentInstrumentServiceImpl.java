@@ -4,6 +4,7 @@ import it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants;
 import it.gov.pagopa.payment.instrument.dto.RuleEngineQueueDTO;
 import it.gov.pagopa.payment.instrument.dto.HpanDTO;
 import it.gov.pagopa.payment.instrument.dto.HpanGetDTO;
+import it.gov.pagopa.payment.instrument.dto.mapper.MessageMapper;
 import it.gov.pagopa.payment.instrument.event.RuleEngineProducer;
 import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
 import it.gov.pagopa.payment.instrument.model.PaymentInstrument;
@@ -22,6 +23,8 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
   private PaymentInstrumentRepository paymentInstrumentRepository;
   @Autowired
   RuleEngineProducer ruleEngineProducer;
+  @Autowired
+  MessageMapper messageMapper;
 
 
   @Override
@@ -63,7 +66,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
         .operationType("DELETE_INSTRUMENT")
         .operationDate(LocalDateTime.now())
         .build();
-    ruleEngineProducer.sendInstrument(ruleEngineQueueDTO);
+    ruleEngineProducer.sendInstrument(messageMapper.apply(ruleEngineQueueDTO));
   }
 
   @Override

@@ -8,6 +8,7 @@ import it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants;
 import it.gov.pagopa.payment.instrument.dto.RuleEngineQueueDTO;
 import it.gov.pagopa.payment.instrument.dto.HpanDTO;
 import it.gov.pagopa.payment.instrument.dto.HpanGetDTO;
+import it.gov.pagopa.payment.instrument.dto.mapper.MessageMapper;
 import it.gov.pagopa.payment.instrument.event.RuleEngineProducer;
 import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
 import it.gov.pagopa.payment.instrument.model.PaymentInstrument;
@@ -34,6 +35,8 @@ class PaymentInstrumentServiceTest {
   PaymentInstrumentRepository paymentInstrumentRepositoryMock;
   @MockBean
   RuleEngineProducer producer;
+  @MockBean
+  MessageMapper messageMapper;
 
   @Autowired
   PaymentInstrumentService paymentInstrumentService;
@@ -119,25 +122,11 @@ class PaymentInstrumentServiceTest {
       return null;
     }).when(paymentInstrumentRepositoryMock).save(Mockito.any(PaymentInstrument.class));
 
-    final RuleEngineQueueDTO ruleEngineQueueDTO = new RuleEngineQueueDTO();
-    Mockito.doAnswer(invocationOnMock -> {
-      ruleEngineQueueDTO.setUserId(USER_ID);
-      ruleEngineQueueDTO.setInitiativeId(INITIATIVE_ID);
-      ruleEngineQueueDTO.setOperationType("DELETE_INSTRUMENT");
-      ruleEngineQueueDTO.setHpan(HPAN);
-      ruleEngineQueueDTO.setOperationDate(TEST_DATE);
-      return null;
-    }).when(producer).sendInstrument(Mockito.any(RuleEngineQueueDTO.class));
     try {
       paymentInstrumentService.deactivateInstrument(INITIATIVE_ID, USER_ID, HPAN, TEST_DATE);
     } catch (PaymentInstrumentException e) {
       Assertions.fail();
     }
-    assertEquals(USER_ID, ruleEngineQueueDTO.getUserId());
-    assertEquals(INITIATIVE_ID, ruleEngineQueueDTO.getInitiativeId());
-    assertEquals("DELETE_INSTRUMENT", ruleEngineQueueDTO.getOperationType());
-    assertEquals(HPAN, ruleEngineQueueDTO.getHpan());
-    assertEquals(TEST_DATE, ruleEngineQueueDTO.getOperationDate());
     assertEquals(PaymentInstrumentConstants.STATUS_INACTIVE, TEST_INSTRUMENT.getStatus());
     assertNotNull(TEST_INSTRUMENT.getDeactivationDate());
     assertEquals(TEST_DATE, TEST_INSTRUMENT.getDeactivationDate());
