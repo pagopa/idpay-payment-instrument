@@ -1,8 +1,10 @@
 package it.gov.pagopa.payment.instrument.service;
 
 import it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants;
+import it.gov.pagopa.payment.instrument.dto.RuleEngineQueueDTO;
 import it.gov.pagopa.payment.instrument.dto.HpanDTO;
 import it.gov.pagopa.payment.instrument.dto.HpanGetDTO;
+import it.gov.pagopa.payment.instrument.event.RuleEngineProducer;
 import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
 import it.gov.pagopa.payment.instrument.model.PaymentInstrument;
 import it.gov.pagopa.payment.instrument.repository.PaymentInstrumentRepository;
@@ -18,6 +20,9 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
 
   @Autowired
   private PaymentInstrumentRepository paymentInstrumentRepository;
+  @Autowired
+  RuleEngineProducer ruleEngineProducer;
+
 
   @Override
   public void enrollInstrument(String initiativeId, String userId, String hpan, String channel,
@@ -50,6 +55,15 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     instrument.setStatus(PaymentInstrumentConstants.STATUS_INACTIVE);
     instrument.setDeactivationDate(deactivationDate);
     paymentInstrumentRepository.save(instrument);
+
+    RuleEngineQueueDTO ruleEngineQueueDTO = RuleEngineQueueDTO.builder()
+        .userId(instrument.getUserId())
+        .initiativeId(instrument.getInitiativeId())
+        .hpan(instrument.getHpan())
+        .operationType("DELETE_INSTRUMENT")
+        .operationDate(LocalDateTime.now())
+        .build();
+    ruleEngineProducer.sendInstrument(ruleEngineQueueDTO);
   }
 
   @Override
