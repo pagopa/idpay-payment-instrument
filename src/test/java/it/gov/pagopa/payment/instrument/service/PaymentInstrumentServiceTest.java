@@ -7,6 +7,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants;
 import it.gov.pagopa.payment.instrument.dto.HpanDTO;
 import it.gov.pagopa.payment.instrument.dto.HpanGetDTO;
+import it.gov.pagopa.payment.instrument.dto.mapper.MessageMapper;
+import it.gov.pagopa.payment.instrument.event.RuleEngineProducer;
 import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
 import it.gov.pagopa.payment.instrument.model.PaymentInstrument;
 import it.gov.pagopa.payment.instrument.repository.PaymentInstrumentRepository;
@@ -27,9 +29,12 @@ import org.springframework.http.HttpStatus;
 @ExtendWith(MockitoExtension.class)
 @WebMvcTest(value = {PaymentInstrumentService.class})
 class PaymentInstrumentServiceTest {
-
   @MockBean
   PaymentInstrumentRepository paymentInstrumentRepositoryMock;
+  @MockBean
+  RuleEngineProducer producer;
+  @MockBean
+  MessageMapper messageMapper;
 
   @Autowired
   PaymentInstrumentService paymentInstrumentService;
@@ -40,6 +45,7 @@ class PaymentInstrumentServiceTest {
   private static final String INITIATIVE_ID_OTHER = "TEST_INITIATIVE_ID_OTHER";
   private static final String HPAN = "TEST_HPAN";
   private static final String CHANNEL = "TEST_CHANNEL";
+  private static final String OPERATION_TYPE = "ADD_INSTRUMENT";
   private static final LocalDateTime TEST_DATE = LocalDateTime.now();
   private static final int TEST_COUNT = 2;
   private static final PaymentInstrument TEST_INSTRUMENT = new PaymentInstrument(INITIATIVE_ID,
