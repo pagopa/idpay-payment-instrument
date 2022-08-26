@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import it.gov.pagopa.payment.instrument.dto.RuleEngineQueueDTO;
-import it.gov.pagopa.payment.instrument.dto.mapper.MessageMapper;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;

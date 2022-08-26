@@ -66,6 +66,15 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     instrument.setStatus(PaymentInstrumentConstants.STATUS_INACTIVE);
     instrument.setDeactivationDate(deactivationDate);
     paymentInstrumentRepository.save(instrument);
+
+    RuleEngineQueueDTO ruleEngineQueueDTO = RuleEngineQueueDTO.builder()
+        .userId(instrument.getUserId())
+        .initiativeId(instrument.getInitiativeId())
+        .hpan(instrument.getHpan())
+        .operationType("DELETE_INSTRUMENT")
+        .operationDate(LocalDateTime.now())
+        .build();
+    ruleEngineProducer.sendInstrument(messageMapper.apply(ruleEngineQueueDTO));
   }
 
   @Override

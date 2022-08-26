@@ -120,6 +120,7 @@ class PaymentInstrumentServiceTest {
       TEST_INSTRUMENT.setDeactivationDate(TEST_DATE);
       return null;
     }).when(paymentInstrumentRepositoryMock).save(Mockito.any(PaymentInstrument.class));
+
     try {
       paymentInstrumentService.deactivateInstrument(INITIATIVE_ID, USER_ID, HPAN, TEST_DATE);
     } catch (PaymentInstrumentException e) {
