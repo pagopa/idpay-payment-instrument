@@ -26,7 +26,6 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
   @Autowired
   MessageMapper messageMapper;
 
-
   @Override
   public void enrollInstrument(String initiativeId, String userId, String hpan, String channel,
       LocalDateTime activationDate) {
@@ -45,6 +44,15 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     PaymentInstrument newInstrument = new PaymentInstrument(initiativeId, userId, hpan,
         PaymentInstrumentConstants.STATUS_ACTIVE, channel, activationDate);
     paymentInstrumentRepository.save(newInstrument);
+
+    RuleEngineQueueDTO ruleEngineQueueDTO = RuleEngineQueueDTO.builder()
+        .userId(newInstrument.getUserId())
+        .initiativeId(newInstrument.getInitiativeId())
+        .hpan(newInstrument.getHpan())
+        .operationType("ADD_INSTRUMENT")
+        .operationDate(LocalDateTime.now())
+        .build();
+    ruleEngineProducer.sendInstrument(messageMapper.apply(ruleEngineQueueDTO));
   }
 
   @Override

@@ -29,7 +29,6 @@ import org.springframework.http.HttpStatus;
 @ExtendWith(MockitoExtension.class)
 @WebMvcTest(value = {PaymentInstrumentService.class})
 class PaymentInstrumentServiceTest {
-
   @MockBean
   PaymentInstrumentRepository paymentInstrumentRepositoryMock;
   @MockBean
@@ -46,6 +45,7 @@ class PaymentInstrumentServiceTest {
   private static final String INITIATIVE_ID_OTHER = "TEST_INITIATIVE_ID_OTHER";
   private static final String HPAN = "TEST_HPAN";
   private static final String CHANNEL = "TEST_CHANNEL";
+  private static final String OPERATION_TYPE = "ADD_INSTRUMENT";
   private static final LocalDateTime TEST_DATE = LocalDateTime.now();
   private static final int TEST_COUNT = 2;
   private static final PaymentInstrument TEST_INSTRUMENT = new PaymentInstrument(INITIATIVE_ID,
