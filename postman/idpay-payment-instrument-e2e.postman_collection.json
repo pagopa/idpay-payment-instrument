@@ -116,7 +116,7 @@
 							}
 						},
 						"url": {
-							"raw": "{{baseUrl}}/idpay/wallet/instrument/test_get_wallet",
+							"raw": "{{baseUrl}}/idpay/wallet/instrument/wallet_postman_e2e_test",
 							"host": [
 								"{{baseUrl}}"
 							],
@@ -124,7 +124,7 @@
 								"idpay",
 								"wallet",
 								"instrument",
-								"test_get_wallet"
+								"wallet_postman_e2e_test"
 							]
 						}
 					},
