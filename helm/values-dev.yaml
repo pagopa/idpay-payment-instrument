@@ -99,7 +99,7 @@ microservice-chart:
     aks-api-url: cstar-d-weu-dev01-aks-apiserver-url
     MONGODB_URI: mongodb-connection-string
 #    APPLICATIONINSIGHTS_CONNECTION_STRING: appinsights-instrumentation-key
-    KAFKA_RULE_ENGINE_SASL_JAAS_CONFIG: evh-idpay_hpan_update-idpay_hpan_update-producer-jaas-config-idpay-01
+    KAFKA_RULE_ENGINE_SASL_JAAS_CONFIG: evh-idpay-hpan-update-idpay-hpan-update-producer-jaas-config-idpay-01
 
 
   keyvault:
