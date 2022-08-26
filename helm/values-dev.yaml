@@ -94,7 +94,8 @@ microservice-chart:
       KAFKA_PAYMENT_INSTRUMENT_MECHANISM: kafka_sasl_mechanism
       KAFKA_PAYMENT_INSTRUMENT_SECURITY_PROTOCOL: kafka_security_protocol
       KAFKA_TOPIC_RULE_ENGINE: idpay_hpan_update_topic
-      
+      KAFKA_TRANSACTION_USER_ID_SPLITTER_KEY_SERIALIZER: kafka_transaction_user_id_splitter_key_serializer
+
   envSecret:
     aks-api-url: cstar-d-weu-dev01-aks-apiserver-url
     MONGODB_URI: mongodb-connection-string
