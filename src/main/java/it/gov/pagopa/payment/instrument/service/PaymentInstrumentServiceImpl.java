@@ -58,11 +58,21 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
   @Override
   public void deactivateInstrument(String initiativeId, String userId, String hpan,
       LocalDateTime deactivationDate) {
-    PaymentInstrument instrument = paymentInstrumentRepository.findByInitiativeIdAndUserIdAndHpanAndStatus(
-        initiativeId, userId, hpan, PaymentInstrumentConstants.STATUS_ACTIVE).orElseThrow(
-        () -> new PaymentInstrumentException(HttpStatus.NOT_FOUND.value(),
-            PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_NOT_FOUND));
+    List<PaymentInstrument> instruments = paymentInstrumentRepository.findByInitiativeIdAndUserIdAndHpan(
+        initiativeId, userId, hpan);
+    if (instruments.isEmpty()) {
+      throw new PaymentInstrumentException(HttpStatus.NOT_FOUND.value(),
+          PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_NOT_FOUND);
+    }
+    instruments.forEach(instrument ->
+      checkAndDelete(instrument, deactivationDate)
+    );
+  }
 
+  private void checkAndDelete(PaymentInstrument instrument, LocalDateTime deactivationDate) {
+    if (instrument.getStatus().equals(PaymentInstrumentConstants.STATUS_INACTIVE)) {
+      return;
+    }
     instrument.setStatus(PaymentInstrumentConstants.STATUS_INACTIVE);
     instrument.setDeactivationDate(deactivationDate);
     paymentInstrumentRepository.save(instrument);
@@ -89,7 +99,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     List<PaymentInstrument> paymentInstrument = paymentInstrumentRepository.findByInitiativeIdAndUserId(
         initiativeId, userId);
 
-    if(paymentInstrument.isEmpty()){
+    if (paymentInstrument.isEmpty()) {
       throw new PaymentInstrumentException(HttpStatus.NOT_FOUND.value(),
           PaymentInstrumentConstants.ERROR_INITIATIVE_USER);
     }

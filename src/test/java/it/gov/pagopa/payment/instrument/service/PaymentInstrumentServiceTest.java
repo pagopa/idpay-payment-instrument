@@ -15,7 +15,6 @@ import it.gov.pagopa.payment.instrument.repository.PaymentInstrumentRepository;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -45,15 +44,15 @@ class PaymentInstrumentServiceTest {
   private static final String INITIATIVE_ID_OTHER = "TEST_INITIATIVE_ID_OTHER";
   private static final String HPAN = "TEST_HPAN";
   private static final String CHANNEL = "TEST_CHANNEL";
-  private static final String OPERATION_TYPE = "ADD_INSTRUMENT";
   private static final LocalDateTime TEST_DATE = LocalDateTime.now();
   private static final int TEST_COUNT = 2;
   private static final PaymentInstrument TEST_INSTRUMENT = new PaymentInstrument(INITIATIVE_ID,
       USER_ID, HPAN, PaymentInstrumentConstants.STATUS_ACTIVE, CHANNEL, TEST_DATE);
-  private static final List<PaymentInstrument> TEST_INSTRUMENT_LIST = new ArrayList<>();
+  private static final PaymentInstrument TEST_INACTIVE_INSTRUMENT = new PaymentInstrument(INITIATIVE_ID,
+      USER_ID, HPAN, PaymentInstrumentConstants.STATUS_INACTIVE, CHANNEL, TEST_DATE);
 
   static {
-    TEST_INSTRUMENT_LIST.add(TEST_INSTRUMENT);
+    TEST_INACTIVE_INSTRUMENT.setDeactivationDate(TEST_DATE);
   }
 
   @Test
@@ -71,7 +70,7 @@ class PaymentInstrumentServiceTest {
   @Test
   void enrollInstrument_ok_other_initiative() {
     Mockito.when(paymentInstrumentRepositoryMock.findByHpanAndStatus(HPAN,
-        PaymentInstrumentConstants.STATUS_ACTIVE)).thenReturn(TEST_INSTRUMENT_LIST);
+        PaymentInstrumentConstants.STATUS_ACTIVE)).thenReturn(List.of(TEST_INSTRUMENT));
 
     try {
       paymentInstrumentService.enrollInstrument(INITIATIVE_ID_OTHER, USER_ID, HPAN, CHANNEL,
@@ -84,7 +83,7 @@ class PaymentInstrumentServiceTest {
   @Test
   void enrollInstrument_ok_idemp() {
     Mockito.when(paymentInstrumentRepositoryMock.findByHpanAndStatus(HPAN,
-        PaymentInstrumentConstants.STATUS_ACTIVE)).thenReturn(TEST_INSTRUMENT_LIST);
+        PaymentInstrumentConstants.STATUS_ACTIVE)).thenReturn(List.of(TEST_INSTRUMENT));
 
     try {
       paymentInstrumentService.enrollInstrument(INITIATIVE_ID, USER_ID, HPAN, CHANNEL, TEST_DATE);
@@ -96,7 +95,7 @@ class PaymentInstrumentServiceTest {
   @Test
   void enrollInstrument_ok_already_active() {
     Mockito.when(paymentInstrumentRepositoryMock.findByHpanAndStatus(HPAN,
-        PaymentInstrumentConstants.STATUS_ACTIVE)).thenReturn(TEST_INSTRUMENT_LIST);
+        PaymentInstrumentConstants.STATUS_ACTIVE)).thenReturn(List.of(TEST_INSTRUMENT));
 
     try {
       paymentInstrumentService.enrollInstrument(INITIATIVE_ID, USER_ID_FAIL, HPAN, CHANNEL,
@@ -111,9 +110,9 @@ class PaymentInstrumentServiceTest {
   @Test
   void deactivateInstrument_ok() {
     Mockito.when(
-            paymentInstrumentRepositoryMock.findByInitiativeIdAndUserIdAndHpanAndStatus(INITIATIVE_ID,
-                USER_ID, HPAN, PaymentInstrumentConstants.STATUS_ACTIVE))
-        .thenReturn(Optional.of(TEST_INSTRUMENT));
+            paymentInstrumentRepositoryMock.findByInitiativeIdAndUserIdAndHpan(INITIATIVE_ID,
+                USER_ID, HPAN))
+        .thenReturn(List.of(TEST_INSTRUMENT, TEST_INACTIVE_INSTRUMENT));
 
     Mockito.doAnswer(invocationOnMock -> {
       TEST_INSTRUMENT.setStatus(PaymentInstrumentConstants.STATUS_INACTIVE);
@@ -132,11 +131,25 @@ class PaymentInstrumentServiceTest {
   }
 
   @Test
+  void deactivateInstrument_ok_idemp() {
+    Mockito.when(
+            paymentInstrumentRepositoryMock.findByInitiativeIdAndUserIdAndHpan(INITIATIVE_ID,
+                USER_ID, HPAN))
+        .thenReturn(List.of(TEST_INACTIVE_INSTRUMENT));
+
+    try {
+      paymentInstrumentService.deactivateInstrument(INITIATIVE_ID, USER_ID, HPAN, TEST_DATE);
+    } catch (PaymentInstrumentException e) {
+      Assertions.fail();
+    }
+  }
+
+  @Test
   void deactivateInstrument_not_found() {
     Mockito.when(
-            paymentInstrumentRepositoryMock.findByInitiativeIdAndUserIdAndHpanAndStatus(INITIATIVE_ID,
-                USER_ID, HPAN, PaymentInstrumentConstants.STATUS_ACTIVE))
-        .thenReturn(Optional.empty());
+            paymentInstrumentRepositoryMock.findByInitiativeIdAndUserIdAndHpan(INITIATIVE_ID,
+                USER_ID, HPAN))
+        .thenReturn(List.of());
 
     try {
       paymentInstrumentService.deactivateInstrument(INITIATIVE_ID, USER_ID, HPAN, TEST_DATE);
