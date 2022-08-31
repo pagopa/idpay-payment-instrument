@@ -3,8 +3,10 @@ package it.gov.pagopa.payment.instrument.service;
 import it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants;
 import it.gov.pagopa.payment.instrument.dto.HpanDTO;
 import it.gov.pagopa.payment.instrument.dto.HpanGetDTO;
+import it.gov.pagopa.payment.instrument.dto.RTDOperationDTO;
 import it.gov.pagopa.payment.instrument.dto.RuleEngineQueueDTO;
 import it.gov.pagopa.payment.instrument.dto.mapper.MessageMapper;
+import it.gov.pagopa.payment.instrument.event.RTDProducer;
 import it.gov.pagopa.payment.instrument.event.RuleEngineProducer;
 import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
 import it.gov.pagopa.payment.instrument.model.PaymentInstrument;
@@ -26,6 +28,8 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
   @Autowired
   RuleEngineProducer ruleEngineProducer;
   @Autowired
+  RTDProducer rtdProducer;
+  @Autowired
   MessageMapper messageMapper;
 
   @Override
@@ -46,6 +50,15 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     PaymentInstrument newInstrument = new PaymentInstrument(initiativeId, userId, hpan,
         PaymentInstrumentConstants.STATUS_ACTIVE, channel, activationDate);
     paymentInstrumentRepository.save(newInstrument);
+
+    RTDOperationDTO rtdOperationDTO =
+        RTDOperationDTO.builder()
+            .hpan(newInstrument.getHpan())
+            .operationType("ADD_INSTRUMENT")
+            .application("IDPAY")
+            .operationDate(LocalDateTime.now())
+            .build();
+    rtdProducer.sendInstrument(rtdOperationDTO);
 
     RuleEngineQueueDTO ruleEngineQueueDTO = RuleEngineQueueDTO.builder()
         .userId(newInstrument.getUserId())
@@ -95,6 +108,15 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     instrument.setStatus(PaymentInstrumentConstants.STATUS_INACTIVE);
     instrument.setDeactivationDate(deactivationDate);
     paymentInstrumentRepository.save(instrument);
+
+    RTDOperationDTO rtdOperationDTO =
+        RTDOperationDTO.builder()
+            .hpan(instrument.getHpan())
+            .operationType("DELETE_INSTRUMENT")
+            .application("IDPAY")
+            .operationDate(LocalDateTime.now())
+            .build();
+    rtdProducer.sendInstrument(rtdOperationDTO);
 
     RuleEngineQueueDTO ruleEngineQueueDTO = RuleEngineQueueDTO.builder()
         .userId(instrument.getUserId())

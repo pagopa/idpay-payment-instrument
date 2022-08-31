@@ -94,12 +94,16 @@ microservice-chart:
       KAFKA_PAYMENT_INSTRUMENT_MECHANISM: kafka_sasl_mechanism
       KAFKA_PAYMENT_INSTRUMENT_SECURITY_PROTOCOL: kafka_security_protocol
       KAFKA_TOPIC_RULE_ENGINE: idpay_hpan_update_topic
+    rtd-eventhub:
+      KAFKA_BINDER_BROKER_ENDPOINT_RTD: kafka_broker_rtd
+      KAFKA_TOPIC_RTD: rtd_enrolled_pi_topic
 
   envSecret:
     aks-api-url: cstar-d-weu-dev01-aks-apiserver-url
     MONGODB_URI: mongodb-connection-string
-#    APPLICATIONINSIGHTS_CONNECTION_STRING: appinsights-instrumentation-key
     KAFKA_RULE_ENGINE_SASL_JAAS_CONFIG: evh-idpay-hpan-update-idpay-hpan-update-producer-jaas-config-idpay-01
+    KAFKA_RTD_SASL_JAAS_CONFIG: idpay-enrolled-pi-producer-connection-uri
+#    APPLICATIONINSIGHTS_CONNECTION_STRING: appinsights-instrumentation-key
 
 
   keyvault:

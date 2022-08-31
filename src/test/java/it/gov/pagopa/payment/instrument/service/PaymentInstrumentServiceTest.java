@@ -8,6 +8,7 @@ import it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants;
 import it.gov.pagopa.payment.instrument.dto.HpanDTO;
 import it.gov.pagopa.payment.instrument.dto.HpanGetDTO;
 import it.gov.pagopa.payment.instrument.dto.mapper.MessageMapper;
+import it.gov.pagopa.payment.instrument.event.RTDProducer;
 import it.gov.pagopa.payment.instrument.event.RuleEngineProducer;
 import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
 import it.gov.pagopa.payment.instrument.model.PaymentInstrument;
@@ -32,6 +33,8 @@ class PaymentInstrumentServiceTest {
   PaymentInstrumentRepository paymentInstrumentRepositoryMock;
   @MockBean
   RuleEngineProducer producer;
+  @MockBean
+  RTDProducer rtdProducer;
   @MockBean
   MessageMapper messageMapper;
 
