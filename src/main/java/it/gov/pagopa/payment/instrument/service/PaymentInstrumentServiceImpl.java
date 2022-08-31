@@ -12,10 +12,12 @@ import it.gov.pagopa.payment.instrument.repository.PaymentInstrumentRepository;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
 
@@ -52,7 +54,14 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
         .operationType("ADD_INSTRUMENT")
         .operationDate(LocalDateTime.now())
         .build();
+
+    log.info("[PaymentInstrumentService] Sending message to Rule Engine.");
+    long start = System.currentTimeMillis();
+
     ruleEngineProducer.sendInstrument(messageMapper.apply(ruleEngineQueueDTO));
+
+    long end = System.currentTimeMillis();
+    log.info("[PaymentInstrumentService] Sent message to Rule Engine after " + (end - start) + " ms.");
   }
 
   @Override
@@ -84,7 +93,14 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
         .operationType("DELETE_INSTRUMENT")
         .operationDate(LocalDateTime.now())
         .build();
+
+    log.info("[PaymentInstrumentService] Sending message to Rule Engine.");
+    long start = System.currentTimeMillis();
+
     ruleEngineProducer.sendInstrument(messageMapper.apply(ruleEngineQueueDTO));
+
+    long end = System.currentTimeMillis();
+    log.info("[PaymentInstrumentService] Sent message to Rule Engine after " + (end - start) + " ms.");
   }
 
   @Override
