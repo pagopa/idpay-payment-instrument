@@ -5,6 +5,7 @@ import it.gov.pagopa.payment.instrument.dto.DeactivationBodyDTO;
 import it.gov.pagopa.payment.instrument.dto.EnrollmentBodyDTO;
 import it.gov.pagopa.payment.instrument.dto.HpanGetDTO;
 import it.gov.pagopa.payment.instrument.dto.InstrumentResponseDTO;
+import it.gov.pagopa.payment.instrument.dto.UnsubscribeBodyDTO;
 import it.gov.pagopa.payment.instrument.service.PaymentInstrumentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -28,6 +29,8 @@ public class PaymentInstrumentControllerImpl implements PaymentInstrumentControl
     return new ResponseEntity<>(new InstrumentResponseDTO(nInstr), HttpStatus.OK);
   }
 
+
+
   @Override
   public ResponseEntity<InstrumentResponseDTO> deleteInstrument(DeactivationBodyDTO body) {
     paymentInstrumentService.deactivateInstrument(body.getInitiativeId(), body.getUserId(),
@@ -35,6 +38,13 @@ public class PaymentInstrumentControllerImpl implements PaymentInstrumentControl
     int nInstr = paymentInstrumentService.countByInitiativeIdAndUserIdAndStatus(body.getInitiativeId(),
         body.getUserId(), PaymentInstrumentConstants.STATUS_ACTIVE);
     return new ResponseEntity<>(new InstrumentResponseDTO(nInstr), HttpStatus.OK);
+  }
+
+
+  @Override
+  public ResponseEntity<Void> disableAllInstrument(UnsubscribeBodyDTO body) {
+    paymentInstrumentService.deactivateAllInstrument(body.getInitiativeId(), body.getUserId(), body.getUnsubscribeDate());
+    return new ResponseEntity<>(HttpStatus.NO_CONTENT);
   }
 
   @Override

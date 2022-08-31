@@ -56,6 +56,16 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
   }
 
   @Override
+  public void deactivateAllInstrument(String initiativeId, String userId, String deactivationDate) {
+    List<PaymentInstrument> paymentInstrumentList = paymentInstrumentRepository.findByInitiativeIdAndUserIdAndStatus(
+        initiativeId, userId, PaymentInstrumentConstants.STATUS_ACTIVE);
+
+    for(PaymentInstrument paymentInstrument:paymentInstrumentList) {
+      this.deactivateInstrument(initiativeId,userId,paymentInstrument.getHpan(),LocalDateTime.parse(deactivationDate));
+    }
+  }
+
+  @Override
   public void deactivateInstrument(String initiativeId, String userId, String hpan,
       LocalDateTime deactivationDate) {
     PaymentInstrument instrument = paymentInstrumentRepository.findByInitiativeIdAndUserIdAndHpanAndStatus(

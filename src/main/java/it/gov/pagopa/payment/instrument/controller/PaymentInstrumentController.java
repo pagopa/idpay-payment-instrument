@@ -4,6 +4,7 @@ import it.gov.pagopa.payment.instrument.dto.DeactivationBodyDTO;
 import it.gov.pagopa.payment.instrument.dto.EnrollmentBodyDTO;
 import it.gov.pagopa.payment.instrument.dto.HpanGetDTO;
 import it.gov.pagopa.payment.instrument.dto.InstrumentResponseDTO;
+import it.gov.pagopa.payment.instrument.dto.UnsubscribeBodyDTO;
 import javax.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -41,6 +42,16 @@ public interface PaymentInstrumentController {
   @DeleteMapping("/deactivate")
   ResponseEntity<InstrumentResponseDTO> deleteInstrument(
       @Valid @RequestBody DeactivationBodyDTO body);
+
+  /**
+   * Deactivation all Payment Instrument
+   *
+   * @param body
+   * @return
+   */
+  @DeleteMapping("/disableall")
+  ResponseEntity<Void> disableAllInstrument(
+      @Valid @RequestBody UnsubscribeBodyDTO body);
 
   /**
    * Enrollment of a Payment Instrument
