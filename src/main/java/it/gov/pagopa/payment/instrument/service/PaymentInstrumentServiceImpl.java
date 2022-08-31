@@ -3,6 +3,9 @@ package it.gov.pagopa.payment.instrument.service;
 import it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants;
 import it.gov.pagopa.payment.instrument.dto.HpanDTO;
 import it.gov.pagopa.payment.instrument.dto.HpanGetDTO;
+import it.gov.pagopa.payment.instrument.dto.RuleEngineQueueDTO;
+import it.gov.pagopa.payment.instrument.dto.mapper.MessageMapper;
+import it.gov.pagopa.payment.instrument.event.RuleEngineProducer;
 import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
 import it.gov.pagopa.payment.instrument.model.PaymentInstrument;
 import it.gov.pagopa.payment.instrument.repository.PaymentInstrumentRepository;
@@ -18,6 +21,10 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
 
   @Autowired
   private PaymentInstrumentRepository paymentInstrumentRepository;
+  @Autowired
+  RuleEngineProducer ruleEngineProducer;
+  @Autowired
+  MessageMapper messageMapper;
 
   @Override
   public void enrollInstrument(String initiativeId, String userId, String hpan, String channel,
@@ -37,6 +44,25 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     PaymentInstrument newInstrument = new PaymentInstrument(initiativeId, userId, hpan,
         PaymentInstrumentConstants.STATUS_ACTIVE, channel, activationDate);
     paymentInstrumentRepository.save(newInstrument);
+
+    RuleEngineQueueDTO ruleEngineQueueDTO = RuleEngineQueueDTO.builder()
+        .userId(newInstrument.getUserId())
+        .initiativeId(newInstrument.getInitiativeId())
+        .hpan(newInstrument.getHpan())
+        .operationType("ADD_INSTRUMENT")
+        .operationDate(LocalDateTime.now())
+        .build();
+    ruleEngineProducer.sendInstrument(messageMapper.apply(ruleEngineQueueDTO));
+  }
+
+  @Override
+  public void deactivateAllInstrument(String initiativeId, String userId, String deactivationDate) {
+    List<PaymentInstrument> paymentInstrumentList = paymentInstrumentRepository.findByInitiativeIdAndUserIdAndStatus(
+        initiativeId, userId, PaymentInstrumentConstants.STATUS_ACTIVE);
+
+    for(PaymentInstrument paymentInstrument:paymentInstrumentList) {
+      this.deactivateInstrument(initiativeId,userId,paymentInstrument.getHpan(),LocalDateTime.parse(deactivationDate));
+    }
   }
 
   @Override

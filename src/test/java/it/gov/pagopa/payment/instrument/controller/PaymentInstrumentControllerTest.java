@@ -12,6 +12,7 @@ import it.gov.pagopa.payment.instrument.dto.ErrorDTO;
 import it.gov.pagopa.payment.instrument.dto.HpanDTO;
 import it.gov.pagopa.payment.instrument.dto.HpanGetDTO;
 import it.gov.pagopa.payment.instrument.dto.InstrumentResponseDTO;
+import it.gov.pagopa.payment.instrument.dto.UnsubscribeBodyDTO;
 import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
 import it.gov.pagopa.payment.instrument.service.PaymentInstrumentService;
 import java.time.LocalDateTime;
@@ -40,6 +41,7 @@ class PaymentInstrumentControllerTest {
   private static final String BASE_URL = "http://localhost:8080/idpay/instrument";
   private static final String ENROLL_URL = "/enroll/";
   private static final String DEACTIVATE_URL = "/deactivate/";
+  private static final String DISABLE_ALL_URL = "/disableall";
   private static final String USER_ID = "TEST_USER_ID";
   private static final String INITIATIVE_ID = "TEST_INITIATIVE_ID";
   private static final String HPAN = "TEST_HPAN";
@@ -229,4 +231,23 @@ class PaymentInstrumentControllerTest {
     assertEquals(HttpStatus.NOT_FOUND.value(), error.getCode());
     assertEquals(PaymentInstrumentConstants.ERROR_INITIATIVE_USER, error.getMessage());
   }
+
+  @Test
+  void disableAllInstrument_ok() throws Exception {
+    ObjectMapper objectMapper = new ObjectMapper();
+    UnsubscribeBodyDTO unsubscribeBodyDTO = new UnsubscribeBodyDTO(INITIATIVE_ID, USER_ID,
+        LocalDateTime.now().toString());
+
+    Mockito.doNothing().when(paymentInstrumentServiceMock).deactivateAllInstrument(INITIATIVE_ID, USER_ID, LocalDateTime.now().toString());
+
+    mvc.perform(
+            MockMvcRequestBuilders.delete(BASE_URL + DISABLE_ALL_URL)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(objectMapper.writeValueAsString(unsubscribeBodyDTO))
+                .accept(MediaType.APPLICATION_JSON_VALUE))
+        .andExpect(MockMvcResultMatchers.status().isNoContent())
+        .andReturn();
+  }
+
+
 }
