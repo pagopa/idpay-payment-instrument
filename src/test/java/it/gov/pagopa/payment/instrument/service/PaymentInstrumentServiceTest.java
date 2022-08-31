@@ -221,11 +221,6 @@ class PaymentInstrumentServiceTest {
     Mockito.when(paymentInstrumentRepositoryMock.findByInitiativeIdAndUserIdAndStatus(INITIATIVE_ID, USER_ID, PaymentInstrumentConstants.STATUS_ACTIVE))
         .thenReturn(paymentInstruments);
 
-    Mockito.when(
-            paymentInstrumentRepositoryMock.findByInitiativeIdAndUserIdAndHpanAndStatus(INITIATIVE_ID,
-                USER_ID, HPAN, PaymentInstrumentConstants.STATUS_ACTIVE))
-        .thenReturn(Optional.of(TEST_INSTRUMENT));
-
     Mockito.doAnswer(
             invocationOnMock -> {
               TEST_INSTRUMENT.setStatus(PaymentInstrumentConstants.STATUS_INACTIVE);

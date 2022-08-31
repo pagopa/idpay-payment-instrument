@@ -83,7 +83,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
         initiativeId, userId, PaymentInstrumentConstants.STATUS_ACTIVE);
 
     for(PaymentInstrument paymentInstrument:paymentInstrumentList) {
-      this.deactivateInstrument(initiativeId,userId,paymentInstrument.getHpan(),LocalDateTime.parse(deactivationDate));
+      this.checkAndDelete(paymentInstrument, LocalDateTime.parse(deactivationDate));
     }
   }
 
