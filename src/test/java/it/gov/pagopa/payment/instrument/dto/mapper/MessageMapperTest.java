@@ -3,6 +3,7 @@ package it.gov.pagopa.payment.instrument.dto.mapper;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants;
 import it.gov.pagopa.payment.instrument.dto.RuleEngineQueueDTO;
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -17,14 +18,13 @@ class MessageMapperTest {
   private static final String USER_ID = "TEST_USER_ID";
   private static final String INITIATIVE_ID = "TEST_INITIATIVE_ID";
   private static final String HPAN = "TEST_HPAN";
-  private static final String OPERATION_TYPE = "ADD_INSTRUMENT";
   @Test
   void testApply() {
 
     RuleEngineQueueDTO ruleEngineQueueDTO = new RuleEngineQueueDTO();
     ruleEngineQueueDTO.setUserId(USER_ID);
     ruleEngineQueueDTO.setInitiativeId(INITIATIVE_ID);
-    ruleEngineQueueDTO.setOperationType(OPERATION_TYPE);
+    ruleEngineQueueDTO.setOperationType(PaymentInstrumentConstants.OPERATION_ADD);
     ruleEngineQueueDTO.setHpan(HPAN);
     ruleEngineQueueDTO.setOperationDate(LocalDateTime.now());
 
@@ -38,7 +38,7 @@ class MessageMapperTest {
     Assertions.assertSame(ruleEngineQueueDTO, result.getPayload());
     assertEquals(USER_ID, ruleEngineQueueDTO.getUserId());
     assertEquals(INITIATIVE_ID, ruleEngineQueueDTO.getInitiativeId());
-    assertEquals(OPERATION_TYPE, ruleEngineQueueDTO.getOperationType());
+    assertEquals(PaymentInstrumentConstants.OPERATION_ADD, ruleEngineQueueDTO.getOperationType());
     assertEquals(HPAN, ruleEngineQueueDTO.getHpan());
     assertNotNull(ruleEngineQueueDTO.getOperationDate());
   }
