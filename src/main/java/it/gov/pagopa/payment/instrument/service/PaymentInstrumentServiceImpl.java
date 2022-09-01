@@ -51,20 +51,11 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
         PaymentInstrumentConstants.STATUS_ACTIVE, channel, activationDate);
     paymentInstrumentRepository.save(newInstrument);
 
-    RTDOperationDTO rtdOperationDTO =
-        RTDOperationDTO.builder()
-            .hpan(newInstrument.getHpan())
-            .operationType("ADD_INSTRUMENT")
-            .application("IDPAY")
-            .operationDate(LocalDateTime.now())
-            .build();
-    rtdProducer.sendInstrument(rtdOperationDTO);
-
     RuleEngineQueueDTO ruleEngineQueueDTO = RuleEngineQueueDTO.builder()
         .userId(newInstrument.getUserId())
         .initiativeId(newInstrument.getInitiativeId())
         .hpan(newInstrument.getHpan())
-        .operationType("ADD_INSTRUMENT")
+        .operationType(PaymentInstrumentConstants.OPERATION_ADD)
         .operationDate(LocalDateTime.now())
         .build();
 
@@ -74,7 +65,10 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     ruleEngineProducer.sendInstrument(messageMapper.apply(ruleEngineQueueDTO));
 
     long end = System.currentTimeMillis();
-    log.info("[PaymentInstrumentService] Sent message to Rule Engine after " + (end - start) + " ms.");
+    log.info(
+        "[PaymentInstrumentService] Sent message to Rule Engine after " + (end - start) + " ms.");
+
+    sendToRtd(newInstrument.getHpan(), PaymentInstrumentConstants.OPERATION_ADD);
   }
 
   @Override
@@ -87,7 +81,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
           PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_NOT_FOUND);
     }
     instruments.forEach(instrument ->
-      checkAndDelete(instrument, deactivationDate)
+        checkAndDelete(instrument, deactivationDate)
     );
   }
 
@@ -99,20 +93,11 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     instrument.setDeactivationDate(deactivationDate);
     paymentInstrumentRepository.save(instrument);
 
-    RTDOperationDTO rtdOperationDTO =
-        RTDOperationDTO.builder()
-            .hpan(instrument.getHpan())
-            .operationType("DELETE_INSTRUMENT")
-            .application("IDPAY")
-            .operationDate(LocalDateTime.now())
-            .build();
-    rtdProducer.sendInstrument(rtdOperationDTO);
-
     RuleEngineQueueDTO ruleEngineQueueDTO = RuleEngineQueueDTO.builder()
         .userId(instrument.getUserId())
         .initiativeId(instrument.getInitiativeId())
         .hpan(instrument.getHpan())
-        .operationType("DELETE_INSTRUMENT")
+        .operationType(PaymentInstrumentConstants.OPERATION_DELETE)
         .operationDate(LocalDateTime.now())
         .build();
 
@@ -122,7 +107,30 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     ruleEngineProducer.sendInstrument(messageMapper.apply(ruleEngineQueueDTO));
 
     long end = System.currentTimeMillis();
-    log.info("[PaymentInstrumentService] Sent message to Rule Engine after " + (end - start) + " ms.");
+    log.info(
+        "[PaymentInstrumentService] Sent message to Rule Engine after " + (end - start) + " ms.");
+
+    sendToRtd(instrument.getHpan(), PaymentInstrumentConstants.OPERATION_DELETE);
+  }
+
+  private void sendToRtd(String hpan, String operation) {
+
+    if (operation.equals(PaymentInstrumentConstants.OPERATION_DELETE) && paymentInstrumentRepository.countByHpanAndStatus(hpan,
+        PaymentInstrumentConstants.STATUS_ACTIVE) > 0) {
+      return;
+    }
+
+    RTDOperationDTO rtdOperationDTO =
+        RTDOperationDTO.builder()
+            .hpan(hpan)
+            .operationType(operation)
+            .application("IDPAY")
+            .operationDate(LocalDateTime.now())
+            .build();
+
+    log.info("[PaymentInstrumentService - Operation: {}] Sending message to RTD.", operation);
+
+    rtdProducer.sendInstrument(rtdOperationDTO);
   }
 
   @Override

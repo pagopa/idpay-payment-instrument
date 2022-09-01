@@ -29,6 +29,7 @@ import org.springframework.http.HttpStatus;
 @ExtendWith(MockitoExtension.class)
 @WebMvcTest(value = {PaymentInstrumentService.class})
 class PaymentInstrumentServiceTest {
+
   @MockBean
   PaymentInstrumentRepository paymentInstrumentRepositoryMock;
   @MockBean
@@ -51,7 +52,8 @@ class PaymentInstrumentServiceTest {
   private static final int TEST_COUNT = 2;
   private static final PaymentInstrument TEST_INSTRUMENT = new PaymentInstrument(INITIATIVE_ID,
       USER_ID, HPAN, PaymentInstrumentConstants.STATUS_ACTIVE, CHANNEL, TEST_DATE);
-  private static final PaymentInstrument TEST_INACTIVE_INSTRUMENT = new PaymentInstrument(INITIATIVE_ID,
+  private static final PaymentInstrument TEST_INACTIVE_INSTRUMENT = new PaymentInstrument(
+      INITIATIVE_ID,
       USER_ID, HPAN, PaymentInstrumentConstants.STATUS_INACTIVE, CHANNEL, TEST_DATE);
 
   static {
@@ -111,11 +113,40 @@ class PaymentInstrumentServiceTest {
   }
 
   @Test
-  void deactivateInstrument_ok() {
+  void deactivateInstrument_ok_to_rtd() {
     Mockito.when(
             paymentInstrumentRepositoryMock.findByInitiativeIdAndUserIdAndHpan(INITIATIVE_ID,
                 USER_ID, HPAN))
         .thenReturn(List.of(TEST_INSTRUMENT, TEST_INACTIVE_INSTRUMENT));
+
+    Mockito.when(paymentInstrumentRepositoryMock.countByHpanAndStatus(HPAN,
+        PaymentInstrumentConstants.STATUS_ACTIVE)).thenReturn(0);
+
+    Mockito.doAnswer(invocationOnMock -> {
+      TEST_INSTRUMENT.setStatus(PaymentInstrumentConstants.STATUS_INACTIVE);
+      TEST_INSTRUMENT.setDeactivationDate(TEST_DATE);
+      return null;
+    }).when(paymentInstrumentRepositoryMock).save(Mockito.any(PaymentInstrument.class));
+
+    try {
+      paymentInstrumentService.deactivateInstrument(INITIATIVE_ID, USER_ID, HPAN, TEST_DATE);
+    } catch (PaymentInstrumentException e) {
+      Assertions.fail();
+    }
+    assertEquals(PaymentInstrumentConstants.STATUS_INACTIVE, TEST_INSTRUMENT.getStatus());
+    assertNotNull(TEST_INSTRUMENT.getDeactivationDate());
+    assertEquals(TEST_DATE, TEST_INSTRUMENT.getDeactivationDate());
+  }
+
+  @Test
+  void deactivateInstrument_ok_no_rtd() {
+    Mockito.when(
+            paymentInstrumentRepositoryMock.findByInitiativeIdAndUserIdAndHpan(INITIATIVE_ID,
+                USER_ID, HPAN))
+        .thenReturn(List.of(TEST_INSTRUMENT, TEST_INACTIVE_INSTRUMENT));
+
+    Mockito.when(paymentInstrumentRepositoryMock.countByHpanAndStatus(HPAN,
+        PaymentInstrumentConstants.STATUS_ACTIVE)).thenReturn(1);
 
     Mockito.doAnswer(invocationOnMock -> {
       TEST_INSTRUMENT.setStatus(PaymentInstrumentConstants.STATUS_INACTIVE);
