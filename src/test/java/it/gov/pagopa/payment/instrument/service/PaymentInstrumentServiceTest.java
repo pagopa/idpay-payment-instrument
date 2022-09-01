@@ -65,6 +65,9 @@ class PaymentInstrumentServiceTest {
     Mockito.when(paymentInstrumentRepositoryMock.findByHpanAndStatus(HPAN,
         PaymentInstrumentConstants.STATUS_ACTIVE)).thenReturn(new ArrayList<>());
 
+    Mockito.when(paymentInstrumentRepositoryMock.countByHpanAndStatus(HPAN,
+        PaymentInstrumentConstants.STATUS_ACTIVE)).thenReturn(0);
+
     try {
       paymentInstrumentService.enrollInstrument(INITIATIVE_ID, USER_ID, HPAN, CHANNEL, TEST_DATE);
     } catch (PaymentInstrumentException e) {
@@ -76,6 +79,9 @@ class PaymentInstrumentServiceTest {
   void enrollInstrument_ok_other_initiative() {
     Mockito.when(paymentInstrumentRepositoryMock.findByHpanAndStatus(HPAN,
         PaymentInstrumentConstants.STATUS_ACTIVE)).thenReturn(List.of(TEST_INSTRUMENT));
+
+    Mockito.when(paymentInstrumentRepositoryMock.countByHpanAndStatus(HPAN,
+        PaymentInstrumentConstants.STATUS_ACTIVE)).thenReturn(1);
 
     try {
       paymentInstrumentService.enrollInstrument(INITIATIVE_ID_OTHER, USER_ID, HPAN, CHANNEL,
@@ -114,6 +120,8 @@ class PaymentInstrumentServiceTest {
 
   @Test
   void deactivateInstrument_ok_to_rtd() {
+    TEST_INSTRUMENT.setStatus(PaymentInstrumentConstants.STATUS_ACTIVE);
+    TEST_INSTRUMENT.setDeactivationDate(null);
     Mockito.when(
             paymentInstrumentRepositoryMock.findByInitiativeIdAndUserIdAndHpan(INITIATIVE_ID,
                 USER_ID, HPAN))
@@ -140,6 +148,8 @@ class PaymentInstrumentServiceTest {
 
   @Test
   void deactivateInstrument_ok_no_rtd() {
+    TEST_INSTRUMENT.setStatus(PaymentInstrumentConstants.STATUS_ACTIVE);
+    TEST_INSTRUMENT.setDeactivationDate(null);
     Mockito.when(
             paymentInstrumentRepositoryMock.findByInitiativeIdAndUserIdAndHpan(INITIATIVE_ID,
                 USER_ID, HPAN))
