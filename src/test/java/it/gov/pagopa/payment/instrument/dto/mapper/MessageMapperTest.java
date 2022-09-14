@@ -6,6 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants;
 import it.gov.pagopa.payment.instrument.dto.RuleEngineQueueDTO;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
@@ -25,7 +27,7 @@ class MessageMapperTest {
     ruleEngineQueueDTO.setUserId(USER_ID);
     ruleEngineQueueDTO.setInitiativeId(INITIATIVE_ID);
     ruleEngineQueueDTO.setOperationType(PaymentInstrumentConstants.OPERATION_ADD);
-    ruleEngineQueueDTO.setHpan(HPAN);
+    ruleEngineQueueDTO.setListHpan(new ArrayList<>(Collections.singleton(HPAN)));
     ruleEngineQueueDTO.setOperationDate(LocalDateTime.now());
 
     MessageMapper messageMapper = new MessageMapper();
@@ -39,7 +41,7 @@ class MessageMapperTest {
     assertEquals(USER_ID, ruleEngineQueueDTO.getUserId());
     assertEquals(INITIATIVE_ID, ruleEngineQueueDTO.getInitiativeId());
     assertEquals(PaymentInstrumentConstants.OPERATION_ADD, ruleEngineQueueDTO.getOperationType());
-    assertEquals(HPAN, ruleEngineQueueDTO.getHpan());
+    assertEquals(HPAN, ruleEngineQueueDTO.getListHpan().get(0));
     assertNotNull(ruleEngineQueueDTO.getOperationDate());
   }
 

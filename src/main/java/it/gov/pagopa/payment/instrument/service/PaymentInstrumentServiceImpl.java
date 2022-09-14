@@ -13,8 +13,11 @@ import it.gov.pagopa.payment.instrument.model.PaymentInstrument;
 import it.gov.pagopa.payment.instrument.repository.PaymentInstrumentRepository;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -32,11 +35,16 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
   @Autowired
   MessageMapper messageMapper;
 
+  private static final Logger LOG = LoggerFactory.getLogger(
+      PaymentInstrumentServiceImpl.class);
+
   @Override
   public void enrollInstrument(String initiativeId, String userId, String hpan, String channel,
       LocalDateTime activationDate) {
     List<PaymentInstrument> instrumentList = paymentInstrumentRepository.findByHpanAndStatus(hpan,
         PaymentInstrumentConstants.STATUS_ACTIVE);
+    List<String> hpanList = new ArrayList<>();
+    hpanList.add(hpan);
 
     for (PaymentInstrument pi : instrumentList) {
       if (!pi.getUserId().equals(userId)) {
@@ -51,34 +59,30 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
         PaymentInstrumentConstants.STATUS_ACTIVE, channel, activationDate);
     paymentInstrumentRepository.save(newInstrument);
 
-    RuleEngineQueueDTO ruleEngineQueueDTO = RuleEngineQueueDTO.builder()
-        .userId(newInstrument.getUserId())
-        .initiativeId(newInstrument.getInitiativeId())
-        .hpan(newInstrument.getHpan())
-        .operationType(PaymentInstrumentConstants.OPERATION_ADD)
-        .operationDate(LocalDateTime.now())
-        .build();
-
-    log.info("[PaymentInstrumentService] Sending message to Rule Engine.");
-    long start = System.currentTimeMillis();
-
-    ruleEngineProducer.sendInstrument(messageMapper.apply(ruleEngineQueueDTO));
-
-    long end = System.currentTimeMillis();
-    log.info(
-        "[PaymentInstrumentService] Sent message to Rule Engine after " + (end - start) + " ms.");
-
-    sendToRtd(newInstrument.getHpan(), PaymentInstrumentConstants.OPERATION_ADD);
+    sendToRuleEngine(newInstrument.getUserId(), newInstrument.getInitiativeId(), hpanList,
+        PaymentInstrumentConstants.OPERATION_ADD);
+    sendToRtd(hpanList, PaymentInstrumentConstants.OPERATION_ADD);
   }
 
   @Override
   public void deactivateAllInstrument(String initiativeId, String userId, String deactivationDate) {
     List<PaymentInstrument> paymentInstrumentList = paymentInstrumentRepository.findByInitiativeIdAndUserIdAndStatus(
         initiativeId, userId, PaymentInstrumentConstants.STATUS_ACTIVE);
-
-    for(PaymentInstrument paymentInstrument:paymentInstrumentList) {
+    List<String> hpanList = new ArrayList<>();
+    for (PaymentInstrument paymentInstrument : paymentInstrumentList) {
+      paymentInstrument.setDeactivationDate(LocalDateTime.parse(deactivationDate));
+      paymentInstrument.setStatus(PaymentInstrumentConstants.STATUS_INACTIVE);
       this.checkAndDelete(paymentInstrument, LocalDateTime.parse(deactivationDate));
+      hpanList.add(paymentInstrument.getHpan());
     }
+    paymentInstrumentRepository.saveAll(paymentInstrumentList);
+    try {
+      sendToRuleEngine(userId, initiativeId, hpanList, PaymentInstrumentConstants.OPERATION_DELETE);
+    } catch (Exception e) {
+      this.rollbackInstruments(paymentInstrumentList);
+      throw new PaymentInstrumentException(400, e.getMessage());
+    }
+    sendToRtd(hpanList, PaymentInstrumentConstants.OPERATION_DELETE);
   }
 
   @Override
@@ -102,45 +106,59 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     instrument.setStatus(PaymentInstrumentConstants.STATUS_INACTIVE);
     instrument.setDeactivationDate(deactivationDate);
     paymentInstrumentRepository.save(instrument);
+    List<String> hpanList = Arrays.asList(instrument.getHpan());
+    sendToRuleEngine(instrument.getUserId(), instrument.getInitiativeId(), hpanList,
+        PaymentInstrumentConstants.OPERATION_DELETE);
+    sendToRtd(hpanList, PaymentInstrumentConstants.OPERATION_DELETE);
+  }
+
+  private void sendToRuleEngine(String userId, String initiativeId, List<String> hpanList,
+      String operation) {
 
     RuleEngineQueueDTO ruleEngineQueueDTO = RuleEngineQueueDTO.builder()
-        .userId(instrument.getUserId())
-        .initiativeId(instrument.getInitiativeId())
-        .hpan(instrument.getHpan())
-        .operationType(PaymentInstrumentConstants.OPERATION_DELETE)
+        .userId(userId)
+        .initiativeId(initiativeId)
+        .listHpan(hpanList)
+        .operationType(operation)
         .operationDate(LocalDateTime.now())
         .build();
 
     log.info("[PaymentInstrumentService] Sending message to Rule Engine.");
     long start = System.currentTimeMillis();
 
-    ruleEngineProducer.sendInstrument(messageMapper.apply(ruleEngineQueueDTO));
+    ruleEngineProducer.sendInstruments(messageMapper.apply(ruleEngineQueueDTO));
 
     long end = System.currentTimeMillis();
     log.info(
         "[PaymentInstrumentService] Sent message to Rule Engine after " + (end - start) + " ms.");
-
-    sendToRtd(instrument.getHpan(), PaymentInstrumentConstants.OPERATION_DELETE);
   }
 
-  private void sendToRtd(String hpan, String operation) {
+  private void sendToRtd(List<String> hpanList, String operation) {
 
-    if (operation.equals(PaymentInstrumentConstants.OPERATION_DELETE) && paymentInstrumentRepository.countByHpanAndStatus(hpan,
-        PaymentInstrumentConstants.STATUS_ACTIVE) > 0) {
-      return;
+    List<String> toRtd = new ArrayList<>();
+
+    for (String hpan : hpanList) {
+      if (operation.equals(PaymentInstrumentConstants.OPERATION_ADD) ||
+          (operation.equals(PaymentInstrumentConstants.OPERATION_DELETE)
+              && paymentInstrumentRepository.countByHpanAndStatus(hpan,
+              PaymentInstrumentConstants.STATUS_ACTIVE) == 0)) {
+        toRtd.add(hpan);
+      }
     }
 
-    RTDOperationDTO rtdOperationDTO =
-        RTDOperationDTO.builder()
-            .hpan(hpan)
-            .operationType(operation)
-            .application("IDPAY")
-            .operationDate(LocalDateTime.now())
-            .build();
+    if (!toRtd.isEmpty()) {
+      RTDOperationDTO rtdOperationDTO =
+          RTDOperationDTO.builder()
+              .listHpan(toRtd)
+              .operationType(operation)
+              .application("IDPAY")
+              .operationDate(LocalDateTime.now())
+              .build();
 
-    log.info("[PaymentInstrumentService - Operation: {}] Sending message to RTD.", operation);
+      log.info("[PaymentInstrumentService - Operation: {}] Sending message to RTD.", operation);
 
-    rtdProducer.sendInstrument(rtdOperationDTO);
+      rtdProducer.sendInstrument(rtdOperationDTO);
+    }
   }
 
   @Override
@@ -172,5 +190,15 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     hpanGetDTO.setHpanList(hpanDTOList);
 
     return hpanGetDTO;
+  }
+
+  @Override
+  public void rollbackInstruments(List<PaymentInstrument> paymentInstrumentList) {
+    for (PaymentInstrument instrument : paymentInstrumentList) {
+      instrument.setStatus(PaymentInstrumentConstants.STATUS_ACTIVE);
+      instrument.setDeactivationDate(null);
+    }
+    paymentInstrumentRepository.saveAll(paymentInstrumentList);
+    LOG.info("Instrument rollbacked: {}", paymentInstrumentList.size());
   }
 }

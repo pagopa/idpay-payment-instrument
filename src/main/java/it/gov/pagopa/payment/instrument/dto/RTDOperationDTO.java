@@ -2,6 +2,7 @@ package it.gov.pagopa.payment.instrument.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import java.time.LocalDateTime;
+import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -16,7 +17,7 @@ public class RTDOperationDTO {
 
   private String operationType;
 
-  private String hpan;
+  private List<String> listHpan;
 
   private String iban;
 
