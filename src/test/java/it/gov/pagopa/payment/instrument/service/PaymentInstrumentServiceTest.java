@@ -2,11 +2,15 @@ package it.gov.pagopa.payment.instrument.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants;
 import it.gov.pagopa.payment.instrument.dto.HpanDTO;
 import it.gov.pagopa.payment.instrument.dto.HpanGetDTO;
+import it.gov.pagopa.payment.instrument.dto.RuleEngineQueueDTO;
 import it.gov.pagopa.payment.instrument.dto.mapper.MessageMapper;
 import it.gov.pagopa.payment.instrument.event.RTDProducer;
 import it.gov.pagopa.payment.instrument.event.RuleEngineProducer;
@@ -19,12 +23,14 @@ import java.util.List;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
+import org.springframework.messaging.Message;
 
 @ExtendWith(MockitoExtension.class)
 @WebMvcTest(value = {PaymentInstrumentService.class})
@@ -273,6 +279,47 @@ class PaymentInstrumentServiceTest {
     paymentInstrumentService.deactivateAllInstrument(INITIATIVE_ID, USER_ID, LocalDateTime.now().toString());
     assertNotNull(TEST_INSTRUMENT.getDeactivationDate());
     assertEquals(PaymentInstrumentConstants.STATUS_INACTIVE, TEST_INSTRUMENT.getStatus());
+  }
+
+  @Test
+  void disableAllPayInstrument_ko(){
+
+    List<PaymentInstrument> paymentInstruments = new ArrayList<>();
+    paymentInstruments.add(TEST_INSTRUMENT);
+
+
+
+    Mockito.doThrow(new PaymentInstrumentException(400, "error")).when(producer).sendInstruments(
+        ArgumentMatchers.<Message<RuleEngineQueueDTO>>any());
+
+    Mockito.when(paymentInstrumentRepositoryMock.findByInitiativeIdAndUserIdAndStatus(INITIATIVE_ID, USER_ID, PaymentInstrumentConstants.STATUS_ACTIVE))
+        .thenReturn(paymentInstruments);
+
+    Mockito.doAnswer(
+            invocationOnMock -> {
+              TEST_INSTRUMENT.setStatus(PaymentInstrumentConstants.STATUS_INACTIVE);
+              TEST_INSTRUMENT.setDeactivationDate(TEST_DATE);
+              return null;
+            })
+        .when(paymentInstrumentRepositoryMock).save(Mockito.any(PaymentInstrument.class));
+
+    try{
+      paymentInstrumentService.deactivateAllInstrument(INITIATIVE_ID, USER_ID, LocalDateTime.now().toString());
+      fail();
+    }catch (Exception e){
+      assertNull(TEST_INSTRUMENT.getDeactivationDate());
+      assertNotEquals(PaymentInstrumentConstants.STATUS_INACTIVE, TEST_INSTRUMENT.getStatus());
+    }
+
+  }
+
+  @Test
+  void rollback(){
+    List<PaymentInstrument> paymentInstrumentList = new ArrayList<>();
+    paymentInstrumentList.add(TEST_INSTRUMENT);
+    paymentInstrumentService.rollbackInstruments(paymentInstrumentList);
+    assertNull(TEST_INSTRUMENT.getDeactivationDate());
+    assertNotEquals(PaymentInstrumentConstants.STATUS_INACTIVE, TEST_INSTRUMENT.getStatus());
   }
 
 }
