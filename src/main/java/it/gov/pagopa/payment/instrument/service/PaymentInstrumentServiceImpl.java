@@ -72,7 +72,6 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     for (PaymentInstrument paymentInstrument : paymentInstrumentList) {
       paymentInstrument.setDeactivationDate(LocalDateTime.parse(deactivationDate));
       paymentInstrument.setStatus(PaymentInstrumentConstants.STATUS_INACTIVE);
-      this.checkAndDelete(paymentInstrument, LocalDateTime.parse(deactivationDate));
       hpanList.add(paymentInstrument.getHpan());
     }
     paymentInstrumentRepository.saveAll(paymentInstrumentList);
@@ -80,7 +79,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       sendToRuleEngine(userId, initiativeId, hpanList, PaymentInstrumentConstants.OPERATION_DELETE);
     } catch (Exception e) {
       this.rollbackInstruments(paymentInstrumentList);
-      throw new PaymentInstrumentException(400, e.getMessage());
+      throw new PaymentInstrumentException(HttpStatus.BAD_REQUEST.value(), e.getMessage());
     }
     sendToRtd(hpanList, PaymentInstrumentConstants.OPERATION_DELETE);
   }
