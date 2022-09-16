@@ -17,7 +17,7 @@ public class RTDOperationDTO {
 
   private String operationType;
 
-  private List<String> listHpan;
+  private List<String> hpanList;
 
   private String iban;
 

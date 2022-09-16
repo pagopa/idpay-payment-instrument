@@ -27,7 +27,7 @@ class MessageMapperTest {
     ruleEngineQueueDTO.setUserId(USER_ID);
     ruleEngineQueueDTO.setInitiativeId(INITIATIVE_ID);
     ruleEngineQueueDTO.setOperationType(PaymentInstrumentConstants.OPERATION_ADD);
-    ruleEngineQueueDTO.setListHpan(new ArrayList<>(Collections.singleton(HPAN)));
+    ruleEngineQueueDTO.setHpanList(new ArrayList<>(Collections.singleton(HPAN)));
     ruleEngineQueueDTO.setOperationDate(LocalDateTime.now());
 
     MessageMapper messageMapper = new MessageMapper();
@@ -41,7 +41,7 @@ class MessageMapperTest {
     assertEquals(USER_ID, ruleEngineQueueDTO.getUserId());
     assertEquals(INITIATIVE_ID, ruleEngineQueueDTO.getInitiativeId());
     assertEquals(PaymentInstrumentConstants.OPERATION_ADD, ruleEngineQueueDTO.getOperationType());
-    assertEquals(HPAN, ruleEngineQueueDTO.getListHpan().get(0));
+    assertEquals(HPAN, ruleEngineQueueDTO.getHpanList().get(0));
     assertNotNull(ruleEngineQueueDTO.getOperationDate());
   }
 

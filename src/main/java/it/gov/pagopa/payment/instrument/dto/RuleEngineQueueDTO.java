@@ -15,7 +15,7 @@ public class RuleEngineQueueDTO {
 
   private String userId;
   private String initiativeId;
-  private List<String> listHpan;
+  private List<String> hpanList;
   private String operationType;
   private LocalDateTime operationDate;
 

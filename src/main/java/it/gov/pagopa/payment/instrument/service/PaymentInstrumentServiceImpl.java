@@ -117,7 +117,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     RuleEngineQueueDTO ruleEngineQueueDTO = RuleEngineQueueDTO.builder()
         .userId(userId)
         .initiativeId(initiativeId)
-        .listHpan(hpanList)
+        .hpanList(hpanList)
         .operationType(operation)
         .operationDate(LocalDateTime.now())
         .build();
@@ -148,7 +148,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     if (!toRtd.isEmpty()) {
       RTDOperationDTO rtdOperationDTO =
           RTDOperationDTO.builder()
-              .listHpan(toRtd)
+              .hpanList(toRtd)
               .operationType(operation)
               .application("IDPAY")
               .operationDate(LocalDateTime.now())
