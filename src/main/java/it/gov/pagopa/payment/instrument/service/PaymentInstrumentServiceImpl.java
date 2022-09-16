@@ -138,9 +138,8 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
 
     for (String hpan : hpanList) {
       if (operation.equals(PaymentInstrumentConstants.OPERATION_ADD) ||
-          (operation.equals(PaymentInstrumentConstants.OPERATION_DELETE)
-              && paymentInstrumentRepository.countByHpanAndStatus(hpan,
-              PaymentInstrumentConstants.STATUS_ACTIVE) == 0)) {
+          paymentInstrumentRepository.countByHpanAndStatus(hpan,
+              PaymentInstrumentConstants.STATUS_ACTIVE) == 0) {
         toRtd.add(hpan);
       }
     }
