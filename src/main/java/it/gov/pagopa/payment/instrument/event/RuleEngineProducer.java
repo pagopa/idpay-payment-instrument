@@ -14,8 +14,8 @@ public class RuleEngineProducer {
   @Autowired
   StreamBridge streamBridge;
 
-  public void sendInstrument(Message<RuleEngineQueueDTO> enrollmentQueueDTO){
-    streamBridge.send("paymentInstrumentQueue-out-0", binderInstrument, enrollmentQueueDTO);
+  public void sendInstruments(Message<RuleEngineQueueDTO> ruleEngineQueueDTO){
+    streamBridge.send("paymentInstrumentQueue-out-0", binderInstrument, ruleEngineQueueDTO);
   }
 
 }

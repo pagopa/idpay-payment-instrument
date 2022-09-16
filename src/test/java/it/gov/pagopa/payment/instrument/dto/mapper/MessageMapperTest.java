@@ -3,9 +3,11 @@ package it.gov.pagopa.payment.instrument.dto.mapper;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants;
 import it.gov.pagopa.payment.instrument.dto.RuleEngineQueueDTO;
-import it.gov.pagopa.payment.instrument.dto.mapper.MessageMapper;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
@@ -18,15 +20,14 @@ class MessageMapperTest {
   private static final String USER_ID = "TEST_USER_ID";
   private static final String INITIATIVE_ID = "TEST_INITIATIVE_ID";
   private static final String HPAN = "TEST_HPAN";
-  private static final String OPERATION_TYPE = "ADD_INSTRUMENT";
   @Test
   void testApply() {
 
     RuleEngineQueueDTO ruleEngineQueueDTO = new RuleEngineQueueDTO();
     ruleEngineQueueDTO.setUserId(USER_ID);
     ruleEngineQueueDTO.setInitiativeId(INITIATIVE_ID);
-    ruleEngineQueueDTO.setOperationType(OPERATION_TYPE);
-    ruleEngineQueueDTO.setHpan(HPAN);
+    ruleEngineQueueDTO.setOperationType(PaymentInstrumentConstants.OPERATION_ADD);
+    ruleEngineQueueDTO.setHpanList(new ArrayList<>(Collections.singleton(HPAN)));
     ruleEngineQueueDTO.setOperationDate(LocalDateTime.now());
 
     MessageMapper messageMapper = new MessageMapper();
@@ -39,8 +40,8 @@ class MessageMapperTest {
     Assertions.assertSame(ruleEngineQueueDTO, result.getPayload());
     assertEquals(USER_ID, ruleEngineQueueDTO.getUserId());
     assertEquals(INITIATIVE_ID, ruleEngineQueueDTO.getInitiativeId());
-    assertEquals(OPERATION_TYPE, ruleEngineQueueDTO.getOperationType());
-    assertEquals(HPAN, ruleEngineQueueDTO.getHpan());
+    assertEquals(PaymentInstrumentConstants.OPERATION_ADD, ruleEngineQueueDTO.getOperationType());
+    assertEquals(HPAN, ruleEngineQueueDTO.getHpanList().get(0));
     assertNotNull(ruleEngineQueueDTO.getOperationDate());
   }
 
