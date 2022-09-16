@@ -63,7 +63,7 @@ class PaymentInstrumentServiceTest {
       USER_ID, HPAN, PaymentInstrumentConstants.STATUS_INACTIVE, CHANNEL, TEST_DATE);
 
   static {
-    TEST_INACTIVE_INSTRUMENT.setDeactivationDate(TEST_DATE);
+    TEST_INACTIVE_INSTRUMENT.setRequestDeactivationDate(TEST_DATE);
   }
 
   @Test
@@ -127,7 +127,7 @@ class PaymentInstrumentServiceTest {
   @Test
   void deactivateInstrument_ok_to_rtd() {
     TEST_INSTRUMENT.setStatus(PaymentInstrumentConstants.STATUS_ACTIVE);
-    TEST_INSTRUMENT.setDeactivationDate(null);
+    TEST_INSTRUMENT.setRequestDeactivationDate(null);
     Mockito.when(
             paymentInstrumentRepositoryMock.findByInitiativeIdAndUserIdAndHpan(INITIATIVE_ID,
                 USER_ID, HPAN))
@@ -138,7 +138,7 @@ class PaymentInstrumentServiceTest {
 
     Mockito.doAnswer(invocationOnMock -> {
       TEST_INSTRUMENT.setStatus(PaymentInstrumentConstants.STATUS_INACTIVE);
-      TEST_INSTRUMENT.setDeactivationDate(TEST_DATE);
+      TEST_INSTRUMENT.setRequestDeactivationDate(TEST_DATE);
       return null;
     }).when(paymentInstrumentRepositoryMock).save(Mockito.any(PaymentInstrument.class));
 
@@ -148,14 +148,14 @@ class PaymentInstrumentServiceTest {
       Assertions.fail();
     }
     assertEquals(PaymentInstrumentConstants.STATUS_INACTIVE, TEST_INSTRUMENT.getStatus());
-    assertNotNull(TEST_INSTRUMENT.getDeactivationDate());
-    assertEquals(TEST_DATE, TEST_INSTRUMENT.getDeactivationDate());
+    assertNotNull(TEST_INSTRUMENT.getRequestDeactivationDate());
+    assertEquals(TEST_DATE, TEST_INSTRUMENT.getRequestDeactivationDate());
   }
 
   @Test
   void deactivateInstrument_ok_no_rtd() {
     TEST_INSTRUMENT.setStatus(PaymentInstrumentConstants.STATUS_ACTIVE);
-    TEST_INSTRUMENT.setDeactivationDate(null);
+    TEST_INSTRUMENT.setRequestDeactivationDate(null);
     Mockito.when(
             paymentInstrumentRepositoryMock.findByInitiativeIdAndUserIdAndHpan(INITIATIVE_ID,
                 USER_ID, HPAN))
@@ -166,7 +166,7 @@ class PaymentInstrumentServiceTest {
 
     Mockito.doAnswer(invocationOnMock -> {
       TEST_INSTRUMENT.setStatus(PaymentInstrumentConstants.STATUS_INACTIVE);
-      TEST_INSTRUMENT.setDeactivationDate(TEST_DATE);
+      TEST_INSTRUMENT.setRequestDeactivationDate(TEST_DATE);
       return null;
     }).when(paymentInstrumentRepositoryMock).save(Mockito.any(PaymentInstrument.class));
 
@@ -176,8 +176,8 @@ class PaymentInstrumentServiceTest {
       Assertions.fail();
     }
     assertEquals(PaymentInstrumentConstants.STATUS_INACTIVE, TEST_INSTRUMENT.getStatus());
-    assertNotNull(TEST_INSTRUMENT.getDeactivationDate());
-    assertEquals(TEST_DATE, TEST_INSTRUMENT.getDeactivationDate());
+    assertNotNull(TEST_INSTRUMENT.getRequestDeactivationDate());
+    assertEquals(TEST_DATE, TEST_INSTRUMENT.getRequestDeactivationDate());
   }
 
   @Test
@@ -271,13 +271,13 @@ class PaymentInstrumentServiceTest {
     Mockito.doAnswer(
             invocationOnMock -> {
               TEST_INSTRUMENT.setStatus(PaymentInstrumentConstants.STATUS_INACTIVE);
-              TEST_INSTRUMENT.setDeactivationDate(TEST_DATE);
+              TEST_INSTRUMENT.setRequestDeactivationDate(TEST_DATE);
               return null;
             })
         .when(paymentInstrumentRepositoryMock).save(Mockito.any(PaymentInstrument.class));
 
     paymentInstrumentService.deactivateAllInstrument(INITIATIVE_ID, USER_ID, LocalDateTime.now().toString());
-    assertNotNull(TEST_INSTRUMENT.getDeactivationDate());
+    assertNotNull(TEST_INSTRUMENT.getRequestDeactivationDate());
     assertEquals(PaymentInstrumentConstants.STATUS_INACTIVE, TEST_INSTRUMENT.getStatus());
   }
 
@@ -298,7 +298,7 @@ class PaymentInstrumentServiceTest {
     Mockito.doAnswer(
             invocationOnMock -> {
               TEST_INSTRUMENT.setStatus(PaymentInstrumentConstants.STATUS_INACTIVE);
-              TEST_INSTRUMENT.setDeactivationDate(TEST_DATE);
+              TEST_INSTRUMENT.setRequestDeactivationDate(TEST_DATE);
               return null;
             })
         .when(paymentInstrumentRepositoryMock).save(Mockito.any(PaymentInstrument.class));
@@ -307,7 +307,7 @@ class PaymentInstrumentServiceTest {
       paymentInstrumentService.deactivateAllInstrument(INITIATIVE_ID, USER_ID, LocalDateTime.now().toString());
       fail();
     }catch (Exception e){
-      assertNull(TEST_INSTRUMENT.getDeactivationDate());
+      assertNull(TEST_INSTRUMENT.getRequestDeactivationDate());
       assertNotEquals(PaymentInstrumentConstants.STATUS_INACTIVE, TEST_INSTRUMENT.getStatus());
     }
 
@@ -318,7 +318,7 @@ class PaymentInstrumentServiceTest {
     List<PaymentInstrument> paymentInstrumentList = new ArrayList<>();
     paymentInstrumentList.add(TEST_INSTRUMENT);
     paymentInstrumentService.rollbackInstruments(paymentInstrumentList);
-    assertNull(TEST_INSTRUMENT.getDeactivationDate());
+    assertNull(TEST_INSTRUMENT.getRequestDeactivationDate());
     assertNotEquals(PaymentInstrumentConstants.STATUS_INACTIVE, TEST_INSTRUMENT.getStatus());
   }
 
