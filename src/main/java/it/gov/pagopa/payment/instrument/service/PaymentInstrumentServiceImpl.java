@@ -70,7 +70,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
         initiativeId, userId, PaymentInstrumentConstants.STATUS_ACTIVE);
     List<String> hpanList = new ArrayList<>();
     for (PaymentInstrument paymentInstrument : paymentInstrumentList) {
-      paymentInstrument.setDeactivationDate(LocalDateTime.parse(deactivationDate));
+      paymentInstrument.setRequestDeactivationDate(LocalDateTime.parse(deactivationDate));
       paymentInstrument.setStatus(PaymentInstrumentConstants.STATUS_INACTIVE);
       hpanList.add(paymentInstrument.getHpan());
     }
@@ -103,7 +103,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       return;
     }
     instrument.setStatus(PaymentInstrumentConstants.STATUS_INACTIVE);
-    instrument.setDeactivationDate(deactivationDate);
+    instrument.setRequestDeactivationDate(deactivationDate);
     paymentInstrumentRepository.save(instrument);
     List<String> hpanList = Arrays.asList(instrument.getHpan());
     sendToRuleEngine(instrument.getUserId(), instrument.getInitiativeId(), hpanList,
@@ -194,7 +194,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
   public void rollbackInstruments(List<PaymentInstrument> paymentInstrumentList) {
     for (PaymentInstrument instrument : paymentInstrumentList) {
       instrument.setStatus(PaymentInstrumentConstants.STATUS_ACTIVE);
-      instrument.setDeactivationDate(null);
+      instrument.setRequestDeactivationDate(null);
     }
     paymentInstrumentRepository.saveAll(paymentInstrumentList);
     LOG.info("Instrument rollbacked: {}", paymentInstrumentList.size());
