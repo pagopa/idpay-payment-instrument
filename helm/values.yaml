@@ -1,0 +1,77 @@
+microservice-chart:
+  namespace: "idpay"
+  nameOverride: ""
+  fullnameOverride: ""
+
+  livenessProbe:
+    httpGet:
+      path: /actuator/health
+      port: 8080
+    initialDelaySeconds: 60
+    failureThreshold: 6
+    periodSeconds: 10
+
+  readinessProbe:
+    httpGet:
+      path: /actuator/health
+      port: 8080
+    initialDelaySeconds: 60
+    failureThreshold: 6
+    periodSeconds: 10
+
+  deployment:
+    create: true
+
+  service:
+    create: true
+    type: ClusterIP
+    port: 8080
+
+  ingress:
+    create: true
+    path: /idpaypaymentinstrument/(.*)
+
+  serviceAccount:
+    create: false
+    annotations: {}
+    name: ""
+
+  podAnnotations: {}
+
+  podSecurityContext:
+    seccompProfile:
+      type: RuntimeDefault
+
+  securityContext:
+    allowPrivilegeEscalation: false
+        targetValue: "30"
+
+  envConfig:
+    MONGODB_DBNAME: idpay
+    APPLICATIONINSIGHTS_ROLE_NAME: "idpaypaymentinstrument"
+    APPLICATIONINSIGHTS_INSTRUMENTATION_LOGGING_LEVEL: "OFF"
+    APPLICATIONINSIGHTS_INSTRUMENTATION_MICROMETER_ENABLED: "false"
+
+  envConfigMapExternals:
+    idpay-common:
+      TZ: TZ
+    idpay-eventhub-01:
+      KAFKA_BINDER_BROKER_ENDPOINT_LIST: kafka_broker
+      KAFKA_PAYMENT_INSTRUMENT_MECHANISM: kafka_sasl_mechanism
+      KAFKA_PAYMENT_INSTRUMENT_SECURITY_PROTOCOL: kafka_security_protocol
+      KAFKA_TOPIC_RULE_ENGINE: idpay_hpan_update_topic
+    rtd-eventhub:
+      KAFKA_BINDER_BROKER_ENDPOINT_RTD: kafka_broker_rtd
+      KAFKA_TOPIC_RTD: rtd_enrolled_pi_topic
+
+  envSecret:
+    MONGODB_URI: mongodb-connection-string
+    KAFKA_RULE_ENGINE_SASL_JAAS_CONFIG: evh-idpay-hpan-update-idpay-hpan-update-producer-jaas-config-idpay-01
+    KAFKA_RTD_SASL_JAAS_CONFIG: idpay-enrolled-pi-producer-connection-uri
+#    APPLICATIONINSIGHTS_CONNECTION_STRING: appinsights-instrumentation-key
+
+  # nodeSelector: {}
+
+  # tolerations: []
+
+  # affinity: {}
