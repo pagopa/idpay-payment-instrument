@@ -1,6 +1,8 @@
 logging:
   level:
-    it.gov.pagopa: ${LOG_LEVEL_PAGOPA:DEBUG}
+    it:
+      gov:
+        pagopa: ${LOG_LEVEL_PAGOPA:DEBUG}
     org:
       springframework:
         boot: ${LOG_LEVEL_SPRING_BOOT:INFO}
@@ -25,7 +27,8 @@ spring:
                         key:
                           serializer: org.apache.kafka.common.serialization.StringSerializer
                         sasl:
-                          jaas.config: ${KAFKA_RULE_ENGINE_SASL_JAAS_CONFIG:}
+                          jaas:
+                            config: ${KAFKA_RULE_ENGINE_SASL_JAAS_CONFIG:}
           type: kafka
         kafka-rtd:
           environment:
@@ -37,7 +40,8 @@ spring:
                       brokers: ${KAFKA_BINDER_BROKER_ENDPOINT_RTD:}
                       configuration:
                         sasl:
-                          jaas.config: ${KAFKA_RTD_SASL_JAAS_CONFIG:}
+                          jaas:
+                            config: ${KAFKA_RTD_SASL_JAAS_CONFIG:}
           type: kafka
       bindings:
         paymentInstrumentQueue-out-0:
@@ -54,18 +58,30 @@ spring:
         binder:
           auto-create-topics: false
           configuration:
-            heartbeat.interval.ms: 30000
-            sasl.mechanism: ${KAFKA_PAYMENT_INSTRUMENT_MECHANISM:}
-            security.protocol: ${KAFKA_PAYMENT_INSTRUMENT_SECURITY_PROTOCOL:}
-            session.timeout.ms: 60000
+            heartbeat:
+              interval:
+                ms: 30000
+            sasl:
+              mechanism: ${KAFKA_PAYMENT_INSTRUMENT_MECHANISM:}
+            security:
+              protocol: ${KAFKA_PAYMENT_INSTRUMENT_SECURITY_PROTOCOL:}
+            session:
+              timeout:
+                ms: 60000
           consumerProperties:
-            connections.max.idle.ms: 300000
+            connections:
+              max:
+                idle:
+                  ms: 300000
             key:
               deserializer: org.apache.kafka.common.serialization.StringDeserializer
             socket:
-              connection.setup.timeout:
-                max.ms: 200000
-                ms: 100000
+              connection:
+                setup:
+                  timeout:
+                    max:
+                      ms: 200000
+                    ms: 100000
             value:
               deserializer: org.apache.kafka.common.serialization.StringDeserializer
   config:
