@@ -36,7 +36,7 @@ microservice-chart:
 #          targetValue: "30"
 
   envConfig:
-    JAVA_TOOL_OPTIONS: JAVA_TOOL_OPTIONS
+    JAVA_TOOL_OPTIONS: '-Xms128m -Xmx4g -javaagent:/app/applicationinsights-agent.jar'
 
   envSecret:
     aks-api-url: cstar-d-weu-dev01-aks-apiserver-url
