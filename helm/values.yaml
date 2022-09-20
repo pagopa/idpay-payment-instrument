@@ -44,7 +44,6 @@ microservice-chart:
 
   securityContext:
     allowPrivilegeEscalation: false
-        targetValue: "30"
 
   envConfig:
     MONGODB_DBNAME: idpay
