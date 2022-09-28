@@ -16,6 +16,7 @@ spring:
     stream:
       binders:
         kafka-re:
+          type: kafka
           environment:
             spring:
               cloud:
@@ -29,8 +30,9 @@ spring:
                         sasl:
                           jaas:
                             config: ${KAFKA_RULE_ENGINE_SASL_JAAS_CONFIG:}
-          type: kafka
+
         kafka-rtd:
+          type: kafka
           environment:
             spring:
               cloud:
@@ -42,7 +44,20 @@ spring:
                         sasl:
                           jaas:
                             config: ${KAFKA_RTD_SASL_JAAS_CONFIG:}
+
+        kafka-errors:
           type: kafka
+          environment:
+            spring:
+              cloud:
+                stream:
+                  kafka:
+                    binder:
+                      brokers: ${KAFKA_BINDER_BROKER_ENDPOINT_ERRORS:}
+                      configuration:
+                        sasl:
+                          jaas:
+                            config: ${KAFKA_ERRORS_SASL_JAAS_CONFIG:}
       bindings:
         paymentInstrumentQueue-out-0:
           binder: kafka-re
@@ -52,6 +67,10 @@ spring:
           binder: kafka-rtd
           content-type: ${KAFKA_CONTENT_TYPE:application/json}
           destination: ${KAFKA_TOPIC_RTD:}
+        paymentInstrumentQueue-out-2:
+          binder: kafka-errors
+          content-type: ${KAFKA_CONTENT_TYPE:application/json}
+          destination: ${KAFKA_TOPIC_ERRORS:}
       function:
         definition: paymentInstrumentQueue
       kafka:
