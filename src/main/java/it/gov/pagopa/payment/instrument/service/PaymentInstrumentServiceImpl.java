@@ -6,6 +6,7 @@ import it.gov.pagopa.payment.instrument.dto.HpanGetDTO;
 import it.gov.pagopa.payment.instrument.dto.RTDOperationDTO;
 import it.gov.pagopa.payment.instrument.dto.RuleEngineQueueDTO;
 import it.gov.pagopa.payment.instrument.dto.mapper.MessageMapper;
+import it.gov.pagopa.payment.instrument.event.ErrorProducer;
 import it.gov.pagopa.payment.instrument.event.RTDProducer;
 import it.gov.pagopa.payment.instrument.event.RuleEngineProducer;
 import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
@@ -20,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -34,6 +36,8 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
   RTDProducer rtdProducer;
   @Autowired
   MessageMapper messageMapper;
+  @Autowired
+  ErrorProducer errorProducer;
 
   private static final Logger LOG = LoggerFactory.getLogger(
       PaymentInstrumentServiceImpl.class);
@@ -58,10 +62,18 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     PaymentInstrument newInstrument = new PaymentInstrument(initiativeId, userId, hpan,
         PaymentInstrumentConstants.STATUS_ACTIVE, channel, activationDate);
     paymentInstrumentRepository.save(newInstrument);
-
-    sendToRuleEngine(newInstrument.getUserId(), newInstrument.getInitiativeId(), hpanList,
+    try {
+        sendToRuleEngine(newInstrument.getUserId(), newInstrument.getInitiativeId(), hpanList,
         PaymentInstrumentConstants.OPERATION_ADD);
-    sendToRtd(hpanList, PaymentInstrumentConstants.OPERATION_ADD);
+    }catch(Exception e){
+    paymentInstrumentRepository.delete(newInstrument);
+    throw new PaymentInstrumentException(HttpStatus.BAD_REQUEST.value(), e.getMessage());
+    }
+    try {
+      sendToRtd(hpanList, PaymentInstrumentConstants.OPERATION_ADD);
+    }catch(Exception e){
+      this.sendToQueueError(e,hpanList);
+    }
   }
 
   @Override
@@ -81,7 +93,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       this.rollbackInstruments(paymentInstrumentList);
       throw new PaymentInstrumentException(HttpStatus.BAD_REQUEST.value(), e.getMessage());
     }
-    sendToRtd(hpanList, PaymentInstrumentConstants.OPERATION_DELETE);
+      sendToRtd(hpanList, PaymentInstrumentConstants.OPERATION_DELETE);
   }
 
   @Override
@@ -198,5 +210,18 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     }
     paymentInstrumentRepository.saveAll(paymentInstrumentList);
     LOG.info("Instrument rollbacked: {}", paymentInstrumentList.size());
+  }
+
+  private void sendToQueueError(Exception e, List<String> hpanList){
+    final MessageBuilder<?> errorMessage = MessageBuilder.withPayload(hpanList)
+        .setHeader(PaymentInstrumentConstants.ERROR_MSG_HEADER_SRC_TYPE, PaymentInstrumentConstants.KAFKA)
+        .setHeader(PaymentInstrumentConstants.ERROR_MSG_HEADER_SRC_SERVER, PaymentInstrumentConstants.BROKER_RTD)
+        .setHeader(PaymentInstrumentConstants.ERROR_MSG_HEADER_SRC_TOPIC, PaymentInstrumentConstants.TOPIC_RTD)
+        .setHeader(PaymentInstrumentConstants.ERROR_MSG_HEADER_DESCRIPTION, PaymentInstrumentConstants.ERROR_RTD)
+        .setHeader(PaymentInstrumentConstants.ERROR_MSG_HEADER_RETRYABLE, true)
+        .setHeader(PaymentInstrumentConstants.ERROR_MSG_HEADER_STACKTRACE, e.getStackTrace())
+        .setHeader(PaymentInstrumentConstants.ERROR_MSG_HEADER_CLASS, e.getClass())
+        .setHeader(PaymentInstrumentConstants.ERROR_MSG_HEADER_MESSAGE, e.getMessage());
+    errorProducer.sendEvent(errorMessage.build());
   }
 }

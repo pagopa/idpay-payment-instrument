@@ -10,8 +10,10 @@ import static org.junit.jupiter.api.Assertions.fail;
 import it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants;
 import it.gov.pagopa.payment.instrument.dto.HpanDTO;
 import it.gov.pagopa.payment.instrument.dto.HpanGetDTO;
+import it.gov.pagopa.payment.instrument.dto.RTDOperationDTO;
 import it.gov.pagopa.payment.instrument.dto.RuleEngineQueueDTO;
 import it.gov.pagopa.payment.instrument.dto.mapper.MessageMapper;
+import it.gov.pagopa.payment.instrument.event.ErrorProducer;
 import it.gov.pagopa.payment.instrument.event.RTDProducer;
 import it.gov.pagopa.payment.instrument.event.RuleEngineProducer;
 import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
@@ -44,7 +46,8 @@ class PaymentInstrumentServiceTest {
   RTDProducer rtdProducer;
   @MockBean
   MessageMapper messageMapper;
-
+  @MockBean
+  ErrorProducer errorProducer;
   @Autowired
   PaymentInstrumentService paymentInstrumentService;
 
@@ -189,6 +192,42 @@ class PaymentInstrumentServiceTest {
 
     try {
       paymentInstrumentService.deactivateInstrument(INITIATIVE_ID, USER_ID, HPAN, TEST_DATE);
+    } catch (PaymentInstrumentException e) {
+      Assertions.fail();
+    }
+  }
+
+  @Test
+  void enrollInstrument_ko_rule_engine() {
+    Mockito.when(paymentInstrumentRepositoryMock.findByHpanAndStatus(HPAN,
+        PaymentInstrumentConstants.STATUS_ACTIVE)).thenReturn(new ArrayList<>());
+
+    Mockito.when(paymentInstrumentRepositoryMock.countByHpanAndStatus(HPAN,
+        PaymentInstrumentConstants.STATUS_ACTIVE)).thenReturn(0);
+
+    Mockito.doThrow(new PaymentInstrumentException(400,"")).when(producer).sendInstruments(Mockito.any());
+
+    try {
+      paymentInstrumentService.enrollInstrument(INITIATIVE_ID, USER_ID, HPAN, CHANNEL, TEST_DATE);
+      Assertions.fail();
+    } catch (PaymentInstrumentException e) {
+      assertEquals(HttpStatus.BAD_REQUEST.value(), e.getCode());
+    }
+  }
+
+  @Test
+  void enrollInstrument_ok_queue_error() {
+    Mockito.when(paymentInstrumentRepositoryMock.findByHpanAndStatus(HPAN,
+        PaymentInstrumentConstants.STATUS_ACTIVE)).thenReturn(new ArrayList<>());
+
+    Mockito.when(paymentInstrumentRepositoryMock.countByHpanAndStatus(HPAN,
+        PaymentInstrumentConstants.STATUS_ACTIVE)).thenReturn(0);
+
+    Mockito.doThrow(new PaymentInstrumentException(400,"")).when(rtdProducer).sendInstrument(Mockito.any(
+        RTDOperationDTO.class));
+
+    try {
+      paymentInstrumentService.enrollInstrument(INITIATIVE_ID, USER_ID, HPAN, CHANNEL, TEST_DATE);
     } catch (PaymentInstrumentException e) {
       Assertions.fail();
     }
