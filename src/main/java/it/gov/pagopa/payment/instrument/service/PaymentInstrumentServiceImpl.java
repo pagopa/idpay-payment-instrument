@@ -72,7 +72,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     try {
       sendToRtd(hpanList, PaymentInstrumentConstants.OPERATION_ADD);
     }catch(Exception e){
-      this.sendToQueueError(e,hpanList);
+      this.sendToQueueError(e,hpanList, PaymentInstrumentConstants.OPERATION_ADD);
     }
   }
 
@@ -212,8 +212,16 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     LOG.info("Instrument rollbacked: {}", paymentInstrumentList.size());
   }
 
-  private void sendToQueueError(Exception e, List<String> hpanList){
-    final MessageBuilder<?> errorMessage = MessageBuilder.withPayload(hpanList)
+  private void sendToQueueError(Exception e, List<String> hpanList, String operation){
+    RTDOperationDTO rtdOperationDTO =
+        RTDOperationDTO.builder()
+            .hpanList(hpanList)
+            .operationType(operation)
+            .application("IDPAY")
+            .operationDate(LocalDateTime.now())
+            .build();
+
+    final MessageBuilder<?> errorMessage = MessageBuilder.withPayload(rtdOperationDTO)
         .setHeader(PaymentInstrumentConstants.ERROR_MSG_HEADER_SRC_TYPE, PaymentInstrumentConstants.KAFKA)
         .setHeader(PaymentInstrumentConstants.ERROR_MSG_HEADER_SRC_SERVER, PaymentInstrumentConstants.BROKER_RTD)
         .setHeader(PaymentInstrumentConstants.ERROR_MSG_HEADER_SRC_TOPIC, PaymentInstrumentConstants.TOPIC_RTD)
