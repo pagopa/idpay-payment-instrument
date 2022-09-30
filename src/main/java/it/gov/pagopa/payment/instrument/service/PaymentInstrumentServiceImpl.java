@@ -66,6 +66,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
         sendToRuleEngine(newInstrument.getUserId(), newInstrument.getInitiativeId(), hpanList,
         PaymentInstrumentConstants.OPERATION_ADD);
     }catch(Exception e){
+      LOG.info("ROLLBACK PAYMENT INSTRUMENT");
     paymentInstrumentRepository.delete(newInstrument);
     throw new PaymentInstrumentException(HttpStatus.BAD_REQUEST.value(), e.getMessage());
     }
