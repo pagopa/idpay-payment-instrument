@@ -321,6 +321,31 @@ class PaymentInstrumentServiceTest {
   }
 
   @Test
+  void disableAllPayInstrument_ok_queue_error(){
+
+    List<PaymentInstrument> paymentInstruments = new ArrayList<>();
+    paymentInstruments.add(TEST_INSTRUMENT);
+
+    Mockito.when(paymentInstrumentRepositoryMock.findByInitiativeIdAndUserIdAndStatus(INITIATIVE_ID, USER_ID, PaymentInstrumentConstants.STATUS_ACTIVE))
+        .thenReturn(paymentInstruments);
+
+    Mockito.doThrow(new PaymentInstrumentException(400,"")).when(rtdProducer).sendInstrument(Mockito.any(
+        RTDOperationDTO.class));
+
+    Mockito.doAnswer(
+            invocationOnMock -> {
+              TEST_INSTRUMENT.setStatus(PaymentInstrumentConstants.STATUS_INACTIVE);
+              TEST_INSTRUMENT.setRequestDeactivationDate(TEST_DATE);
+              return null;
+            })
+        .when(paymentInstrumentRepositoryMock).save(Mockito.any(PaymentInstrument.class));
+
+    paymentInstrumentService.deactivateAllInstrument(INITIATIVE_ID, USER_ID, LocalDateTime.now().toString());
+    assertNotNull(TEST_INSTRUMENT.getRequestDeactivationDate());
+    assertEquals(PaymentInstrumentConstants.STATUS_INACTIVE, TEST_INSTRUMENT.getStatus());
+  }
+
+  @Test
   void disableAllPayInstrument_ko(){
 
     List<PaymentInstrument> paymentInstruments = new ArrayList<>();

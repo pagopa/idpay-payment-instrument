@@ -39,8 +39,6 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
   @Autowired
   ErrorProducer errorProducer;
 
-  private static final Logger LOG = LoggerFactory.getLogger(
-      PaymentInstrumentServiceImpl.class);
 
   @Override
   public void enrollInstrument(String initiativeId, String userId, String hpan, String channel,
@@ -66,7 +64,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
         sendToRuleEngine(newInstrument.getUserId(), newInstrument.getInitiativeId(), hpanList,
         PaymentInstrumentConstants.OPERATION_ADD);
     }catch(Exception e){
-      LOG.info("ROLLBACK PAYMENT INSTRUMENT");
+      log.info("ROLLBACK PAYMENT INSTRUMENT");
     paymentInstrumentRepository.delete(newInstrument);
     throw new PaymentInstrumentException(HttpStatus.BAD_REQUEST.value(), e.getMessage());
     }
@@ -94,7 +92,11 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       this.rollbackInstruments(paymentInstrumentList);
       throw new PaymentInstrumentException(HttpStatus.BAD_REQUEST.value(), e.getMessage());
     }
+    try {
       sendToRtd(hpanList, PaymentInstrumentConstants.OPERATION_DELETE);
+    }catch(Exception e){
+      this.sendToQueueError(e,hpanList, PaymentInstrumentConstants.OPERATION_DELETE);
+    }
   }
 
   @Override
@@ -210,7 +212,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       instrument.setRequestDeactivationDate(null);
     }
     paymentInstrumentRepository.saveAll(paymentInstrumentList);
-    LOG.info("Instrument rollbacked: {}", paymentInstrumentList.size());
+    log.info("Instrument rollbacked: {}", paymentInstrumentList.size());
   }
 
   private void sendToQueueError(Exception e, List<String> hpanList, String operation){
