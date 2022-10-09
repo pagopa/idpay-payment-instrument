@@ -126,6 +126,25 @@ class PaymentInstrumentServiceTest {
           e.getMessage());
     }
   }
+  @Test
+  void deactiveInstrument_ko_rule_engine() {
+    Mockito.when(
+            paymentInstrumentRepositoryMock.findByInitiativeIdAndUserIdAndHpan(INITIATIVE_ID,
+                USER_ID, HPAN))
+        .thenReturn(List.of(TEST_INSTRUMENT, TEST_INACTIVE_INSTRUMENT));
+
+    Mockito.when(paymentInstrumentRepositoryMock.countByHpanAndStatus(HPAN,
+        PaymentInstrumentConstants.STATUS_ACTIVE)).thenReturn(0);
+
+    Mockito.doThrow(new PaymentInstrumentException(400,"")).when(producer).sendInstruments(Mockito.any());
+
+    try {
+      paymentInstrumentService.deactivateInstrument(INITIATIVE_ID, USER_ID, HPAN, TEST_DATE);
+      Assertions.fail();
+    } catch (PaymentInstrumentException e) {
+      assertEquals(HttpStatus.BAD_REQUEST.value(), e.getCode());
+    }
+  }
 
   @Test
   void deactivateInstrument_ok_to_rtd() {
