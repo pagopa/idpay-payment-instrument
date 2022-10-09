@@ -121,9 +121,18 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     instrument.setRequestDeactivationDate(deactivationDate);
     paymentInstrumentRepository.save(instrument);
     List<String> hpanList = Arrays.asList(instrument.getHpan());
-    sendToRuleEngine(instrument.getUserId(), instrument.getInitiativeId(), hpanList,
-        PaymentInstrumentConstants.OPERATION_DELETE);
-    sendToRtd(hpanList, PaymentInstrumentConstants.OPERATION_DELETE);
+    try {
+      sendToRuleEngine(instrument.getUserId(), instrument.getInitiativeId(), hpanList,
+          PaymentInstrumentConstants.OPERATION_DELETE);
+    }catch(Exception e){
+      this.rollbackInstruments(List.of(instrument));
+      throw new PaymentInstrumentException(HttpStatus.BAD_REQUEST.value(), e.getMessage());
+    }
+    try {
+      sendToRtd(hpanList, PaymentInstrumentConstants.OPERATION_DELETE);
+    }catch(Exception e){
+      this.sendToQueueError(e,hpanList, PaymentInstrumentConstants.OPERATION_DELETE);
+    }
   }
 
   private void sendToRuleEngine(String userId, String initiativeId, List<String> hpanList,
