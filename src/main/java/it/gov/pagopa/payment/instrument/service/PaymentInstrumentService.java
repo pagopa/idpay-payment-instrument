@@ -1,16 +1,17 @@
 package it.gov.pagopa.payment.instrument.service;
 
 import it.gov.pagopa.payment.instrument.dto.HpanGetDTO;
+import it.gov.pagopa.payment.instrument.dto.pm.PaymentMethodInfoList;
 import it.gov.pagopa.payment.instrument.model.PaymentInstrument;
 import java.time.LocalDateTime;
 import java.util.List;
 
 public interface PaymentInstrumentService {
 
-  void enrollInstrument(String initiativeId, String userId, String hpan,
+  PaymentMethodInfoList enrollInstrument(String initiativeId, String userId, String idWallet,
       String channel, LocalDateTime activationDate);
 
-  void deactivateInstrument(String initiativeId, String userId, String hpan, LocalDateTime deactivationDate);
+  PaymentMethodInfoList deactivateInstrument(String initiativeId, String userId, String instrumentId, LocalDateTime deactivationDate);
 
   void deactivateAllInstrument(String initiativeId, String userId, String deactivationDate);
   void rollbackInstruments(List<PaymentInstrument> paymentInstrumentList);

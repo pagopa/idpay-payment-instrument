@@ -5,9 +5,10 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants;
 import it.gov.pagopa.payment.instrument.dto.RuleEngineQueueDTO;
+import it.gov.pagopa.payment.instrument.dto.pm.PaymentMethodInfoList;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
@@ -20,14 +21,24 @@ class MessageMapperTest {
   private static final String USER_ID = "TEST_USER_ID";
   private static final String INITIATIVE_ID = "TEST_INITIATIVE_ID";
   private static final String HPAN = "TEST_HPAN";
+  private static final String MASKED_PAN = "MASKED_PAN";
+  private static final String BRAND_LOGO = "BAND_LOGO";
+  private static final List<PaymentMethodInfoList> INFO_LIST = new ArrayList<>();
+  private static final PaymentMethodInfoList PAYMENT_METHOD_INFO_LIST = new PaymentMethodInfoList();
+
   @Test
   void testApply() {
 
     RuleEngineQueueDTO ruleEngineQueueDTO = new RuleEngineQueueDTO();
+    PAYMENT_METHOD_INFO_LIST.setHpan(HPAN);
+    PAYMENT_METHOD_INFO_LIST.setMaskedPan(MASKED_PAN);
+    PAYMENT_METHOD_INFO_LIST.setBrandLogo(BRAND_LOGO);
+//    INFO_LIST.add(PAYMENT_METHOD_INFO_LIST);
+
     ruleEngineQueueDTO.setUserId(USER_ID);
     ruleEngineQueueDTO.setInitiativeId(INITIATIVE_ID);
     ruleEngineQueueDTO.setOperationType(PaymentInstrumentConstants.OPERATION_ADD);
-    ruleEngineQueueDTO.setHpanList(new ArrayList<>(Collections.singleton(HPAN)));
+    ruleEngineQueueDTO.setInfoList(List.of(PAYMENT_METHOD_INFO_LIST));
     ruleEngineQueueDTO.setOperationDate(LocalDateTime.now());
 
     MessageMapper messageMapper = new MessageMapper();
@@ -41,7 +52,9 @@ class MessageMapperTest {
     assertEquals(USER_ID, ruleEngineQueueDTO.getUserId());
     assertEquals(INITIATIVE_ID, ruleEngineQueueDTO.getInitiativeId());
     assertEquals(PaymentInstrumentConstants.OPERATION_ADD, ruleEngineQueueDTO.getOperationType());
-    assertEquals(HPAN, ruleEngineQueueDTO.getHpanList().get(0));
+    assertEquals(HPAN, PAYMENT_METHOD_INFO_LIST.getHpan());
+    assertEquals(MASKED_PAN, PAYMENT_METHOD_INFO_LIST.getMaskedPan());
+    assertEquals(BRAND_LOGO, PAYMENT_METHOD_INFO_LIST.getBrandLogo());
     assertNotNull(ruleEngineQueueDTO.getOperationDate());
   }
 

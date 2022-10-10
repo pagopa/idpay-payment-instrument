@@ -8,10 +8,12 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface PaymentInstrumentRepository extends MongoRepository<PaymentInstrument, String> {
 
-  List<PaymentInstrument> findByHpanAndStatus(String hpan, String status);
+  List<PaymentInstrument> findByIdWalletAndStatus(String idWallet, String status);
 
   List<PaymentInstrument> findByInitiativeIdAndUserIdAndHpan(String initiativeId, String userId,
       String hpan);
+  List<PaymentInstrument> findByInitiativeIdAndUserIdAndId(String initiativeId, String userId,
+      String instrumentId);
 
   int countByInitiativeIdAndUserIdAndStatus(String initiativeId, String userId, String status);
 

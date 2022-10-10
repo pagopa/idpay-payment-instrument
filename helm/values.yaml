@@ -54,6 +54,9 @@ microservice-chart:
   envConfigMapExternals:
     idpay-common:
       TZ: TZ
+    rest-client:
+      PM_SERVICE_BASE_URL:
+      PM_SERVICE_URL:
     idpay-eventhub-01:
       KAFKA_BINDER_BROKER_ENDPOINT_LIST: kafka_broker
       KAFKA_BINDER_BROKER_ENDPOINT_ERRORS: kafka_broker
@@ -66,6 +69,8 @@ microservice-chart:
       KAFKA_TOPIC_RTD: rtd_enrolled_pi_topic
 
   envSecret:
+    PM_SERVICE_APIM_KEY:
+    PM_SERVICE_APIM_TRACE:
     MONGODB_URI: mongodb-connection-string
     KAFKA_RULE_ENGINE_SASL_JAAS_CONFIG: evh-idpay-hpan-update-idpay-hpan-update-producer-jaas-config-idpay-01
     KAFKA_RTD_SASL_JAAS_CONFIG: idpay-enrolled-pi-producer-connection-uri
