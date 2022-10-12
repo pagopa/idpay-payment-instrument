@@ -1,6 +1,7 @@
 package it.gov.pagopa.payment.instrument.dto;
 
 import it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants;
+import java.time.LocalDateTime;
 import javax.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -10,13 +11,13 @@ import lombok.Getter;
 public class DeactivationPMBodyDTO {
 
   @NotBlank(message = PaymentInstrumentConstants.ERROR_MANDATORY_FIELD)
-  String codFiscale;
+  String fiscalCode;
 
 
   @NotBlank(message = PaymentInstrumentConstants.ERROR_MANDATORY_FIELD)
   String hpan;
 
-  String deactivationDate;
+  LocalDateTime deactivationDate;
 
 }
 

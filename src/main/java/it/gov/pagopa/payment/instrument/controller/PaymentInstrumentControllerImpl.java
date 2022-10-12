@@ -8,7 +8,6 @@ import it.gov.pagopa.payment.instrument.dto.HpanGetDTO;
 import it.gov.pagopa.payment.instrument.dto.InstrumentResponseDTO;
 import it.gov.pagopa.payment.instrument.dto.UnsubscribeBodyDTO;
 import it.gov.pagopa.payment.instrument.service.PaymentInstrumentService;
-import java.time.LocalDateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -44,7 +43,7 @@ public class PaymentInstrumentControllerImpl implements PaymentInstrumentControl
 
   @Override
   public ResponseEntity<Void> deleteInstrumentPM(DeactivationPMBodyDTO body) {
-  paymentInstrumentService.deactivateInstrumentPM(body.getCodFiscale(), body.getHpan(), LocalDateTime.now());
+  paymentInstrumentService.deactivateInstrumentPM(body);
     return new ResponseEntity<>(HttpStatus.NO_CONTENT);
   }
 

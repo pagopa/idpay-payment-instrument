@@ -54,6 +54,20 @@ spring:
                           jaas:
                             config: ${KAFKA_RTD_SASL_JAAS_CONFIG:}
 
+        kafka-delete-rtd:
+          type: kafka
+          environment:
+            spring:
+              cloud:
+                stream:
+                  kafka:
+                    binder:
+                      brokers: ${KAFKA_BINDER_BROKER_ENDPOINT_RTD:}
+                      configuration:
+                        sasl:
+                          jaas:
+                            config: ${KAFKA_DELETE_RTD_SASL_JAAS_CONFIG:}
+
         kafka-errors:
           type: kafka
           environment:
@@ -68,6 +82,11 @@ spring:
                           jaas:
                             config: ${KAFKA_ERRORS_SASL_JAAS_CONFIG:}
       bindings:
+        paymentInstrumentQueue-in-0:
+          binder: kafka-delete-rtd
+          content-type: ${KAFKA_CONTENT_TYPE:application/json}
+          destination: ${KAFKA_TOPIC_DELETE_RTD:}
+          group: ${KAFKA_DELETE_RTD_GROUP_IN:}
         paymentInstrumentQueue-out-0:
           binder: kafka-re
           content-type: ${KAFKA_CONTENT_TYPE:application/json}
@@ -86,32 +105,25 @@ spring:
         binder:
           auto-create-topics: false
           configuration:
-            heartbeat:
-              interval:
-                ms: 30000
-            sasl:
-              mechanism: ${KAFKA_PAYMENT_INSTRUMENT_MECHANISM:}
-            security:
-              protocol: ${KAFKA_PAYMENT_INSTRUMENT_SECURITY_PROTOCOL:}
-            session:
-              timeout:
-                ms: 60000
-          consumerProperties:
-            connections:
-              max:
-                idle:
-                  ms: 300000
-            key:
-              deserializer: org.apache.kafka.common.serialization.StringDeserializer
-            socket:
-              connection:
-                setup:
-                  timeout:
-                    max:
-                      ms: 200000
-                    ms: 100000
-            value:
-              deserializer: org.apache.kafka.common.serialization.StringDeserializer
+            heartbeat.interval.ms: ${KAFKA_CONFIG_HEARTBEAT_INTERVAL_MS:30000}
+            session.timeout.ms: ${KAFKA_CONFIG_SESSION_TIMEOUT_MS:60000}
+            request.timeout.ms: ${KAFKA_CONFIG_REQUEST_TIMEOUT_MS:60000}
+            sasl.mechanism: ${KAFKA_CONFIG_SASL_MECHANISM:PLAIN}
+            security.protocol: ${KAFKA_CONFIG_SECURITY_PROTOCOL:SASL_SSL}
+        bindings:
+          paymentInstrumentQueue-in-0:
+            consumer:
+              startOffset: ${KAFKA_RTD_DELETE_REQUEST_START_OFFSET:${KAFKA_CONSUMER_CONFIG_START_OFFSET:earliest}}
+              autoCommitOffset: ${KAFKA_RTD_DELETE_AUTO_COMMIT:${KAFKA_CONSUMER_CONFIG_AUTO_COMMIT:true}}
+              standardHeaders: ${KAFKA_RTD_DELETE_STANDARD_HEADERS:${KAFKA_CONSUMER_CONFIG_STANDARD_HEADERS:both}}
+              configuration:
+                max.poll:
+                  records: ${KAFKA_RTD_DELETE_MAX_POLL_SIZE:${KAFKA_CONSUMER_CONFIG_MAX_POLL_SIZE:500}}
+                  interval.ms: ${KAFKA_RTD_DELETE_INTERVAL_TIMEOUT_MS:${KAFKA_CONFIG_MAX_POLL_INTERVAL_TIMEOUT_MS:300000}}
+                connections.max.idle.ms: ${KAFKA_RTD_DELETE_REQUEST_CONNECTIONS_MAX_IDLE_MS:${KAFKA_CONSUMER_CONFIG_CONNECTIONS_MAX_IDLE_MS:300000}}
+                socket.connection.setup.timeout:
+                  max.ms: ${KAFKA_RTD_DELETE_REQUEST_CONNECTION_TIMEOUT_MAX_MS:${KAFKA_CONSUMER_CONFIG_CONNECTION_TIMEOUT_MAX_MS:200000}}
+                  ms: ${KAFKA_RTD_DELETE_REQUEST_CONNECTION_TIMEOUT_MS:${KAFKA_CONSUMER_CONFIG_CONNECTION_TIMEOUT_MS:100000}}
   config:
     activate:
       on-profile: default
