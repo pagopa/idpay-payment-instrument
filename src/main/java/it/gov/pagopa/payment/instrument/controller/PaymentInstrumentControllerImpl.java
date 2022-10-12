@@ -20,7 +20,8 @@ public class PaymentInstrumentControllerImpl implements PaymentInstrumentControl
   PaymentInstrumentService paymentInstrumentService;
 
   @Override
-  public ResponseEntity<InstrumentResponseDTO> enrollInstrument(EnrollmentBodyDTO body) {
+  public ResponseEntity<InstrumentResponseDTO> enrollInstrument(EnrollmentBodyDTO body)
+      {
     PaymentMethodInfoList info = paymentInstrumentService.enrollInstrument(
         body.getInitiativeId(),
         body.getUserId(),

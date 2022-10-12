@@ -1,6 +1,5 @@
 package it.gov.pagopa.payment.instrument.connector;
 
-import it.gov.pagopa.payment.instrument.dto.pm.WalletV2ListResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,6 +15,6 @@ public interface PMRestClient {
       value = "${rest-client.pm.url}",
       produces = MediaType.APPLICATION_JSON_VALUE)
   @ResponseBody
-  WalletV2ListResponse getWalletList(@RequestHeader("Ocp-Apim-Subscription-Key") String apimKey, @RequestHeader("Ocp-Apim-Trace") String apimTrace,
+  String getWalletList(@RequestHeader("Ocp-Apim-Subscription-Key") String apimKey, @RequestHeader("Ocp-Apim-Trace") String apimTrace,
       @RequestHeader("Fiscal-Code") String userId);
 }

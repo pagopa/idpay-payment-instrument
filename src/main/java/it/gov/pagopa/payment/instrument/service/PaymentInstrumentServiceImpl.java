@@ -1,6 +1,7 @@
 package it.gov.pagopa.payment.instrument.service;
 
-import feign.FeignException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import it.gov.pagopa.payment.instrument.connector.PMRestClientConnector;
 import it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants;
 import it.gov.pagopa.payment.instrument.dto.HpanDTO;
@@ -43,6 +44,8 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
   ErrorProducer errorProducer;
   @Autowired
   PMRestClientConnector pmRestClientConnector;
+  @Autowired
+  ObjectMapper objectMapper;
 
   @Override
   public PaymentMethodInfoList enrollInstrument(String initiativeId, String userId, String idWallet,
@@ -63,16 +66,12 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
 
     WalletV2ListResponse walletV2ListResponse;
     try {
-      log.info("[PaymentInstrumentService] Calling PM service.");
-      walletV2ListResponse = pmRestClientConnector.getWalletList(userId);
-      log.info("pm finito");
-    } catch (FeignException e) {
-      log.error("exception pm");
+      walletV2ListResponse = objectMapper.readValue(pmRestClientConnector.getWalletList(userId),
+          WalletV2ListResponse.class);
+    } catch (JsonProcessingException ex) {
       throw new PaymentInstrumentException(HttpStatus.INTERNAL_SERVER_ERROR.value(),
-          e.getMessage());
+          ex.getMessage());
     }
-
-    log.info("fuori chiamata");
     PaymentMethodInfoList infoList = new PaymentMethodInfoList();
     List<PaymentMethodInfoList> paymentMethodInfoList = new ArrayList<>();
 
@@ -80,20 +79,20 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       if (v2.getIdWallet().equals(idWallet)) {
         switch (v2.getWalletType()) {
           case SATISPAY -> {
-            infoList.setHpan(v2.getInfo().getSatispayInfo().getUuid());
-            infoList.setBrandLogo(v2.getInfo().getSatispayInfo().getBrandLogo());
+            infoList.setHpan(v2.getInfo().getUuid());
+            infoList.setBrandLogo(v2.getInfo().getBrandLogo());
             paymentMethodInfoList.add(infoList);
           }
           case BPAY -> {
-            infoList.setHpan(v2.getInfo().getBPayInfo().getUidHash());
-            infoList.setMaskedPan(v2.getInfo().getBPayInfo().getNumberObfuscated());
-            infoList.setBrandLogo(v2.getInfo().getBPayInfo().getBrandLogo());
+            infoList.setHpan(v2.getInfo().getUidHash());
+            infoList.setMaskedPan(v2.getInfo().getNumberObfuscated());
+            infoList.setBrandLogo(v2.getInfo().getBrandLogo());
             paymentMethodInfoList.add(infoList);
           }
           default -> {
-            infoList.setHpan(v2.getInfo().getCardInfo().getHashPan());
-            infoList.setMaskedPan(v2.getInfo().getCardInfo().getBlurredNumber());
-            infoList.setBrandLogo(v2.getInfo().getCardInfo().getBrandLogo());
+            infoList.setHpan(v2.getInfo().getHashPan());
+            infoList.setMaskedPan(v2.getInfo().getBlurredNumber());
+            infoList.setBrandLogo(v2.getInfo().getBrandLogo());
             paymentMethodInfoList.add(infoList);
           }
         }
