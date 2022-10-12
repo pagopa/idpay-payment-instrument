@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import it.gov.pagopa.payment.instrument.connector.EncryptRestConnector;
 import it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants;
 import it.gov.pagopa.payment.instrument.dto.HpanDTO;
 import it.gov.pagopa.payment.instrument.dto.HpanGetDTO;
@@ -48,6 +49,8 @@ class PaymentInstrumentServiceTest {
   MessageMapper messageMapper;
   @MockBean
   ErrorProducer errorProducer;
+  @MockBean
+  EncryptRestConnector encryptRestConnector;
   @Autowired
   PaymentInstrumentService paymentInstrumentService;
 

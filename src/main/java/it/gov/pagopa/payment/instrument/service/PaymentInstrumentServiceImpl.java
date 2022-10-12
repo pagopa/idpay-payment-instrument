@@ -1,11 +1,17 @@
 package it.gov.pagopa.payment.instrument.service;
 
+import it.gov.pagopa.payment.instrument.connector.WalletRestConnector;
 import it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants;
+import it.gov.pagopa.payment.instrument.dto.CFDTO;
+import it.gov.pagopa.payment.instrument.dto.EncryptedCfDTO;
 import it.gov.pagopa.payment.instrument.dto.HpanDTO;
 import it.gov.pagopa.payment.instrument.dto.HpanGetDTO;
 import it.gov.pagopa.payment.instrument.dto.RTDOperationDTO;
 import it.gov.pagopa.payment.instrument.dto.RuleEngineQueueDTO;
+import it.gov.pagopa.payment.instrument.dto.WalletCallDTO;
+import it.gov.pagopa.payment.instrument.dto.WalletDTO;
 import it.gov.pagopa.payment.instrument.dto.mapper.MessageMapper;
+import it.gov.pagopa.payment.instrument.connector.EncryptRestConnector;
 import it.gov.pagopa.payment.instrument.event.ErrorProducer;
 import it.gov.pagopa.payment.instrument.event.RTDProducer;
 import it.gov.pagopa.payment.instrument.event.RuleEngineProducer;
@@ -17,8 +23,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.messaging.support.MessageBuilder;
@@ -38,6 +42,11 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
   MessageMapper messageMapper;
   @Autowired
   ErrorProducer errorProducer;
+  @Autowired
+  private EncryptRestConnector encryptRestConnector;
+
+  @Autowired
+  private WalletRestConnector walletRestConnector;
 
 
   @Override
@@ -111,6 +120,27 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     instruments.forEach(instrument ->
         checkAndDelete(instrument, deactivationDate)
     );
+  }
+
+  @Override
+  public void deactivateInstrumentPM(String codFiscale, String hpan,
+      LocalDateTime deactivationDate) {
+    EncryptedCfDTO encryptedCfDTO = encryptRestConnector.upsertToken(new CFDTO(codFiscale));
+    List<PaymentInstrument> instruments = paymentInstrumentRepository.findByHpanAndUserIdAndStatus(hpan,encryptedCfDTO.getToken(),PaymentInstrumentConstants.STATUS_ACTIVE);
+    if (instruments.isEmpty()) {
+      throw new PaymentInstrumentException(HttpStatus.NOT_FOUND.value(),
+          PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_NOT_FOUND);
+    }
+    List<WalletDTO> walletDTOS = new ArrayList<>();
+    for(PaymentInstrument instrument:instruments){
+      WalletDTO walletDTO = new WalletDTO(instrument.getInitiativeId(), instrument.getUserId(), instrument.getHpan());
+      walletDTOS.add(walletDTO);
+    }
+    walletRestConnector.updateWallet(new WalletCallDTO(walletDTOS));
+    instruments.forEach(instrument ->
+        checkAndDelete(instrument, deactivationDate)
+    );
+
   }
 
   private void checkAndDelete(PaymentInstrument instrument, LocalDateTime deactivationDate) {

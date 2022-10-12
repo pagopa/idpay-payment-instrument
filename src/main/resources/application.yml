@@ -1,3 +1,4 @@
+api.key.encrypt: ${PDV_ENCRYPT_API_KEY:}
 logging:
   level:
     it:
@@ -9,6 +10,14 @@ logging:
         cloud: ${LOG_LEVEL_SPRING_CLOUD:WARN}
         data: ${LOG_LEVEL_SPRING_DATA:INFO}
     root: ${LOG_LEVEL_ROOT:INFO}
+wallet:
+  uri: ${WALLET_URI:}
+rest-client:
+  wallet:
+    serviceCode: idpay-wallet
+  encrypt:
+    base-url: ${PDV_ENCRYPT_BASE_URL:}
+    cf: ${PDV_ENCRYPT_SERVICE_CODE:pdv-ms-tokenizer}
 spring:
   application:
     name: idpay-payment-instrument

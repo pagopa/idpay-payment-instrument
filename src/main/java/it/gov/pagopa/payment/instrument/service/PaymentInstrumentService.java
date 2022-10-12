@@ -11,6 +11,7 @@ public interface PaymentInstrumentService {
       String channel, LocalDateTime activationDate);
 
   void deactivateInstrument(String initiativeId, String userId, String hpan, LocalDateTime deactivationDate);
+  void deactivateInstrumentPM(String codFiscale, String hpan, LocalDateTime deactivationDate);
 
   void deactivateAllInstrument(String initiativeId, String userId, String deactivationDate);
   void rollbackInstruments(List<PaymentInstrument> paymentInstrumentList);

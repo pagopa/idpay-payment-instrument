@@ -1,6 +1,7 @@
 package it.gov.pagopa.payment.instrument.controller;
 
 import it.gov.pagopa.payment.instrument.dto.DeactivationBodyDTO;
+import it.gov.pagopa.payment.instrument.dto.DeactivationPMBodyDTO;
 import it.gov.pagopa.payment.instrument.dto.EnrollmentBodyDTO;
 import it.gov.pagopa.payment.instrument.dto.HpanGetDTO;
 import it.gov.pagopa.payment.instrument.dto.InstrumentResponseDTO;
@@ -42,6 +43,16 @@ public interface PaymentInstrumentController {
   @DeleteMapping("/deactivate")
   ResponseEntity<InstrumentResponseDTO> deleteInstrument(
       @Valid @RequestBody DeactivationBodyDTO body);
+
+  /**
+   * Deactivation of a Payment Instrument
+   *
+   * @param body
+   * @return
+   */
+  @DeleteMapping("/deactivate/pm")
+  ResponseEntity<Void> deleteInstrumentPM(
+      @Valid @RequestBody DeactivationPMBodyDTO body);
 
   /**
    * Deactivation all Payment Instrument
