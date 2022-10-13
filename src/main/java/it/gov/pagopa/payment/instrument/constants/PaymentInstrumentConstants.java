@@ -24,6 +24,9 @@ public final class PaymentInstrumentConstants {
   public static final String BROKER_RTD = "cstar-d-evh-ns.servicebus.windows.net:9093";
   public static final String ERROR_RTD = "error to ADD new instrument to RTD";
 
+  public static final String PM="PAYMENT-MANAGER";
+  public static final String IO="APP-IO";
+
   private PaymentInstrumentConstants() {
   }
 }

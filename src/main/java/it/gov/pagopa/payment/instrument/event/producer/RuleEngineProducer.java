@@ -1,4 +1,4 @@
-package it.gov.pagopa.payment.instrument.event;
+package it.gov.pagopa.payment.instrument.event.producer;
 
 import it.gov.pagopa.payment.instrument.dto.RuleEngineQueueDTO;
 import org.springframework.beans.factory.annotation.Autowired;
