@@ -1,6 +1,8 @@
 package it.gov.pagopa.payment.instrument.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import feign.FeignException;
+import it.gov.pagopa.payment.instrument.connector.EncryptRestConnector;
 import it.gov.pagopa.payment.instrument.connector.PMRestClientConnector;
 import it.gov.pagopa.payment.instrument.connector.WalletRestConnector;
 import it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants;
@@ -17,10 +19,6 @@ import it.gov.pagopa.payment.instrument.dto.mapper.MessageMapper;
 import it.gov.pagopa.payment.instrument.dto.pm.PaymentMethodInfoList;
 import it.gov.pagopa.payment.instrument.dto.pm.WalletV2;
 import it.gov.pagopa.payment.instrument.dto.pm.WalletV2ListResponse;
-import it.gov.pagopa.payment.instrument.event.ErrorProducer;
-import it.gov.pagopa.payment.instrument.event.RTDProducer;
-import it.gov.pagopa.payment.instrument.event.RuleEngineProducer;
-import it.gov.pagopa.payment.instrument.connector.EncryptRestConnector;
 import it.gov.pagopa.payment.instrument.event.producer.ErrorProducer;
 import it.gov.pagopa.payment.instrument.event.producer.RTDProducer;
 import it.gov.pagopa.payment.instrument.event.producer.RuleEngineProducer;
@@ -80,8 +78,11 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     }
 
     WalletV2ListResponse walletV2ListResponse;
-
-    walletV2ListResponse=pmRestClientConnector.getWalletList(userId);
+    try{
+      walletV2ListResponse = pmRestClientConnector.getWalletList(userId);
+    } catch (FeignException e) {
+      throw new PaymentInstrumentException(HttpStatus.INTERNAL_SERVER_ERROR.value(),e.getMessage());
+    }
 
     PaymentMethodInfoList infoList = new PaymentMethodInfoList();
     List<PaymentMethodInfoList> paymentMethodInfoList = new ArrayList<>();
@@ -164,8 +165,8 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     }
     try {
       sendToRtd(hpanList, PaymentInstrumentConstants.OPERATION_DELETE);
-    }catch(Exception e){
-      this.sendToQueueError(e,hpanList, PaymentInstrumentConstants.OPERATION_DELETE);
+    } catch (Exception e) {
+      this.sendToQueueError(e, hpanList, PaymentInstrumentConstants.OPERATION_DELETE);
     }
   }
 
@@ -173,49 +174,52 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
   public PaymentMethodInfoList deactivateInstrument(String initiativeId, String userId,
       String instrumentId,
       LocalDateTime deactivationDate) {
-    List<PaymentInstrument> instruments = paymentInstrumentRepository.findByInitiativeIdAndUserIdAndId(
-        initiativeId, userId, instrumentId);
+    log.info("[DELETE-PAYMENT-INSTRUMENT] Delete instrument");
+    List<PaymentInstrument> instruments = paymentInstrumentRepository.findByInitiativeIdAndUserIdAndIdAndStatus(
+        initiativeId, userId, instrumentId,PaymentInstrumentConstants.STATUS_ACTIVE);
 
     if (instruments.isEmpty()) {
       throw new PaymentInstrumentException(HttpStatus.NOT_FOUND.value(),
           PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_NOT_FOUND);
     }
-    PaymentMethodInfoList infoList = new PaymentMethodInfoList();
+    List<PaymentMethodInfoList> paymentMethodInfoLists = new ArrayList<>();
     instruments.forEach(instrument ->
-        checkAndDelete(instrument, deactivationDate, infoList,PaymentInstrumentConstants.IO)
+        paymentMethodInfoLists.add(checkAndDelete(instrument, deactivationDate, PaymentInstrumentConstants.IO))
     );
-    return infoList;
+    return paymentMethodInfoLists.get(0);
   }
+
   @Override
   public void deactivateInstrumentPM(DeactivationPMBodyDTO dto) {
-    log.info("Delete instrument from PM");
-    EncryptedCfDTO encryptedCfDTO = encryptRestConnector.upsertToken(new CFDTO(dto.getFiscalCode()));
+    log.info("[DELETE-PAYMENT-INSTRUMENT] Delete instrument from PM");
+    EncryptedCfDTO encryptedCfDTO = encryptRestConnector.upsertToken(
+        new CFDTO(dto.getFiscalCode()));
     List<PaymentInstrument> instruments = paymentInstrumentRepository.findByHpanAndUserIdAndStatus(
-        dto.getHpan(), encryptedCfDTO.getToken(),PaymentInstrumentConstants.STATUS_ACTIVE);
+        dto.getHpan(), encryptedCfDTO.getToken(), PaymentInstrumentConstants.STATUS_ACTIVE);
     if (instruments.isEmpty()) {
       throw new PaymentInstrumentException(HttpStatus.NOT_FOUND.value(),
           PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_NOT_FOUND);
     }
     List<WalletDTO> walletDTOS = new ArrayList<>();
     for(PaymentInstrument instrument:instruments){
-      WalletDTO walletDTO = new WalletDTO(instrument.getInitiativeId(), instrument.getUserId(), instrument.getHpan());
+      WalletDTO walletDTO = new WalletDTO(instrument.getInitiativeId(), instrument.getUserId(), instrument.getHpan(),
+          instrument.getBrandLogo(), instrument.getMaskedPan());
       walletDTOS.add(walletDTO);
     }
     walletRestConnector.updateWallet(new WalletCallDTO(walletDTOS));
     instruments.forEach(instrument ->
         checkAndDelete(instrument, LocalDateTime.parse(dto.getDeactivationDate()), PaymentInstrumentConstants.PM)
     );
-
   }
-  private void checkAndDelete(PaymentInstrument instrument, LocalDateTime deactivationDate, String channel,
-      PaymentMethodInfoList infoList) {
-    if (instrument.getStatus().equals(PaymentInstrumentConstants.STATUS_INACTIVE)) {
-      return;
-    }
+
+  private PaymentMethodInfoList checkAndDelete(PaymentInstrument instrument, LocalDateTime deactivationDate,
+      String channel) {
+
     instrument.setStatus(PaymentInstrumentConstants.STATUS_INACTIVE);
     instrument.setRequestDeactivationDate(deactivationDate);
     instrument.setDeleteChannel(channel);
     paymentInstrumentRepository.save(instrument);
+    PaymentMethodInfoList infoList = new PaymentMethodInfoList();
 
     infoList.setHpan(instrument.getHpan());
     infoList.setMaskedPan(instrument.getMaskedPan());
@@ -224,22 +228,22 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     List<PaymentMethodInfoList> paymentMethodInfoList = List.of(infoList);
     List<String> hpanList = Arrays.asList(instrument.getHpan());
     try {
-      sendToRuleEngine(instrument.getUserId(), instrument.getInitiativeId(), hpanList,paymentMethodInfoList,
-          PaymentInstrumentConstants.OPERATION_DELETE);
-    }catch(Exception e){
+      sendToRuleEngine(instrument.getUserId(), instrument.getInitiativeId(),
+          paymentMethodInfoList, PaymentInstrumentConstants.OPERATION_DELETE);
+    } catch (Exception e) {
       this.rollbackInstruments(List.of(instrument));
       throw new PaymentInstrumentException(HttpStatus.BAD_REQUEST.value(), e.getMessage());
     }
     try {
       sendToRtd(hpanList, PaymentInstrumentConstants.OPERATION_DELETE);
-    }catch(Exception e){
-      this.sendToQueueError(e,hpanList, PaymentInstrumentConstants.OPERATION_DELETE);
+    } catch (Exception e) {
+      this.sendToQueueError(e, hpanList, PaymentInstrumentConstants.OPERATION_DELETE);
     }
+    return infoList;
   }
 
   private void sendToRuleEngine(String userId, String initiativeId, List<PaymentMethodInfoList>
-      paymentMethodInfoList,
-      String operation) {
+      paymentMethodInfoList, String operation) {
 
     RuleEngineQueueDTO ruleEngineQueueDTO = RuleEngineQueueDTO.builder()
         .userId(userId)
@@ -337,10 +341,14 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
             .build();
 
     final MessageBuilder<?> errorMessage = MessageBuilder.withPayload(rtdOperationDTO)
-        .setHeader(PaymentInstrumentConstants.ERROR_MSG_HEADER_SRC_TYPE, PaymentInstrumentConstants.KAFKA)
-        .setHeader(PaymentInstrumentConstants.ERROR_MSG_HEADER_SRC_SERVER, PaymentInstrumentConstants.BROKER_RTD)
-        .setHeader(PaymentInstrumentConstants.ERROR_MSG_HEADER_SRC_TOPIC, PaymentInstrumentConstants.TOPIC_RTD)
-        .setHeader(PaymentInstrumentConstants.ERROR_MSG_HEADER_DESCRIPTION, PaymentInstrumentConstants.ERROR_RTD)
+        .setHeader(PaymentInstrumentConstants.ERROR_MSG_HEADER_SRC_TYPE,
+            PaymentInstrumentConstants.KAFKA)
+        .setHeader(PaymentInstrumentConstants.ERROR_MSG_HEADER_SRC_SERVER,
+            PaymentInstrumentConstants.BROKER_RTD)
+        .setHeader(PaymentInstrumentConstants.ERROR_MSG_HEADER_SRC_TOPIC,
+            PaymentInstrumentConstants.TOPIC_RTD)
+        .setHeader(PaymentInstrumentConstants.ERROR_MSG_HEADER_DESCRIPTION,
+            PaymentInstrumentConstants.ERROR_RTD)
         .setHeader(PaymentInstrumentConstants.ERROR_MSG_HEADER_RETRYABLE, true)
         .setHeader(PaymentInstrumentConstants.ERROR_MSG_HEADER_STACKTRACE, e.getStackTrace())
         .setHeader(PaymentInstrumentConstants.ERROR_MSG_HEADER_CLASS, e.getClass())

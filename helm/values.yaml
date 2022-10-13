@@ -57,6 +57,8 @@ microservice-chart:
     rest-client:
       PM_SERVICE_BASE_URL:
       PM_SERVICE_URL:
+      PDV_ENCRYPT_BASE_URL: pdv_encrypt_base_url
+      WALLET_URI: wallet_base_url
     idpay-eventhub-01:
       KAFKA_BINDER_BROKER_ENDPOINT_LIST: kafka_broker
       KAFKA_BINDER_BROKER_ENDPOINT_ERRORS: kafka_broker
@@ -78,6 +80,7 @@ microservice-chart:
     KAFKA_RTD_SASL_JAAS_CONFIG: idpay-enrolled-pi-producer-connection-uri
     KAFKA_DELETE_RTD_SASL_JAAS_CONFIG: idpay-revoked-pi-consumer-connection-uri
     KAFKA_ERRORS_SASL_JAAS_CONFIG: evh-idpay-errors-idpay-errors-producer-jaas-config-idpay-01
+    PDV_ENCRYPT_API_KEY: pdv-api-key-encrypt
 #    APPLICATIONINSIGHTS_CONNECTION_STRING: appinsights-instrumentation-key
 
   # nodeSelector: {}
