@@ -93,6 +93,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     for (PaymentInstrument paymentInstrument : paymentInstrumentList) {
       paymentInstrument.setRequestDeactivationDate(LocalDateTime.parse(deactivationDate));
       paymentInstrument.setStatus(PaymentInstrumentConstants.STATUS_INACTIVE);
+      paymentInstrument.setDeleteChannel(PaymentInstrumentConstants.IO);
       hpanList.add(paymentInstrument.getHpan());
     }
     paymentInstrumentRepository.saveAll(paymentInstrumentList);
@@ -119,12 +120,13 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
           PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_NOT_FOUND);
     }
     instruments.forEach(instrument ->
-        checkAndDelete(instrument, deactivationDate)
+        checkAndDelete(instrument, deactivationDate, PaymentInstrumentConstants.IO)
     );
   }
 
   @Override
   public void deactivateInstrumentPM(DeactivationPMBodyDTO dto) {
+    log.info("Delete instrument from PM");
     EncryptedCfDTO encryptedCfDTO = encryptRestConnector.upsertToken(new CFDTO(dto.getFiscalCode()));
     List<PaymentInstrument> instruments = paymentInstrumentRepository.findByHpanAndUserIdAndStatus(
         dto.getHpan(), encryptedCfDTO.getToken(),PaymentInstrumentConstants.STATUS_ACTIVE);
@@ -139,17 +141,18 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     }
     walletRestConnector.updateWallet(new WalletCallDTO(walletDTOS));
     instruments.forEach(instrument ->
-        checkAndDelete(instrument, dto.getDeactivationDate())
+        checkAndDelete(instrument, LocalDateTime.parse(dto.getDeactivationDate()), PaymentInstrumentConstants.PM)
     );
 
   }
 
-  private void checkAndDelete(PaymentInstrument instrument, LocalDateTime deactivationDate) {
+  private void checkAndDelete(PaymentInstrument instrument, LocalDateTime deactivationDate, String channel) {
     if (instrument.getStatus().equals(PaymentInstrumentConstants.STATUS_INACTIVE)) {
       return;
     }
     instrument.setStatus(PaymentInstrumentConstants.STATUS_INACTIVE);
     instrument.setRequestDeactivationDate(deactivationDate);
+    instrument.setDeleteChannel(channel);
     paymentInstrumentRepository.save(instrument);
     List<String> hpanList = Arrays.asList(instrument.getHpan());
     try {
@@ -275,4 +278,5 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
         .setHeader(PaymentInstrumentConstants.ERROR_MSG_HEADER_MESSAGE, e.getMessage());
     errorProducer.sendEvent(errorMessage.build());
   }
+
 }

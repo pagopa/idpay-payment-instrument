@@ -31,6 +31,7 @@ public class PaymentInstrument {
   private String status;
 
   private String channel;
+  private String deleteChannel;
 
   private LocalDateTime activationDate;
 

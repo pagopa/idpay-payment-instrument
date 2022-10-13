@@ -2,7 +2,6 @@ package it.gov.pagopa.payment.instrument.controller;
 
 import it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants;
 import it.gov.pagopa.payment.instrument.dto.DeactivationBodyDTO;
-import it.gov.pagopa.payment.instrument.dto.DeactivationPMBodyDTO;
 import it.gov.pagopa.payment.instrument.dto.EnrollmentBodyDTO;
 import it.gov.pagopa.payment.instrument.dto.HpanGetDTO;
 import it.gov.pagopa.payment.instrument.dto.InstrumentResponseDTO;
@@ -39,12 +38,6 @@ public class PaymentInstrumentControllerImpl implements PaymentInstrumentControl
     int nInstr = paymentInstrumentService.countByInitiativeIdAndUserIdAndStatus(body.getInitiativeId(),
         body.getUserId(), PaymentInstrumentConstants.STATUS_ACTIVE);
     return new ResponseEntity<>(new InstrumentResponseDTO(nInstr), HttpStatus.OK);
-  }
-
-  @Override
-  public ResponseEntity<Void> deleteInstrumentPM(DeactivationPMBodyDTO body) {
-  paymentInstrumentService.deactivateInstrumentPM(body);
-    return new ResponseEntity<>(HttpStatus.NO_CONTENT);
   }
 
 
