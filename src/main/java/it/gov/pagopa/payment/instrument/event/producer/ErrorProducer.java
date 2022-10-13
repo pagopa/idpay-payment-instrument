@@ -1,4 +1,4 @@
-package it.gov.pagopa.payment.instrument.event;
+package it.gov.pagopa.payment.instrument.event.producer;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;

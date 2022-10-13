@@ -1,5 +1,6 @@
 package it.gov.pagopa.payment.instrument.service;
 
+import it.gov.pagopa.payment.instrument.dto.DeactivationPMBodyDTO;
 import it.gov.pagopa.payment.instrument.dto.HpanGetDTO;
 import it.gov.pagopa.payment.instrument.dto.pm.PaymentMethodInfoList;
 import it.gov.pagopa.payment.instrument.model.PaymentInstrument;
@@ -12,7 +13,7 @@ public interface PaymentInstrumentService {
       String channel, LocalDateTime activationDate);
 
   PaymentMethodInfoList deactivateInstrument(String initiativeId, String userId, String instrumentId, LocalDateTime deactivationDate);
-
+  void deactivateInstrumentPM(DeactivationPMBodyDTO dto);
   void deactivateAllInstrument(String initiativeId, String userId, String deactivationDate);
   void rollbackInstruments(List<PaymentInstrument> paymentInstrumentList);
 
