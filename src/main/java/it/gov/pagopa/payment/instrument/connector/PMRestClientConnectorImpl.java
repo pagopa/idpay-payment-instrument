@@ -1,5 +1,6 @@
 package it.gov.pagopa.payment.instrument.connector;
 
+import it.gov.pagopa.payment.instrument.dto.pm.WalletV2ListResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -19,7 +20,7 @@ public class PMRestClientConnectorImpl implements PMRestClientConnector {
   }
 
   @Override
-  public String getWalletList(String userId) {
+  public WalletV2ListResponse getWalletList(String userId) {
     return pmRestClient.getWalletList(apimKey, apimTrace, userId);
   }
 }
