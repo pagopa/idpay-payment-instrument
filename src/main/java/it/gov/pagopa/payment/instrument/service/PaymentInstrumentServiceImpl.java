@@ -65,20 +65,10 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
 
     WalletV2ListResponse walletV2ListResponse;
 
-    List<WalletV2> collection;
     walletV2ListResponse=pmRestClientConnector.getWalletList(userId);
-//    try {
-//      walletV2ListResponse
-//      = objectMapper.readValue(json, WalletV2ListResponse.class);
-//    } catch (JsonProcessingException ex) {
-//      throw new PaymentInstrumentException(HttpStatus.INTERNAL_SERVER_ERROR.value(),
-//          ex.getMessage());
-//    }
+
     PaymentMethodInfoList infoList = new PaymentMethodInfoList();
     List<PaymentMethodInfoList> paymentMethodInfoList = new ArrayList<>();
-//    List<WalletV2> walletV2 = new ArrayList<>(collection);
-
-//    walletV2ListResponse.setData(collection);
 
     for (WalletV2 v2 : walletV2ListResponse.getData()) {
       if (v2.getIdWallet().equals(idWallet)) {
