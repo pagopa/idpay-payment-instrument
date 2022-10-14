@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 public interface PMRestClient {
 
   @GetMapping(
-      value = "${rest-client.pm.url}",
+      value = "/idpay/wallet/test/pmservice",
       produces = MediaType.APPLICATION_JSON_VALUE)
   @ResponseBody
   WalletV2ListResponse getWalletList(@RequestHeader("Ocp-Apim-Subscription-Key") String apimKey, @RequestHeader("Ocp-Apim-Trace") String apimTrace,

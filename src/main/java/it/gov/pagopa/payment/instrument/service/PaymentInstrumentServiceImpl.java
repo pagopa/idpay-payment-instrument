@@ -2,12 +2,14 @@ package it.gov.pagopa.payment.instrument.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import feign.FeignException;
+import it.gov.pagopa.payment.instrument.connector.DecryptRestConnector;
 import it.gov.pagopa.payment.instrument.connector.EncryptRestConnector;
 import it.gov.pagopa.payment.instrument.connector.PMRestClientConnector;
 import it.gov.pagopa.payment.instrument.connector.WalletRestConnector;
 import it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants;
 import it.gov.pagopa.payment.instrument.dto.CFDTO;
 import it.gov.pagopa.payment.instrument.dto.DeactivationPMBodyDTO;
+import it.gov.pagopa.payment.instrument.dto.DecryptCfDTO;
 import it.gov.pagopa.payment.instrument.dto.EncryptedCfDTO;
 import it.gov.pagopa.payment.instrument.dto.HpanDTO;
 import it.gov.pagopa.payment.instrument.dto.HpanGetDTO;
@@ -52,6 +54,8 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
   @Autowired
   PMRestClientConnector pmRestClientConnector;
   @Autowired
+  DecryptRestConnector decryptRestConnector;
+  @Autowired
   ObjectMapper objectMapper;
   @Autowired
   private EncryptRestConnector encryptRestConnector;
@@ -79,7 +83,9 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
 
     WalletV2ListResponse walletV2ListResponse;
     try{
-      walletV2ListResponse = pmRestClientConnector.getWalletList(userId);
+      DecryptCfDTO decryptedCfDTO = decryptRestConnector.getPiiByToken(userId);
+
+      walletV2ListResponse = pmRestClientConnector.getWalletList(decryptedCfDTO.getPii());
     } catch (FeignException e) {
       throw new PaymentInstrumentException(HttpStatus.INTERNAL_SERVER_ERROR.value(),e.getMessage());
     }

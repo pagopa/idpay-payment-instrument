@@ -10,12 +10,14 @@ import static org.junit.jupiter.api.Assertions.fail;
 import feign.FeignException;
 import feign.Request;
 import feign.RequestTemplate;
+import it.gov.pagopa.payment.instrument.connector.DecryptRestConnector;
 import it.gov.pagopa.payment.instrument.connector.EncryptRestConnector;
 import it.gov.pagopa.payment.instrument.connector.PMRestClientConnector;
 import it.gov.pagopa.payment.instrument.connector.WalletRestConnector;
 import it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants;
 import it.gov.pagopa.payment.instrument.dto.CFDTO;
 import it.gov.pagopa.payment.instrument.dto.DeactivationPMBodyDTO;
+import it.gov.pagopa.payment.instrument.dto.DecryptCfDTO;
 import it.gov.pagopa.payment.instrument.dto.EncryptedCfDTO;
 import it.gov.pagopa.payment.instrument.dto.HpanDTO;
 import it.gov.pagopa.payment.instrument.dto.HpanGetDTO;
@@ -67,6 +69,8 @@ class PaymentInstrumentServiceTest {
   EncryptRestConnector encryptRestConnector;
   @MockBean
   WalletRestConnector walletRestConnector;
+  @MockBean
+  DecryptRestConnector decryptRestConnector;
   @Autowired
   PaymentInstrumentService paymentInstrumentService;
   @MockBean
@@ -121,6 +125,7 @@ class PaymentInstrumentServiceTest {
       WALLET_V2_LIST_SATISPAY);
   private static final WalletV2ListResponse WALLET_V_2_LIST_RESPONSE_BPAY = new WalletV2ListResponse(
       WALLET_V2_LIST_BPAY);
+  private static final DecryptCfDTO DECRYPT_CF_DTO = new DecryptCfDTO(USER_ID);
   private static final PaymentInstrument TEST_INSTRUMENT = new PaymentInstrument(INITIATIVE_ID,
       USER_ID, ID_WALLET, HPAN, MASKED_PAN, BRAND_LOGO, PaymentInstrumentConstants.STATUS_ACTIVE,
       CHANNEL, TEST_DATE);
@@ -140,6 +145,7 @@ class PaymentInstrumentServiceTest {
 
     Mockito.when(paymentInstrumentRepositoryMock.countByHpanAndStatus(HPAN,
         PaymentInstrumentConstants.STATUS_ACTIVE)).thenReturn(0);
+    Mockito.when(decryptRestConnector.getPiiByToken(USER_ID)).thenReturn(DECRYPT_CF_DTO);
     Mockito.when(
         pmRestClientConnector.getWalletList(USER_ID)).thenReturn(WALLET_V_2_LIST_RESPONSE_CARD);
 
@@ -155,6 +161,7 @@ class PaymentInstrumentServiceTest {
   void enrollInstrument_ok_idemp() {
     Mockito.when(paymentInstrumentRepositoryMock.findByIdWalletAndStatus(ID_WALLET,
         PaymentInstrumentConstants.STATUS_ACTIVE)).thenReturn(List.of(TEST_INSTRUMENT));
+    Mockito.when(decryptRestConnector.getPiiByToken(USER_ID)).thenReturn(DECRYPT_CF_DTO);
     Mockito.when(
         pmRestClientConnector.getWalletList(USER_ID)).thenReturn(WALLET_V_2_LIST_RESPONSE_CARD);
     try {
@@ -172,6 +179,7 @@ class PaymentInstrumentServiceTest {
 
     Mockito.when(paymentInstrumentRepositoryMock.countByHpanAndStatus(HPAN,
         PaymentInstrumentConstants.STATUS_ACTIVE)).thenReturn(0);
+    Mockito.when(decryptRestConnector.getPiiByToken(USER_ID)).thenReturn(DECRYPT_CF_DTO);
     Mockito.when(
         pmRestClientConnector.getWalletList(USER_ID)).thenReturn(WALLET_V_2_LIST_RESPONSE_SATISPAY);
 
@@ -190,6 +198,7 @@ class PaymentInstrumentServiceTest {
 
     Mockito.when(paymentInstrumentRepositoryMock.countByHpanAndStatus(HPAN,
         PaymentInstrumentConstants.STATUS_ACTIVE)).thenReturn(0);
+    Mockito.when(decryptRestConnector.getPiiByToken(USER_ID)).thenReturn(DECRYPT_CF_DTO);
     Mockito.when(
         pmRestClientConnector.getWalletList(USER_ID)).thenReturn(WALLET_V_2_LIST_RESPONSE_BPAY);
 
@@ -208,6 +217,7 @@ class PaymentInstrumentServiceTest {
 
     Mockito.when(paymentInstrumentRepositoryMock.countByHpanAndStatus(HPAN,
         PaymentInstrumentConstants.STATUS_ACTIVE)).thenReturn(1);
+    Mockito.when(decryptRestConnector.getPiiByToken(USER_ID)).thenReturn(DECRYPT_CF_DTO);
     Mockito.when(
         pmRestClientConnector.getWalletList(USER_ID)).thenReturn(WALLET_V_2_LIST_RESPONSE_CARD);
 
@@ -228,6 +238,7 @@ class PaymentInstrumentServiceTest {
 
     Mockito.when(paymentInstrumentRepositoryMock.countByHpanAndStatus(HPAN,
         PaymentInstrumentConstants.STATUS_ACTIVE)).thenReturn(0);
+    Mockito.when(decryptRestConnector.getPiiByToken(USER_ID)).thenReturn(DECRYPT_CF_DTO);
 
     Request request =
         Request.create(Request.HttpMethod.GET, "url", new HashMap<>(), null, new RequestTemplate());
@@ -248,6 +259,7 @@ class PaymentInstrumentServiceTest {
   void enrollInstrument_ok_already_active(){
     Mockito.when(paymentInstrumentRepositoryMock.findByIdWalletAndStatus(ID_WALLET,
         PaymentInstrumentConstants.STATUS_ACTIVE)).thenReturn(List.of(TEST_INSTRUMENT));
+    Mockito.when(decryptRestConnector.getPiiByToken(USER_ID)).thenReturn(DECRYPT_CF_DTO);
 
     Mockito.when(
         pmRestClientConnector.getWalletList(USER_ID)).thenReturn(
@@ -289,6 +301,7 @@ class PaymentInstrumentServiceTest {
 
     Mockito.when(paymentInstrumentRepositoryMock.countByHpanAndStatus(HPAN,
         PaymentInstrumentConstants.STATUS_ACTIVE)).thenReturn(0);
+    Mockito.when(decryptRestConnector.getPiiByToken(USER_ID)).thenReturn(DECRYPT_CF_DTO);
 
     Mockito.when(
         pmRestClientConnector.getWalletList(USER_ID)).thenReturn(WALLET_V_2_LIST_RESPONSE_CARD);
@@ -312,6 +325,7 @@ class PaymentInstrumentServiceTest {
 
     Mockito.when(paymentInstrumentRepositoryMock.countByHpanAndStatus(ID_WALLET,
         PaymentInstrumentConstants.STATUS_ACTIVE)).thenReturn(0);
+    Mockito.when(decryptRestConnector.getPiiByToken(USER_ID)).thenReturn(DECRYPT_CF_DTO);
 
     Mockito.when(
         pmRestClientConnector.getWalletList(USER_ID)).thenReturn(WALLET_V_2_LIST_RESPONSE_CARD);
@@ -325,6 +339,24 @@ class PaymentInstrumentServiceTest {
           TEST_DATE);
     } catch (PaymentInstrumentException e) {
       Assertions.fail();
+    }
+  }
+
+  @Test
+  void save_iban_ko_decrypt() {
+    Mockito.when(paymentInstrumentRepositoryMock.findByIdWalletAndStatus(ID_WALLET,
+        PaymentInstrumentConstants.STATUS_ACTIVE)).thenReturn(List.of(TEST_INSTRUMENT));
+
+    Request request =
+        Request.create(
+            Request.HttpMethod.GET, "url", new HashMap<>(), null, new RequestTemplate());
+    Mockito.doThrow(new FeignException.BadRequest("", request, new byte[0], null))
+        .when(decryptRestConnector).getPiiByToken(USER_ID);
+
+    try {
+      paymentInstrumentService.enrollInstrument(INITIATIVE_ID,USER_ID,ID_WALLET,CHANNEL,TEST_DATE);
+    } catch (FeignException e) {
+      assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.status());
     }
   }
 
