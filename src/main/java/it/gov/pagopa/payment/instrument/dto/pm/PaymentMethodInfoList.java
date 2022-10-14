@@ -1,4 +1,4 @@
-package it.gov.pagopa.payment.instrument.dto;
+package it.gov.pagopa.payment.instrument.dto.pm;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -7,13 +7,10 @@ import lombok.Setter;
 
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
-public class WalletDTO {
-
-  private String initiativeId;
-  private String userId;
+@NoArgsConstructor
+public class PaymentMethodInfoList {
   private String hpan;
-  private String brandLogo;
   private String maskedPan;
+  private String brandLogo;
 }

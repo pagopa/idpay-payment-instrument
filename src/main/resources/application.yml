@@ -1,4 +1,5 @@
 api.key.encrypt: ${PDV_ENCRYPT_API_KEY:}
+api.key.decrypt: ${PDV_DECRYPT_API_KEY:}
 logging:
   level:
     it:
@@ -13,11 +14,19 @@ logging:
 wallet:
   uri: ${WALLET_URI:}
 rest-client:
+  pm:
+    serviceCode: ${PM_SERVICE_NAME:idpay-service-pm}
+    baseUrl: ${PM_SERVICE_BASE_URL:}
+    apim-key: ${PM_SERVICE_APIM_KEY:}
+    apim-trace: ${PM_SERVICE_APIM_TRACE:true}
   wallet:
     serviceCode: idpay-wallet
   encrypt:
     base-url: ${PDV_ENCRYPT_BASE_URL:}
-    cf: ${PDV_ENCRYPT_SERVICE_CODE:pdv-ms-tokenizer}
+    cf: ${PDV_ENCRYPT_SERVICE_CODE:pdv-ms-tokenizer-encrypt}
+  decrypt:
+    baseUrl: ${PDV_DECRYPT_BASE_URL:}
+    cf: ${PDV_DECRYPT_SERVICE_CODE:pdv-ms-tokenizer}
 spring:
   application:
     name: idpay-payment-instrument

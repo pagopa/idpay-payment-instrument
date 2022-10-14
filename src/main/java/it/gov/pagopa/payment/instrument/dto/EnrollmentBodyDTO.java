@@ -17,7 +17,7 @@ public class EnrollmentBodyDTO {
   String initiativeId;
 
   @NotBlank(message = PaymentInstrumentConstants.ERROR_MANDATORY_FIELD)
-  String hpan;
+  String idWallet;
 
   @NotBlank(message = PaymentInstrumentConstants.ERROR_MANDATORY_FIELD)
   String channel;

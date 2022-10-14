@@ -1,14 +1,14 @@
-package it.gov.pagopa.payment.instrument.dto;
+package it.gov.pagopa.payment.instrument.dto.pm;
 
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
-public class WalletCallDTO {
+public class WalletV2ListResponse {
 
-  private List<WalletDTO> walletDTOlist;
+  List<WalletV2> data;
 }

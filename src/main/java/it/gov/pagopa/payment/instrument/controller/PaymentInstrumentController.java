@@ -5,6 +5,7 @@ import it.gov.pagopa.payment.instrument.dto.EnrollmentBodyDTO;
 import it.gov.pagopa.payment.instrument.dto.HpanGetDTO;
 import it.gov.pagopa.payment.instrument.dto.InstrumentResponseDTO;
 import it.gov.pagopa.payment.instrument.dto.UnsubscribeBodyDTO;
+import java.io.IOException;
 import javax.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -31,7 +32,7 @@ public interface PaymentInstrumentController {
    */
   @PutMapping("/enroll")
   ResponseEntity<InstrumentResponseDTO> enrollInstrument(
-      @Valid @RequestBody EnrollmentBodyDTO body);
+      @Valid @RequestBody EnrollmentBodyDTO body) throws IOException;
 
   /**
    * Deactivation of a Payment Instrument

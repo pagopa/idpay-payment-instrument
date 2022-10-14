@@ -17,7 +17,7 @@ public class DeactivationBodyDTO {
   String initiativeId;
 
   @NotBlank(message = PaymentInstrumentConstants.ERROR_MANDATORY_FIELD)
-  String hpan;
+  String instrumentId;
 
   LocalDateTime deactivationDate;
 
