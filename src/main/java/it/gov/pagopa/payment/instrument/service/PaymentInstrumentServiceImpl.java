@@ -320,6 +320,10 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       HpanDTO hpanDTO = new HpanDTO();
       hpanDTO.setHpan(paymentInstruments.getHpan());
       hpanDTO.setChannel(paymentInstruments.getChannel());
+      hpanDTO.setBrandLogo(paymentInstruments.getBrandLogo());
+      hpanDTO.setMaskedPan(paymentInstruments.getMaskedPan());
+      hpanDTO.setInstrumentId(paymentInstruments.getId());
+      hpanDTO.setIdWallet(paymentInstruments.getIdWallet());
       hpanDTOList.add(hpanDTO);
     }
     hpanGetDTO.setHpanList(hpanDTOList);

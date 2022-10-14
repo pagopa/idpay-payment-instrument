@@ -475,6 +475,8 @@ class PaymentInstrumentServiceTest {
       HpanDTO actual = hpanGetDTO.getHpanList().get(0);
       assertEquals(TEST_INSTRUMENT.getHpan(), actual.getHpan());
       assertEquals(TEST_INSTRUMENT.getChannel(), actual.getChannel());
+      assertEquals(TEST_INSTRUMENT.getMaskedPan(),actual.getMaskedPan());
+      assertEquals(TEST_INSTRUMENT.getBrandLogo(),actual.getBrandLogo());
       assertFalse(hpanGetDTO.getHpanList().isEmpty());
     } catch (PaymentInstrumentException e) {
       Assertions.fail();

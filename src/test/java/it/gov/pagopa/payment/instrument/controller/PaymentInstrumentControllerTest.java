@@ -64,7 +64,7 @@ class PaymentInstrumentControllerTest {
   private static final DeactivationBodyDTO DEACTIVATION_BODY_DTO_EMPTY = new DeactivationBodyDTO("",
       "", "", TEST_DATE);
 
-  private static final HpanDTO HPAN_DTO_TEST = new HpanDTO(HPAN, CHANNEL);
+  private static final HpanDTO HPAN_DTO_TEST = new HpanDTO(HPAN, CHANNEL,BRAND_LOGO,ID_WALLET,INSTRUMENT_ID,CHANNEL);
 
   private static final HpanGetDTO HPANGETDTO = new HpanGetDTO();
   private static final List<PaymentMethodInfoList> INFO_LIST = new ArrayList<>();
