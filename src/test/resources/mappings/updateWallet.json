@@ -1,0 +1,9 @@
+{
+  "request": {
+    "method": "PUT",
+    "urlPathPattern": "/idpay/wallet/updateWallet"
+  },
+  "response": {
+    "status": "204"
+  }
+}
