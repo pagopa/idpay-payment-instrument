@@ -82,16 +82,18 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     }
 
     WalletV2ListResponse walletV2ListResponse;
-    try{
+    try {
       DecryptCfDTO decryptedCfDTO = decryptRestConnector.getPiiByToken(userId);
 
       walletV2ListResponse = pmRestClientConnector.getWalletList(decryptedCfDTO.getPii());
     } catch (FeignException e) {
-      throw new PaymentInstrumentException(HttpStatus.INTERNAL_SERVER_ERROR.value(),e.getMessage());
+      throw new PaymentInstrumentException(HttpStatus.INTERNAL_SERVER_ERROR.value(),
+          e.getMessage());
     }
 
     PaymentMethodInfoList infoList = new PaymentMethodInfoList();
     List<PaymentMethodInfoList> paymentMethodInfoList = new ArrayList<>();
+    int countIdWallet = 0;
 
     for (WalletV2 v2 : walletV2ListResponse.getData()) {
       if (v2.getIdWallet().equals(idWallet)) {
@@ -114,9 +116,15 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
             paymentMethodInfoList.add(infoList);
           }
         }
+      } else {
+        countIdWallet++;
       }
     }
 
+    if (countIdWallet == walletV2ListResponse.getData().size()) {
+      throw new PaymentInstrumentException(HttpStatus.NOT_FOUND.value(),
+          PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_NOT_FOUND);
+    }
     PaymentInstrument newInstrument = new PaymentInstrument(initiativeId, userId, idWallet,
         infoList.getHpan(), infoList.getMaskedPan(), infoList.getBrandLogo(),
         PaymentInstrumentConstants.STATUS_ACTIVE, channel, activationDate);
@@ -182,7 +190,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       LocalDateTime deactivationDate) {
     log.info("[DELETE-PAYMENT-INSTRUMENT] Delete instrument");
     List<PaymentInstrument> instruments = paymentInstrumentRepository.findByInitiativeIdAndUserIdAndIdAndStatus(
-        initiativeId, userId, instrumentId,PaymentInstrumentConstants.STATUS_ACTIVE);
+        initiativeId, userId, instrumentId, PaymentInstrumentConstants.STATUS_ACTIVE);
 
     if (instruments.isEmpty()) {
       throw new PaymentInstrumentException(HttpStatus.NOT_FOUND.value(),
@@ -190,7 +198,8 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     }
     List<PaymentMethodInfoList> paymentMethodInfoLists = new ArrayList<>();
     instruments.forEach(instrument ->
-        paymentMethodInfoLists.add(checkAndDelete(instrument, deactivationDate, PaymentInstrumentConstants.IO))
+        paymentMethodInfoLists.add(
+            checkAndDelete(instrument, deactivationDate, PaymentInstrumentConstants.IO))
     );
     return paymentMethodInfoLists.get(0);
   }
@@ -207,18 +216,21 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
           PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_NOT_FOUND);
     }
     List<WalletDTO> walletDTOS = new ArrayList<>();
-    for(PaymentInstrument instrument:instruments){
-      WalletDTO walletDTO = new WalletDTO(instrument.getInitiativeId(), instrument.getUserId(), instrument.getHpan(),
+    for (PaymentInstrument instrument : instruments) {
+      WalletDTO walletDTO = new WalletDTO(instrument.getInitiativeId(), instrument.getUserId(),
+          instrument.getHpan(),
           instrument.getBrandLogo(), instrument.getMaskedPan());
       walletDTOS.add(walletDTO);
     }
     walletRestConnector.updateWallet(new WalletCallDTO(walletDTOS));
     instruments.forEach(instrument ->
-        checkAndDelete(instrument, LocalDateTime.parse(dto.getDeactivationDate()), PaymentInstrumentConstants.PM)
+        checkAndDelete(instrument, LocalDateTime.parse(dto.getDeactivationDate()),
+            PaymentInstrumentConstants.PM)
     );
   }
 
-  private PaymentMethodInfoList checkAndDelete(PaymentInstrument instrument, LocalDateTime deactivationDate,
+  private PaymentMethodInfoList checkAndDelete(PaymentInstrument instrument,
+      LocalDateTime deactivationDate,
       String channel) {
 
     instrument.setStatus(PaymentInstrumentConstants.STATUS_INACTIVE);
