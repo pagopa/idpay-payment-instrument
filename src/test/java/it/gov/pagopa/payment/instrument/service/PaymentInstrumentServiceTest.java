@@ -84,6 +84,7 @@ class PaymentInstrumentServiceTest {
   private static final LocalDateTime TEST_DATE = LocalDateTime.now();
   private static final int TEST_COUNT = 2;
   private static final String ID_WALLET = "ID_WALLET";
+  private static final String ID_WALLET_KO = "ID_WALLET_KO";
   private static final String INSTRUMENT_ID = "INSTRUMENT_ID";
   private static final String MASKED_PAN = "MASKED_PAN";
   private static final String BLURRED_NUMBER = "BLURRED_NUMBER";
@@ -233,6 +234,25 @@ class PaymentInstrumentServiceTest {
 
   @Test
   void enrollInstrument_pm_ko() {
+    Mockito.when(paymentInstrumentRepositoryMock.findByIdWalletAndStatus(ID_WALLET,
+        PaymentInstrumentConstants.STATUS_ACTIVE)).thenReturn(new ArrayList<>());
+
+    Mockito.when(paymentInstrumentRepositoryMock.countByHpanAndStatus(HPAN,
+        PaymentInstrumentConstants.STATUS_ACTIVE)).thenReturn(0);
+    Mockito.when(decryptRestConnector.getPiiByToken(USER_ID)).thenReturn(DECRYPT_CF_DTO);
+    Mockito.when(
+        pmRestClientConnector.getWalletList(USER_ID)).thenReturn(WALLET_V_2_LIST_RESPONSE_CARD);
+
+    try {
+      paymentInstrumentService.enrollInstrument(INITIATIVE_ID_OTHER, USER_ID, ID_WALLET_KO, CHANNEL,
+          TEST_DATE);
+      Assertions.fail();
+    } catch (PaymentInstrumentException e) {
+      assertEquals(HttpStatus.NOT_FOUND.value(), e.getCode());
+    }
+  }
+  @Test
+  void idWallet_ko() {
     Mockito.when(paymentInstrumentRepositoryMock.findByIdWalletAndStatus(ID_WALLET,
         PaymentInstrumentConstants.STATUS_ACTIVE)).thenReturn(new ArrayList<>());
 
