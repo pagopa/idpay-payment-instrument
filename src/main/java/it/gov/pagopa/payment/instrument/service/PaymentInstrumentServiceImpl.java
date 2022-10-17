@@ -69,30 +69,31 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       String channel,
       LocalDateTime activationDate) {
     List<PaymentInstrument> instrumentList = paymentInstrumentRepository.findByIdWalletAndStatus(
-        idWallet,
-        PaymentInstrumentConstants.STATUS_ACTIVE);
+        idWallet, PaymentInstrumentConstants.STATUS_ACTIVE);
+    PaymentMethodInfoList infoList = new PaymentMethodInfoList();
+    List<PaymentMethodInfoList> paymentMethodInfoList = new ArrayList<>();
 
     for (PaymentInstrument pi : instrumentList) {
       if (!pi.getUserId().equals(userId)) {
         throw new PaymentInstrumentException(HttpStatus.FORBIDDEN.value(),
             PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_ALREADY_ACTIVE);
       } else if (pi.getInitiativeId().equals(initiativeId)) {
-        return null;
+        infoList.setHpan(pi.getHpan());
+        infoList.setBrandLogo(pi.getBrandLogo());
+        infoList.setMaskedPan(pi.getMaskedPan());
+        return infoList;
       }
     }
 
     WalletV2ListResponse walletV2ListResponse;
     try {
       DecryptCfDTO decryptedCfDTO = decryptRestConnector.getPiiByToken(userId);
-
       walletV2ListResponse = pmRestClientConnector.getWalletList(decryptedCfDTO.getPii());
     } catch (FeignException e) {
       throw new PaymentInstrumentException(HttpStatus.INTERNAL_SERVER_ERROR.value(),
           e.getMessage());
     }
 
-    PaymentMethodInfoList infoList = new PaymentMethodInfoList();
-    List<PaymentMethodInfoList> paymentMethodInfoList = new ArrayList<>();
     int countIdWallet = 0;
 
     for (WalletV2 v2 : walletV2ListResponse.getData()) {
@@ -189,8 +190,8 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       String instrumentId,
       LocalDateTime deactivationDate) {
     log.info("[DELETE-PAYMENT-INSTRUMENT] Delete instrument");
-    List<PaymentInstrument> instruments = paymentInstrumentRepository.findByInitiativeIdAndUserIdAndIdAndStatus(
-        initiativeId, userId, instrumentId, PaymentInstrumentConstants.STATUS_ACTIVE);
+    List<PaymentInstrument> instruments = paymentInstrumentRepository.findByInitiativeIdAndUserIdAndId(
+        initiativeId, userId, instrumentId);
 
     if (instruments.isEmpty()) {
       throw new PaymentInstrumentException(HttpStatus.NOT_FOUND.value(),
@@ -198,8 +199,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     }
     List<PaymentMethodInfoList> paymentMethodInfoLists = new ArrayList<>();
     instruments.forEach(instrument ->
-        paymentMethodInfoLists.add(
-            checkAndDelete(instrument, deactivationDate, PaymentInstrumentConstants.IO))
+        paymentMethodInfoLists.add(checkAndDelete(instrument, deactivationDate, PaymentInstrumentConstants.IO))
     );
     return paymentMethodInfoLists.get(0);
   }
@@ -232,12 +232,18 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
   private PaymentMethodInfoList checkAndDelete(PaymentInstrument instrument,
       LocalDateTime deactivationDate,
       String channel) {
+    PaymentMethodInfoList infoList = new PaymentMethodInfoList();
 
+    if (instrument.getStatus().equals(PaymentInstrumentConstants.STATUS_INACTIVE)) {
+      infoList.setHpan(instrument.getHpan());
+      infoList.setMaskedPan(instrument.getMaskedPan());
+      infoList.setBrandLogo(instrument.getBrandLogo());
+      return infoList;
+    }
     instrument.setStatus(PaymentInstrumentConstants.STATUS_INACTIVE);
     instrument.setRequestDeactivationDate(deactivationDate);
     instrument.setDeleteChannel(channel);
     paymentInstrumentRepository.save(instrument);
-    PaymentMethodInfoList infoList = new PaymentMethodInfoList();
 
     infoList.setHpan(instrument.getHpan());
     infoList.setMaskedPan(instrument.getMaskedPan());

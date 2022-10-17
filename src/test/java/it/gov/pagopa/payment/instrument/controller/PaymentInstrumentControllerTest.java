@@ -107,32 +107,6 @@ class PaymentInstrumentControllerTest {
     assertEquals(MASKED_PAN,dto.getMaskedPan());
     assertEquals(BRAND_LOGO,dto.getBrandLogo());
   }
-  @Test
-  void enroll_ok_idemp() throws Exception {
-    ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
-
-    Mockito.when(paymentInstrumentServiceMock
-            .enrollInstrument(INITIATIVE_ID, USER_ID, ID_WALLET, CHANNEL, TEST_DATE))
-        .thenReturn(null);
-
-    Mockito.when(
-            paymentInstrumentServiceMock.countByInitiativeIdAndUserIdAndStatus(INITIATIVE_ID, USER_ID,
-                PaymentInstrumentConstants.STATUS_ACTIVE))
-        .thenReturn(TEST_COUNT);
-
-    MvcResult res = mvc.perform(MockMvcRequestBuilders.put(BASE_URL + ENROLL_URL)
-            .contentType(MediaType.APPLICATION_JSON_VALUE)
-            .content(objectMapper.writeValueAsString(ENROLLMENT_BODY_DTO))
-            .accept(MediaType.APPLICATION_JSON_VALUE)).andExpect(MockMvcResultMatchers.status().isOk())
-        .andReturn();
-
-    InstrumentResponseDTO dto = objectMapper.readValue(res.getResponse().getContentAsString(),
-        InstrumentResponseDTO.class);
-
-    assertEquals(TEST_COUNT, dto.getNinstr());
-    assertEquals("",dto.getMaskedPan());
-    assertEquals("",dto.getBrandLogo());
-  }
 
   @Test
   void enroll_empty_body() throws Exception {
