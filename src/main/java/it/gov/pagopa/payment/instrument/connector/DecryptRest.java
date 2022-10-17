@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-@FeignClient(name = "${rest-client.decrypt.cf}", url = "${rest-client.decrypt.base-url}")
+@FeignClient(name = "${rest-client.decrypt.cf}", url = "${rest-client.decrypt.baseUrl}")
 public interface DecryptRest {
 
   @GetMapping(value = "/tokens/{token}/pii", produces = MediaType.APPLICATION_JSON_VALUE)

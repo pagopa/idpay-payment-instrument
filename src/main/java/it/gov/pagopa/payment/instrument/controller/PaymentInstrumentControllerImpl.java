@@ -33,16 +33,8 @@ public class PaymentInstrumentControllerImpl implements PaymentInstrumentControl
         body.getInitiativeId(),
         body.getUserId(), PaymentInstrumentConstants.STATUS_ACTIVE);
 
-    String brandLogo = "";
-    String maskedPan = "";
-
-    if(info != null){
-      brandLogo = info.getBrandLogo();
-      maskedPan = info.getMaskedPan();
-    }
-
     return new ResponseEntity<>(
-        new InstrumentResponseDTO(nInstr, brandLogo, maskedPan), HttpStatus.OK);
+        new InstrumentResponseDTO(nInstr, info.getBrandLogo(), info.getMaskedPan()), HttpStatus.OK);
   }
 
 

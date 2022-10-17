@@ -1,0 +1,15 @@
+{
+  "request": {
+    "method": "PUT",
+    "urlPath": "/tokens"
+  },
+  "response": {
+    "status": "200",
+    "jsonBody": {
+      "token": "TEST_TOKEN"
+    },
+    "headers": {
+      "Content-Type": "application/json"
+    }
+  }
+}

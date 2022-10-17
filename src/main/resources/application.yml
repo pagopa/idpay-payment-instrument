@@ -21,7 +21,7 @@ rest-client:
     apim-trace: ${PM_SERVICE_APIM_TRACE:true}
   wallet:
     serviceCode: idpay-wallet
-  encrypt:
+  encryptpdv:
     base-url: ${PDV_ENCRYPT_BASE_URL:}
     cf: ${PDV_ENCRYPT_SERVICE_CODE:pdv-ms-tokenizer-encrypt}
   decrypt:
