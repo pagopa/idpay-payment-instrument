@@ -7,11 +7,8 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class InstrumentResponseDTO {
+public class CFDTO {
 
-  Integer ninstr = null;
-  String brandLogo;
-  String maskedPan;
+  private String pii;
 
 }
-

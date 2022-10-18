@@ -1,28 +1,22 @@
 package it.gov.pagopa.payment.instrument.dto;
 
 import it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants;
-import java.time.LocalDateTime;
 import javax.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class EnrollmentBodyDTO {
+public class DeactivationPMBodyDTO {
 
   @NotBlank(message = PaymentInstrumentConstants.ERROR_MANDATORY_FIELD)
-  String userId;
+  String fiscalCode;
+
 
   @NotBlank(message = PaymentInstrumentConstants.ERROR_MANDATORY_FIELD)
-  String initiativeId;
+  String hpan;
 
-  @NotBlank(message = PaymentInstrumentConstants.ERROR_MANDATORY_FIELD)
-  String idWallet;
-
-  @NotBlank(message = PaymentInstrumentConstants.ERROR_MANDATORY_FIELD)
-  String channel;
-
-  LocalDateTime activationDate;
+  String deactivationDate;
 
 }
 

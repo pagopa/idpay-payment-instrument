@@ -7,11 +7,6 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class InstrumentResponseDTO {
-
-  Integer ninstr = null;
-  String brandLogo;
-  String maskedPan;
-
+public class DecryptCfDTO {
+  private String pii;
 }
-

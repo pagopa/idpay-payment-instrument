@@ -1,4 +1,4 @@
-package it.gov.pagopa.payment.instrument.dto;
+package it.gov.pagopa.payment.instrument.dto.pm;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -7,15 +7,10 @@ import lombok.Setter;
 
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
-public class HpanDTO {
-
+@NoArgsConstructor
+public class PaymentMethodInfoList {
   private String hpan;
   private String maskedPan;
   private String brandLogo;
-  private String idWallet;
-  private String instrumentId;
-  private String channel;
-
 }

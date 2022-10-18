@@ -8,10 +8,14 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface PaymentInstrumentRepository extends MongoRepository<PaymentInstrument, String> {
 
-  List<PaymentInstrument> findByHpanAndStatus(String hpan, String status);
+  List<PaymentInstrument> findByIdWalletAndStatus(String idWallet, String status);
 
   List<PaymentInstrument> findByInitiativeIdAndUserIdAndHpan(String initiativeId, String userId,
       String hpan);
+  List<PaymentInstrument> findByInitiativeIdAndUserIdAndId(String initiativeId, String userId,
+      String instrumentId);
+  List<PaymentInstrument> findByInitiativeIdAndUserIdAndIdAndStatus(String initiativeId, String userId,
+      String instrumentId, String status);
 
   int countByInitiativeIdAndUserIdAndStatus(String initiativeId, String userId, String status);
 
@@ -20,4 +24,6 @@ public interface PaymentInstrumentRepository extends MongoRepository<PaymentInst
   List<PaymentInstrument> findByInitiativeIdAndUserId(String initiativeId,String userId);
 
   List<PaymentInstrument> findByInitiativeIdAndUserIdAndStatus(String initiativeId,String userId, String status);
+
+  List<PaymentInstrument> findByHpanAndUserIdAndStatus(String hpan,String userId, String statusActive);
 }
