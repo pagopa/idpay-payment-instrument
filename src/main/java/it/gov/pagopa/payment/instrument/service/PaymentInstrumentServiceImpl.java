@@ -210,8 +210,9 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     EncryptedCfDTO encryptedCfDTO = encryptRestConnector.upsertToken(
         new CFDTO(dto.getFiscalCode()));
     List<PaymentInstrument> instruments = paymentInstrumentRepository.findByHpanAndUserIdAndStatus(
-        dto.getHpan(), encryptedCfDTO.getToken(), PaymentInstrumentConstants.STATUS_ACTIVE);
+        dto.getHashPan(), encryptedCfDTO.getToken(), PaymentInstrumentConstants.STATUS_ACTIVE);
     if (instruments.isEmpty()) {
+      log.info("No instrument to delete");
       throw new PaymentInstrumentException(HttpStatus.NOT_FOUND.value(),
           PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_NOT_FOUND);
     }

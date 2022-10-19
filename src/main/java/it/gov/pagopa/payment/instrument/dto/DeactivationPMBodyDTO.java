@@ -14,7 +14,7 @@ public class DeactivationPMBodyDTO {
 
 
   @NotBlank(message = PaymentInstrumentConstants.ERROR_MANDATORY_FIELD)
-  String hpan;
+  String hashPan;
 
   String deactivationDate;
 
