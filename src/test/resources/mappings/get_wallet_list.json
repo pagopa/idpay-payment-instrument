@@ -1,89 +1,37 @@
 {
   "request": {
     "method": "GET",
-    "urlPath": "/idpay/wallet/test/pmservice"
+    "urlPath": "/pm/wallet-ext/v1/external/walletv2"
   },
   "response": {
     "status": "200",
-    "jsonBody": {"data": [
-      {
-        "createDate": "2022-10-11 00:00:00",
-        "enableableFunctions": ["pagoPA"],
-        "favourite": true,
-        "idWallet": "19920",
-        "onboardingChannel": "test_onboarding2",
-        "updateDate": "2022-10-13 00:00:00",
-        "walletType": "CARD",
-        "info":       {
-          "blurredNumber": "test_blurredNumber2",
-          "brand": "brand",
-          "brandLogo": "brandLogo2",
-          "expireMonth": "12",
-          "expireYear": "2022",
-          "hashPan": "test_hashPan2",
-          "holder": "test_holder",
-          "htokenList": ["token1"],
-          "issuerAbiCode": "test_issuerAbiCode",
-          "type": "PP"
+    "jsonBody": {
+      "data": [
+        {
+          "idWallet": 84018,
+          "walletType": "Card",
+          "enableableFunctions": [
+            "BPD",
+            "FA",
+            "pagoPA"
+          ],
+          "pagoPA": true,
+          "onboardingChannel": "IO",
+          "favourite": false,
+          "createDate": "2021-07-28 17:12:58",
+          "info": {
+            "type": "CardInfo",
+            "holder": "Mario Rossi",
+            "blurredNumber": "1230",
+            "hashPan": "c668b58b936d6e9b6286fc7fc6bfb7bb254ef8041356208e99ea35bb57f87390",
+            "expireMonth": "12",
+            "expireYear": "2022",
+            "brand": "OTHER",
+            "brandLogo": "https://uat.wisp2.pagopa.gov.it/wallet/assets/img/creditcard/generic.png"
+          }
         }
-      },
-      {
-        "createDate": "2022-10-11 00:00:00",
-        "enableableFunctions": ["pagoPA"],
-        "favourite": true,
-        "idWallet": "19921",
-        "onboardingChannel": "test_onboarding",
-        "updateDate": "2022-10-13 00:00:00",
-        "walletType": "BANCOMAT",
-        "info":       {
-          "blurredNumber": "test_blurredNumber",
-          "brand": "brand",
-          "brandLogo": "brandLogo",
-          "expireMonth": "12",
-          "expireYear": "2022",
-          "hashPan": "test_hashPan",
-          "holder": "test_holder",
-          "htokenList": ["token1"],
-          "issuerAbiCode": "test_issuerAbiCode",
-          "type": "PP"
-        }
-      },
-      {
-        "createDate": "2022-10-11 00:00:00",
-        "enableableFunctions": ["pagoPA"],
-        "favourite": true,
-        "idWallet": "19922",
-        "onboardingChannel": "test_onboarding",
-        "updateDate": "2022-10-13 00:00:00",
-        "walletType": "SATISPAY",
-        "info":       {
-          "uuid": "test_uuid",
-          "brandLogo": "brandLogo"
-        }
-      },
-      {
-        "createDate": "2022-10-11 00:00:00",
-        "enableableFunctions": ["pagoPA"],
-        "favourite": true,
-        "idWallet": "19923",
-        "onboardingChannel": "test_onboarding",
-        "updateDate": "2022-10-13 00:00:00",
-        "walletType": "BPAY",
-        "info":       {
-          "bankName": "test_bankName",
-          "brandLogo": "brandLogo",
-          "numberObfuscated": "test_numberObfuscated",
-          "brand": "brand",
-          "expireMonth": "12",
-          "expireYear": "2022",
-          "uidHash": "test_uidHash",
-          "holder": "test_holder",
-          "htokenList": ["token1"],
-          "issuerAbiCode": "test_issuerAbiCode",
-          "type": "PP"
-        }
-      }
-    ]},
+      ]
+    },
     "headers": {
       "Fiscal-Code": "08f91943-8594-4bc2-961a-dbe732db1ee6",
       "Ocp-Apim-Subscription-Key": "9f133edb58284b998cef81a753d8b608",
