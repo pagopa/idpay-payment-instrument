@@ -27,6 +27,8 @@ import it.gov.pagopa.payment.instrument.event.producer.RuleEngineProducer;
 import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
 import it.gov.pagopa.payment.instrument.model.PaymentInstrument;
 import it.gov.pagopa.payment.instrument.repository.PaymentInstrumentRepository;
+import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -88,7 +90,12 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     WalletV2ListResponse walletV2ListResponse;
     try {
       DecryptCfDTO decryptedCfDTO = decryptRestConnector.getPiiByToken(userId);
+      Instant start = Instant.now();
+      log.debug("Calling PM service at: " + start);
       walletV2ListResponse = pmRestClientConnector.getWalletList(decryptedCfDTO.getPii());
+      Instant finish = Instant.now();
+      long time = Duration.between(start, finish).toMillis();
+      log.info("PM's call finished at: " + finish + " The PM service took: " + time + "ms");
     } catch (FeignException e) {
       throw new PaymentInstrumentException(HttpStatus.INTERNAL_SERVER_ERROR.value(),
           e.getMessage());
@@ -99,12 +106,12 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     for (WalletV2 v2 : walletV2ListResponse.getData()) {
       if (v2.getIdWallet().equals(idWallet)) {
         switch (v2.getWalletType()) {
-          case SATISPAY -> {
+          case PaymentInstrumentConstants.SATISPAY -> {
             infoList.setHpan(v2.getInfo().getUuid());
             infoList.setBrandLogo(v2.getInfo().getBrandLogo());
             paymentMethodInfoList.add(infoList);
           }
-          case BPAY -> {
+          case PaymentInstrumentConstants.BPAY -> {
             infoList.setHpan(v2.getInfo().getUidHash());
             infoList.setMaskedPan(v2.getInfo().getNumberObfuscated());
             infoList.setBrandLogo(v2.getInfo().getBrandLogo());

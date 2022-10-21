@@ -26,6 +26,8 @@ public final class PaymentInstrumentConstants {
 
   public static final String PM="PAYMENT-MANAGER";
   public static final String IO="APP-IO";
+  public static final String SATISPAY = "SATISPAY";
+  public static final String BPAY = "BPAY";
 
   private PaymentInstrumentConstants() {
   }
