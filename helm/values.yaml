@@ -67,7 +67,7 @@ microservice-chart:
       KAFKA_PAYMENT_INSTRUMENT_MECHANISM: kafka_sasl_mechanism
       KAFKA_PAYMENT_INSTRUMENT_SECURITY_PROTOCOL: kafka_security_protocol
       KAFKA_TOPIC_RULE_ENGINE: idpay_hpan_update_topic
-      KAFKA_TOPIC_RE_ACK: idpay_hpan_update_outcome
+      KAFKA_TOPIC_RE_ACK: idpay_hpan_update_outcome_topic
       KAFKA_TOPIC_ERRORS: idpay_error_topic
       KAFKA_RE_ACK_GROUP_IN: idpay_hpan_update_outcome_consumer_group
     rtd-eventhub:
