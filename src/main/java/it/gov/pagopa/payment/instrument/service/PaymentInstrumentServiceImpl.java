@@ -139,12 +139,12 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     for (WalletV2 v2 : walletV2ListResponse.getData()) {
       if (v2.getIdWallet().equals(idWallet)) {
         switch (v2.getWalletType()) {
-          case SATISPAY -> {
+          case PaymentInstrumentConstants.SATISPAY -> {
             infoList.setHpan(v2.getInfo().getUuid());
             infoList.setBrandLogo(v2.getInfo().getBrandLogo());
             paymentMethodInfoList.add(infoList);
           }
-          case BPAY -> {
+          case PaymentInstrumentConstants.BPAY -> {
             infoList.setHpan(v2.getInfo().getUidHash());
             infoList.setMaskedPan(v2.getInfo().getNumberObfuscated());
             infoList.setBrandLogo(v2.getInfo().getBrandLogo());

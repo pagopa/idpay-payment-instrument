@@ -29,7 +29,6 @@ import it.gov.pagopa.payment.instrument.dto.mapper.AckMapper;
 import it.gov.pagopa.payment.instrument.dto.mapper.MessageMapper;
 import it.gov.pagopa.payment.instrument.dto.pm.PaymentMethodInfo;
 import it.gov.pagopa.payment.instrument.dto.pm.PaymentMethodInfo.BPayPaymentInstrumentWallet;
-import it.gov.pagopa.payment.instrument.dto.pm.WalletType;
 import it.gov.pagopa.payment.instrument.dto.pm.WalletV2;
 import it.gov.pagopa.payment.instrument.dto.pm.WalletV2ListResponse;
 import it.gov.pagopa.payment.instrument.event.producer.ErrorProducer;
@@ -110,18 +109,20 @@ class PaymentInstrumentServiceTest {
   private static final String INSTITUTE_CODE = "INSTITUTE_CODE";
   private static final List<BPayPaymentInstrumentWallet> PAYMENT_INSTRUMENTS = null;
   private static final PaymentMethodInfo PAYMENT_METHOD_INFO = new PaymentMethodInfo(BLURRED_NUMBER,
-      BRAND, BRAND_LOGO, EXPIRE_MONTH, EXPIRE_YEAR, HPAN, HOLDER, HTOKEN_LIST, ISSUER_ABI_CODE,
-      PaymentMethodInfo.CardType.PP, BANK_NAME, INSTITUTE_CODE, BLURRED_NUMBER, PAYMENT_INSTRUMENTS,
+      BRAND, BRAND_LOGO, EXPIRE_MONTH, EXPIRE_YEAR, HPAN, HOLDER, ISSUER_ABI_CODE,
+      BANK_NAME, INSTITUTE_CODE, BLURRED_NUMBER, PAYMENT_INSTRUMENTS,
       UUID, UUID);
   private static final String UPDATE_DATE = "LocalDateTime.now()";
-  private static final WalletV2 WALLET_V2_CARD = new WalletV2(CREATE_DATE, ENABLEABLE_FUNCTIONS,
-      FAVOURITE, ID_WALLET, ONBOARDING_CHANNEL, UPDATE_DATE, WalletType.CARD, PAYMENT_METHOD_INFO);
-  private static final WalletV2 WALLET_V2_SATISPAY = new WalletV2(CREATE_DATE,
+  private static final WalletV2 WALLET_V2_CARD = new WalletV2(CREATE_DATTE, ENABLEABLE_FUNCTIONS,
+      FAVOURITE, ID_WALLET, ONBOARDING_CHANNEL, UPDATE_DATE, "CARD", PAYMENT_METHOD_INFO);
+  private static final WalletV2 WALLET_V2_SATISPAY = new WalletV2(CREATE_DATTE,
+
       ENABLEABLE_FUNCTIONS,
-      FAVOURITE, ID_WALLET, ONBOARDING_CHANNEL, UPDATE_DATE, WalletType.SATISPAY,
+      FAVOURITE, ID_WALLET, ONBOARDING_CHANNEL, UPDATE_DATE, PaymentInstrumentConstants.SATISPAY,
       PAYMENT_METHOD_INFO);
-  private static final WalletV2 WALLET_V2_BPAY = new WalletV2(CREATE_DATE, ENABLEABLE_FUNCTIONS,
-      FAVOURITE, ID_WALLET, ONBOARDING_CHANNEL, UPDATE_DATE, WalletType.BPAY, PAYMENT_METHOD_INFO);
+  private static final WalletV2 WALLET_V2_BPAY = new WalletV2(CREATE_DATTE, ENABLEABLE_FUNCTIONS,
+      FAVOURITE, ID_WALLET, ONBOARDING_CHANNEL, UPDATE_DATE, PaymentInstrumentConstants.BPAY, PAYMENT_METHOD_INFO);
+
 
   private static final List<WalletV2> WALLET_V2_LIST_CARD = List.of(WALLET_V2_CARD);
   private static final List<WalletV2> WALLET_V2_LIST_SATISPAY = List.of(WALLET_V2_SATISPAY);
