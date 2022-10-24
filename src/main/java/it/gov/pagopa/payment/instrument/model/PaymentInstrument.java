@@ -31,6 +31,6 @@ public class PaymentInstrument {
 
   private LocalDateTime activationDate;
 
-  private LocalDateTime requestDeactivationDate;
+  private LocalDateTime deactivationDate;
 
 }

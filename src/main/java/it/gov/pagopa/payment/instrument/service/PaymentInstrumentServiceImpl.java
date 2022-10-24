@@ -69,8 +69,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
 
   @Override
   public void enrollInstrument(String initiativeId, String userId, String idWallet,
-      String channel,
-      LocalDateTime activationDate) {
+      String channel) {
 
     List<PaymentInstrument> instrumentList = paymentInstrumentRepository.findByIdWalletAndStatusNotContaining(
         idWallet, PaymentInstrumentConstants.STATUS_INACTIVE);
@@ -180,7 +179,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     List<String> hpanList = new ArrayList<>();
 
     for (PaymentInstrument paymentInstrument : paymentInstrumentList) {
-      paymentInstrument.setRequestDeactivationDate(LocalDateTime.parse(deactivationDate));
+      paymentInstrument.setDeactivationDate(LocalDateTime.parse(deactivationDate));
       paymentInstrument.setStatus(PaymentInstrumentConstants.STATUS_INACTIVE);
       paymentInstrument.setDeleteChannel(PaymentInstrumentConstants.IO);
       infoList.setHpan(paymentInstrument.getHpan());
@@ -206,10 +205,10 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
   }
 
   @Override
-  public PaymentMethodInfoList deactivateInstrument(String initiativeId, String userId,
-      String instrumentId,
-      LocalDateTime deactivationDate) {
-    log.info("[DELETE-PAYMENT-INSTRUMENT] Delete instrument");
+  public void deactivateInstrument(String initiativeId, String userId,
+      String instrumentId) {
+    log.info("[DEACTIVATE_INSTRUMENT] Deleting instrument");
+
     List<PaymentInstrument> instruments = paymentInstrumentRepository.findByInitiativeIdAndUserIdAndId(
         initiativeId, userId, instrumentId);
 
@@ -217,23 +216,38 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       throw new PaymentInstrumentException(HttpStatus.NOT_FOUND.value(),
           PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_NOT_FOUND);
     }
-    List<PaymentMethodInfoList> paymentMethodInfoLists = new ArrayList<>();
-    instruments.forEach(instrument ->
-        paymentMethodInfoLists.add(
-            checkAndDelete(instrument, deactivationDate, PaymentInstrumentConstants.IO))
-    );
-    return paymentMethodInfoLists.get(0);
+
+    instruments.forEach(instrument -> {
+      if (instrument.getStatus().equals(PaymentInstrumentConstants.STATUS_ACTIVE)) {
+        instrument.setStatus(PaymentInstrumentConstants.STATUS_PENDING_DEACTIVATION_REQUEST);
+        instrument.setDeleteChannel(PaymentInstrumentConstants.IO);
+        paymentInstrumentRepository.save(instrument);
+        PaymentMethodInfoList infoList = new PaymentMethodInfoList(instrument.getHpan(),
+            instrument.getMaskedPan(), instrument.getBrandLogo());
+        try {
+          sendToRuleEngine(userId, initiativeId,
+              List.of(infoList),
+              PaymentInstrumentConstants.OPERATION_DELETE);
+        } catch (Exception e) {
+          log.info(
+              "[DEACTIVATE_INSTRUMENT] Couldn't send to Rule Engine: resetting the Payment Instrument.");
+          instrument.setStatus(PaymentInstrumentConstants.STATUS_ACTIVE);
+          paymentInstrumentRepository.save(instrument);
+          throw new PaymentInstrumentException(HttpStatus.BAD_REQUEST.value(), e.getMessage());
+        }
+      }
+    });
   }
 
   @Override
   public void deactivateInstrumentPM(DeactivationPMBodyDTO dto) {
-    log.info("[DELETE-PAYMENT-INSTRUMENT] Delete instrument from PM");
+    log.info("[DEACTIVATE_INSTRUMENT_PM] Delete instrument from PM");
     EncryptedCfDTO encryptedCfDTO = encryptRestConnector.upsertToken(
         new CFDTO(dto.getFiscalCode()));
     List<PaymentInstrument> instruments = paymentInstrumentRepository.findByHpanAndUserIdAndStatus(
         dto.getHashPan(), encryptedCfDTO.getToken(), PaymentInstrumentConstants.STATUS_ACTIVE);
     if (instruments.isEmpty()) {
-      log.info("No instrument to delete");
+      log.info("[DEACTIVATE_INSTRUMENT_PM] No instrument to delete");
       throw new PaymentInstrumentException(HttpStatus.NOT_FOUND.value(),
           PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_NOT_FOUND);
     }
@@ -251,19 +265,17 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     );
   }
 
-  private PaymentMethodInfoList checkAndDelete(PaymentInstrument instrument,
+  private void checkAndDelete(PaymentInstrument instrument,
       LocalDateTime deactivationDate,
       String channel) {
     PaymentMethodInfoList infoList = new PaymentMethodInfoList();
 
     if (instrument.getStatus().equals(PaymentInstrumentConstants.STATUS_INACTIVE)) {
-      infoList.setHpan(instrument.getHpan());
-      infoList.setMaskedPan(instrument.getMaskedPan());
-      infoList.setBrandLogo(instrument.getBrandLogo());
-      return infoList;
+      return;
     }
+
     instrument.setStatus(PaymentInstrumentConstants.STATUS_INACTIVE);
-    instrument.setRequestDeactivationDate(deactivationDate);
+    instrument.setDeactivationDate(deactivationDate);
     instrument.setDeleteChannel(channel);
     paymentInstrumentRepository.save(instrument);
 
@@ -285,7 +297,6 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     } catch (Exception e) {
       this.sendToQueueError(e, hpanList, PaymentInstrumentConstants.OPERATION_DELETE);
     }
-    return infoList;
   }
 
   private void sendToRuleEngine(String userId, String initiativeId, List<PaymentMethodInfoList>
@@ -378,7 +389,57 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     if (ruleEngineAckDTO.getOperationType().equals(PaymentInstrumentConstants.OPERATION_ADD)) {
       log.info("[PROCESS_ACK] Processing ACK for an enrollment request.");
       processAckEnroll(ruleEngineAckDTO);
+      return;
     }
+
+    if (ruleEngineAckDTO.getOperationType().equals(PaymentInstrumentConstants.OPERATION_DELETE)) {
+      log.info("[PROCESS_ACK] Processing ACK for a deactivation request.");
+      processAckDeactivate(ruleEngineAckDTO);
+    }
+  }
+
+  private void processAckDeactivate(RuleEngineAckDTO ruleEngineAckDTO) {
+
+    String hpan =
+        (!ruleEngineAckDTO.getHpanList().isEmpty()) ? ruleEngineAckDTO.getHpanList().get(0)
+            : ruleEngineAckDTO.getRejectedHpanList().get(0);
+
+    String status =
+        (!ruleEngineAckDTO.getHpanList().isEmpty()) ? PaymentInstrumentConstants.STATUS_INACTIVE
+            : PaymentInstrumentConstants.STATUS_ACTIVE;
+
+    PaymentInstrument instrument = paymentInstrumentRepository.findByInitiativeIdAndUserIdAndHpanAndStatus(
+            ruleEngineAckDTO.getInitiativeId(), ruleEngineAckDTO.getUserId(),
+            hpan, PaymentInstrumentConstants.STATUS_PENDING_DEACTIVATION_REQUEST)
+        .orElse(null);
+
+    if (instrument == null) {
+      log.info("[PROCESS_ACK_DEACTIVATE] No pending deactivation requests found for this ACK.");
+      return;
+    }
+    if (!ruleEngineAckDTO.getHpanList().isEmpty()) {
+      log.info("[PROCESS_ACK_DEACTIVATE] Deactivation OK: sending to RTD.");
+
+      sendToRtd(List.of(hpan), ruleEngineAckDTO.getOperationType());
+
+      log.info("[PROCESS_ACK_DEACTIVATE] Deactivation OK: updating instrument status to {}.",
+          PaymentInstrumentConstants.STATUS_INACTIVE);
+
+      instrument.setDeactivationDate(ruleEngineAckDTO.getTimestamp());
+
+    }
+    instrument.setStatus(status);
+    paymentInstrumentRepository.save(instrument);
+
+    int nInstr = countByInitiativeIdAndUserIdAndStatus(instrument.getInitiativeId(),
+        instrument.getUserId(), PaymentInstrumentConstants.STATUS_ACTIVE);
+
+    InstrumentAckDTO dto = ackMapper.ackToWallet(ruleEngineAckDTO, instrument.getDeleteChannel(),
+        instrument.getMaskedPan(), instrument.getBrandLogo(), nInstr);
+
+    log.info("[PROCESS_ACK_DEACTIVATE] Deactivation OK: updating wallet.");
+
+    walletRestConnector.processAck(dto);
   }
 
   private void processAckEnroll(RuleEngineAckDTO ruleEngineAckDTO) {
@@ -387,8 +448,9 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
         (!ruleEngineAckDTO.getHpanList().isEmpty()) ? ruleEngineAckDTO.getHpanList().get(0)
             : ruleEngineAckDTO.getRejectedHpanList().get(0);
 
-    String status = (!ruleEngineAckDTO.getHpanList().isEmpty()) ? PaymentInstrumentConstants.STATUS_ACTIVE
-        : PaymentInstrumentConstants.STATUS_FAILED_ENROLLMENT_REQUEST;
+    String status =
+        (!ruleEngineAckDTO.getHpanList().isEmpty()) ? PaymentInstrumentConstants.STATUS_ACTIVE
+            : PaymentInstrumentConstants.STATUS_FAILED_ENROLLMENT_REQUEST;
 
     PaymentInstrument instrument = paymentInstrumentRepository.findByInitiativeIdAndUserIdAndHpanAndStatus(
             ruleEngineAckDTO.getInitiativeId(), ruleEngineAckDTO.getUserId(),
@@ -399,7 +461,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       log.info("[PROCESS_ACK_ENROLL] No pending enrollment requests found for this ACK.");
       return;
     }
-    if(!ruleEngineAckDTO.getHpanList().isEmpty()) {
+    if (!ruleEngineAckDTO.getHpanList().isEmpty()) {
       log.info("[PROCESS_ACK_ENROLL] Enrollment OK: sending to RTD.");
 
       sendToRtd(List.of(hpan), ruleEngineAckDTO.getOperationType());
@@ -429,7 +491,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
   public void rollbackInstruments(List<PaymentInstrument> paymentInstrumentList) {
     for (PaymentInstrument instrument : paymentInstrumentList) {
       instrument.setStatus(PaymentInstrumentConstants.STATUS_ACTIVE);
-      instrument.setRequestDeactivationDate(null);
+      instrument.setDeactivationDate(null);
     }
     paymentInstrumentRepository.saveAll(paymentInstrumentList);
     log.info("Instrument rollbacked: {}", paymentInstrumentList.size());
