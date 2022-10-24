@@ -1,0 +1,9 @@
+{
+  "request": {
+    "method": "PUT",
+    "urlPathPattern": "/idpay/wallet/acknowledge"
+  },
+  "response": {
+    "status": "204"
+  }
+}

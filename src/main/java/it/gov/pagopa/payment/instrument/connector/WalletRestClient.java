@@ -1,5 +1,6 @@
 package it.gov.pagopa.payment.instrument.connector;
 
+import it.gov.pagopa.payment.instrument.dto.InstrumentAckDTO;
 import it.gov.pagopa.payment.instrument.dto.WalletCallDTO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
@@ -18,4 +19,11 @@ public interface WalletRestClient {
   @ResponseBody
   void updateWallet(
       @RequestBody WalletCallDTO body);
+
+  @PutMapping(
+      value = "/idpay/wallet/acknowledge",
+      produces = MediaType.APPLICATION_JSON_VALUE)
+  @ResponseBody
+  void processAck(
+      @RequestBody InstrumentAckDTO body);
 }
