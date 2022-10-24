@@ -1,8 +1,8 @@
 package it.gov.pagopa.payment.instrument.connector;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
@@ -49,14 +49,12 @@ class PMRestClientTest {
   ObjectMapper objectMapper;
 
   @Test
-  void getWalletList() throws JsonProcessingException {
+  void getWalletList() {
     try {
       final WalletV2ListResponse actual = pmRestClientConnector.getWalletList(USER_ID);
       assertNotNull(actual);
-
     } catch (FeignException e) {
-      objectMapper.readValue(e.contentUTF8(),
-          WalletV2ListResponse.class);
+      fail();
     }
   }
 

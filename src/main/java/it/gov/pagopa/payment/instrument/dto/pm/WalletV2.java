@@ -16,7 +16,7 @@ public class WalletV2 {
   String idWallet;
   String onboardingChannel;
   String updateDate;
-  WalletType walletType;
+  String walletType;
   PaymentMethodInfo info;
 
 }
