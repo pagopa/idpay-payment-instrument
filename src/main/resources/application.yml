@@ -105,12 +105,12 @@ spring:
                           jaas:
                             config: ${KAFKA_ERRORS_SASL_JAAS_CONFIG:}
       bindings:
-        paymentInstrumentQueue-in-0:
+        consumerRtd-in-0:
           binder: kafka-delete-rtd
           content-type: ${KAFKA_CONTENT_TYPE:application/json}
           destination: ${KAFKA_TOPIC_DELETE_RTD:}
           group: ${KAFKA_DELETE_RTD_GROUP_IN:}
-        paymentInstrumentQueue-in-1:
+        ackConsumer-in-0:
           binder: kafka-re-ack
           content-type: ${KAFKA_CONTENT_TYPE:application/json}
           destination: ${KAFKA_TOPIC_RE_ACK:}
@@ -128,7 +128,7 @@ spring:
           content-type: ${KAFKA_CONTENT_TYPE:application/json}
           destination: ${KAFKA_TOPIC_ERRORS:}
       function:
-        definition: paymentInstrumentQueue
+        definition: paymentInstrumentQueue;consumerRtd;ackConsumer
       kafka:
         binder:
           auto-create-topics: false
@@ -139,7 +139,7 @@ spring:
             sasl.mechanism: ${KAFKA_CONFIG_SASL_MECHANISM:PLAIN}
             security.protocol: ${KAFKA_CONFIG_SECURITY_PROTOCOL:SASL_SSL}
         bindings:
-          paymentInstrumentQueue-in-0:
+          consumerRtd-in-0:
             consumer:
               startOffset: ${KAFKA_RTD_DELETE_REQUEST_START_OFFSET:${KAFKA_CONSUMER_CONFIG_START_OFFSET:earliest}}
               autoCommitOffset: ${KAFKA_RTD_DELETE_AUTO_COMMIT:${KAFKA_CONSUMER_CONFIG_AUTO_COMMIT:true}}
@@ -152,7 +152,7 @@ spring:
                 socket.connection.setup.timeout:
                   max.ms: ${KAFKA_RTD_DELETE_REQUEST_CONNECTION_TIMEOUT_MAX_MS:${KAFKA_CONSUMER_CONFIG_CONNECTION_TIMEOUT_MAX_MS:200000}}
                   ms: ${KAFKA_RTD_DELETE_REQUEST_CONNECTION_TIMEOUT_MS:${KAFKA_CONSUMER_CONFIG_CONNECTION_TIMEOUT_MS:100000}}
-          paymentInstrumentQueue-in-1:
+          ackConsumer-in-0:
             consumer:
               startOffset: ${KAFKA_RE_ACK_REQUEST_START_OFFSET:${KAFKA_CONSUMER_CONFIG_START_OFFSET:earliest}}
               autoCommitOffset: ${KAFKA_RE_ACK_AUTO_COMMIT:${KAFKA_CONSUMER_CONFIG_AUTO_COMMIT:true}}

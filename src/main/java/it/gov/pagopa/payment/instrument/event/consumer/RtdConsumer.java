@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
 public class RtdConsumer {
 
   @Bean
-  public Consumer<DeactivationPMBodyDTO> consumerIban(PaymentInstrumentService paymentInstrumentService){
+  public Consumer<DeactivationPMBodyDTO> consumerRtd(PaymentInstrumentService paymentInstrumentService){
     return paymentInstrumentService::deactivateInstrumentPM;
   }
 
