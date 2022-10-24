@@ -6,8 +6,6 @@
   "response": {
     "status": "200",
     "jsonBody": {
-      "data": [
-        {
           "idWallet": 84018,
           "walletType": "Card",
           "enableableFunctions": [
@@ -29,8 +27,7 @@
             "brand": "OTHER",
             "brandLogo": "https://uat.wisp2.pagopa.gov.it/wallet/assets/img/creditcard/generic.png"
           }
-        }
-      ]
+
     },
     "headers": {
       "Fiscal-Code": "08f91943-8594-4bc2-961a-dbe732db1ee6",
