@@ -9,6 +9,7 @@ public class AckMapper {
 
   public InstrumentAckDTO ackToWallet(RuleEngineAckDTO dto, String channel, String maskedPan,
       String brandLogo, int nInstr) {
+    String operationType = (dto.getRejectedHpanList().isEmpty()) ? dto.getOperationType() : dto.getOperationType().concat("_KO");
     return InstrumentAckDTO.builder()
         .initiativeId(dto.getInitiativeId())
         .userId(dto.getUserId())
@@ -16,7 +17,7 @@ public class AckMapper {
         .maskedPan(maskedPan)
         .brandLogo(brandLogo)
         .ninstr(nInstr)
-        .operationType(dto.getOperationType())
+        .operationType(operationType)
         .operationDate(dto.getTimestamp())
         .build();
   }

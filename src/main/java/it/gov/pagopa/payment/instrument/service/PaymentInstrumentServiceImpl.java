@@ -382,9 +382,14 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
 
   private void processAckEnroll(RuleEngineAckDTO ruleEngineAckDTO) {
 
+    int nInstr = 0;
+
     String hpan =
         (!ruleEngineAckDTO.getHpanList().isEmpty()) ? ruleEngineAckDTO.getHpanList().get(0)
             : ruleEngineAckDTO.getRejectedHpanList().get(0);
+
+    String status = (!ruleEngineAckDTO.getHpanList().isEmpty()) ? PaymentInstrumentConstants.STATUS_ACTIVE
+        : PaymentInstrumentConstants.STATUS_FAILED_ENROLLMENT_REQUEST;
 
     PaymentInstrument instrument = paymentInstrumentRepository.findByInitiativeIdAndUserIdAndHpanAndStatus(
             ruleEngineAckDTO.getInitiativeId(), ruleEngineAckDTO.getUserId(),
@@ -395,28 +400,21 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       log.info("[PROCESS_ACK_ENROLL] No pending enrollment requests found for this ACK.");
       return;
     }
+    if(!ruleEngineAckDTO.getHpanList().isEmpty()) {
+      log.info("[PROCESS_ACK_ENROLL] Enrollment OK: sending to RTD.");
 
-    if (!ruleEngineAckDTO.getRejectedHpanList().isEmpty()) {
-      log.info("[PROCESS_ACK_ENROLL] Enrollment rejected: updating instrument status to {}.",
-          PaymentInstrumentConstants.STATUS_FAILED_ENROLLMENT_REQUEST);
-      instrument.setStatus(PaymentInstrumentConstants.STATUS_FAILED_ENROLLMENT_REQUEST);
-      paymentInstrumentRepository.save(instrument);
-      return;
+      sendToRtd(List.of(hpan), ruleEngineAckDTO.getOperationType());
+
+      log.info("[PROCESS_ACK_ENROLL] Enrollment OK: updating instrument status to {}.",
+          PaymentInstrumentConstants.STATUS_ACTIVE);
+
+      instrument.setActivationDate(ruleEngineAckDTO.getTimestamp());
+
+      nInstr = countByInitiativeIdAndUserIdAndStatus(instrument.getInitiativeId(),
+          instrument.getUserId(), PaymentInstrumentConstants.STATUS_ACTIVE);
     }
-
-    log.info("[PROCESS_ACK_ENROLL] Enrollment OK: sending to RTD.");
-
-    sendToRtd(List.of(hpan), ruleEngineAckDTO.getOperationType());
-
-    log.info("[PROCESS_ACK_ENROLL] Enrollment OK: updating instrument status to {}.",
-        PaymentInstrumentConstants.STATUS_ACTIVE);
-
-    instrument.setActivationDate(ruleEngineAckDTO.getTimestamp());
-    instrument.setStatus(PaymentInstrumentConstants.STATUS_ACTIVE);
+    instrument.setStatus(status);
     paymentInstrumentRepository.save(instrument);
-
-    int nInstr = countByInitiativeIdAndUserIdAndStatus(instrument.getInitiativeId(),
-        instrument.getUserId(), PaymentInstrumentConstants.STATUS_ACTIVE);
 
     InstrumentAckDTO dto = ackMapper.ackToWallet(ruleEngineAckDTO, instrument.getChannel(),
         instrument.getMaskedPan(), instrument.getBrandLogo(), nInstr);

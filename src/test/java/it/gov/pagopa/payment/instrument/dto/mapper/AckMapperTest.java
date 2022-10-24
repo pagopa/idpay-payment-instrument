@@ -30,6 +30,9 @@ class AckMapperTest {
   private static final RuleEngineAckDTO RULE_ENGINE_ACK_DTO = new RuleEngineAckDTO(INITIATIVE_ID,
       USER_ID, PaymentInstrumentConstants.OPERATION_ADD, List.of(HPAN), List.of(), DATE);
 
+  private static final RuleEngineAckDTO RULE_ENGINE_ACK_DTO_KO = new RuleEngineAckDTO(INITIATIVE_ID,
+      USER_ID, PaymentInstrumentConstants.OPERATION_ADD, List.of(), List.of(HPAN), DATE);
+
   @Autowired
   AckMapper ackMapper;
 
@@ -42,6 +45,22 @@ class AckMapperTest {
     assertEquals(USER_ID, actual.getUserId());
     assertEquals(MASKED_PAN, actual.getMaskedPan());
     assertEquals(BRAND_LOGO, actual.getBrandLogo());
+    assertEquals(PaymentInstrumentConstants.OPERATION_ADD, actual.getOperationType());
+    assertEquals(CHANNEL, actual.getChannel());
+    assertEquals(NINSTR, actual.getNinstr());
+    assertEquals(DATE, actual.getOperationDate());
+  }
+
+  @Test
+  void ackToWallet_ko() {
+    InstrumentAckDTO actual = ackMapper.ackToWallet(RULE_ENGINE_ACK_DTO_KO, CHANNEL, MASKED_PAN, BRAND_LOGO, NINSTR);
+
+    assertNotNull(actual);
+    assertEquals(INITIATIVE_ID, actual.getInitiativeId());
+    assertEquals(USER_ID, actual.getUserId());
+    assertEquals(MASKED_PAN, actual.getMaskedPan());
+    assertEquals(BRAND_LOGO, actual.getBrandLogo());
+    assertEquals(PaymentInstrumentConstants.OPERATION_ADD.concat("_KO"), actual.getOperationType());
     assertEquals(CHANNEL, actual.getChannel());
     assertEquals(NINSTR, actual.getNinstr());
     assertEquals(DATE, actual.getOperationDate());
