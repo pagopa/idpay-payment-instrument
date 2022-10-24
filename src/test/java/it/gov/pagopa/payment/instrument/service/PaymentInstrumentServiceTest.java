@@ -113,14 +113,14 @@ class PaymentInstrumentServiceTest {
       BANK_NAME, INSTITUTE_CODE, BLURRED_NUMBER, PAYMENT_INSTRUMENTS,
       UUID, UUID);
   private static final String UPDATE_DATE = "LocalDateTime.now()";
-  private static final WalletV2 WALLET_V2_CARD = new WalletV2(CREATE_DATTE, ENABLEABLE_FUNCTIONS,
+  private static final WalletV2 WALLET_V2_CARD = new WalletV2(CREATE_DATE, ENABLEABLE_FUNCTIONS,
       FAVOURITE, ID_WALLET, ONBOARDING_CHANNEL, UPDATE_DATE, "CARD", PAYMENT_METHOD_INFO);
-  private static final WalletV2 WALLET_V2_SATISPAY = new WalletV2(CREATE_DATTE,
+  private static final WalletV2 WALLET_V2_SATISPAY = new WalletV2(CREATE_DATE,
 
       ENABLEABLE_FUNCTIONS,
       FAVOURITE, ID_WALLET, ONBOARDING_CHANNEL, UPDATE_DATE, PaymentInstrumentConstants.SATISPAY,
       PAYMENT_METHOD_INFO);
-  private static final WalletV2 WALLET_V2_BPAY = new WalletV2(CREATE_DATTE, ENABLEABLE_FUNCTIONS,
+  private static final WalletV2 WALLET_V2_BPAY = new WalletV2(CREATE_DATE, ENABLEABLE_FUNCTIONS,
       FAVOURITE, ID_WALLET, ONBOARDING_CHANNEL, UPDATE_DATE, PaymentInstrumentConstants.BPAY, PAYMENT_METHOD_INFO);
 
 
