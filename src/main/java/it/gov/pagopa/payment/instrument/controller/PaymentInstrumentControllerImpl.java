@@ -23,8 +23,8 @@ public class PaymentInstrumentControllerImpl implements PaymentInstrumentControl
         body.getInitiativeId(),
         body.getUserId(),
         body.getIdWallet(),
-        body.getChannel(),
-        body.getActivationDate());
+        body.getChannel()
+    );
 
     return new ResponseEntity<>(HttpStatus.OK);
   }
@@ -33,7 +33,7 @@ public class PaymentInstrumentControllerImpl implements PaymentInstrumentControl
   @Override
   public ResponseEntity<Void> deleteInstrument(DeactivationBodyDTO body) {
     paymentInstrumentService.deactivateInstrument(body.getInitiativeId(), body.getUserId(),
-        body.getInstrumentId(), body.getDeactivationDate());
+        body.getInstrumentId());
     return new ResponseEntity<>(HttpStatus.OK);
   }
 
