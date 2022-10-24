@@ -11,7 +11,6 @@ import it.gov.pagopa.payment.instrument.dto.EnrollmentBodyDTO;
 import it.gov.pagopa.payment.instrument.dto.ErrorDTO;
 import it.gov.pagopa.payment.instrument.dto.HpanDTO;
 import it.gov.pagopa.payment.instrument.dto.HpanGetDTO;
-import it.gov.pagopa.payment.instrument.dto.InstrumentResponseDTO;
 import it.gov.pagopa.payment.instrument.dto.UnsubscribeBodyDTO;
 import it.gov.pagopa.payment.instrument.dto.pm.PaymentMethodInfoList;
 import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
@@ -64,7 +63,8 @@ class PaymentInstrumentControllerTest {
   private static final DeactivationBodyDTO DEACTIVATION_BODY_DTO_EMPTY = new DeactivationBodyDTO("",
       "", "", TEST_DATE);
 
-  private static final HpanDTO HPAN_DTO_TEST = new HpanDTO(HPAN, CHANNEL,BRAND_LOGO,ID_WALLET,INSTRUMENT_ID,CHANNEL);
+  private static final HpanDTO HPAN_DTO_TEST = new HpanDTO(HPAN, CHANNEL, BRAND_LOGO, ID_WALLET,
+      INSTRUMENT_ID, CHANNEL);
 
   private static final HpanGetDTO HPANGETDTO = new HpanGetDTO();
   private static final List<PaymentMethodInfoList> INFO_LIST = new ArrayList<>();
@@ -85,27 +85,17 @@ class PaymentInstrumentControllerTest {
   void enroll_ok() throws Exception {
     ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
-    Mockito.when(paymentInstrumentServiceMock
-            .enrollInstrument(INITIATIVE_ID, USER_ID, ID_WALLET, CHANNEL, TEST_DATE))
-        .thenReturn(PAYMENT_METHOD_INFO_LIST);
-
     Mockito.when(
             paymentInstrumentServiceMock.countByInitiativeIdAndUserIdAndStatus(INITIATIVE_ID, USER_ID,
                 PaymentInstrumentConstants.STATUS_ACTIVE))
         .thenReturn(TEST_COUNT);
 
-    MvcResult res = mvc.perform(MockMvcRequestBuilders.put(BASE_URL + ENROLL_URL)
+    mvc.perform(MockMvcRequestBuilders.put(BASE_URL + ENROLL_URL)
             .contentType(MediaType.APPLICATION_JSON_VALUE)
             .content(objectMapper.writeValueAsString(ENROLLMENT_BODY_DTO))
             .accept(MediaType.APPLICATION_JSON_VALUE)).andExpect(MockMvcResultMatchers.status().isOk())
         .andReturn();
 
-    InstrumentResponseDTO dto = objectMapper.readValue(res.getResponse().getContentAsString(),
-        InstrumentResponseDTO.class);
-
-    assertEquals(TEST_COUNT, dto.getNinstr());
-    assertEquals(MASKED_PAN,dto.getMaskedPan());
-    assertEquals(BRAND_LOGO,dto.getBrandLogo());
   }
 
   @Test
@@ -159,16 +149,12 @@ class PaymentInstrumentControllerTest {
                 PaymentInstrumentConstants.STATUS_ACTIVE))
         .thenReturn(TEST_COUNT);
 
-    MvcResult res = mvc.perform(MockMvcRequestBuilders.delete(BASE_URL + DEACTIVATE_URL)
+    mvc.perform(MockMvcRequestBuilders.delete(BASE_URL + DEACTIVATE_URL)
             .contentType(MediaType.APPLICATION_JSON_VALUE)
             .content(objectMapper.writeValueAsString(DEACTIVATION_BODY_DTO))
             .accept(MediaType.APPLICATION_JSON_VALUE)).andExpect(MockMvcResultMatchers.status().isOk())
         .andReturn();
 
-    InstrumentResponseDTO dto = objectMapper.readValue(res.getResponse().getContentAsString(),
-        InstrumentResponseDTO.class);
-
-    assertEquals(TEST_COUNT, dto.getNinstr());
   }
 
   @Test
