@@ -20,12 +20,14 @@ public final class PaymentInstrumentConstants {
   public static final String ERROR_MSG_HEADER_CLASS = "rootCauseClass";
   public static final String ERROR_MSG_HEADER_MESSAGE = "rootCauseMessage";
   public static final String TOPIC_RTD = "rtd-enrolled-pi";
-  public static final String KAFKA= "kafka";
+  public static final String KAFKA = "kafka";
   public static final String BROKER_RTD = "cstar-d-evh-ns.servicebus.windows.net:9093";
   public static final String ERROR_RTD = "error to ADD new instrument to RTD";
 
-  public static final String PM="PAYMENT-MANAGER";
-  public static final String IO="APP-IO";
+  public static final String PM = "PAYMENT-MANAGER";
+  public static final String IO = "APP-IO";
+  public static final String STATUS_PENDING_ENROLLMENT_REQUEST = "PENDING_ENROLLMENT_REQUEST";
+  public static final String STATUS_FAILED_ENROLLMENT_REQUEST = "INACTIVE_FAILED_ENROLLMENT_REQUEST";
 
   private PaymentInstrumentConstants() {
   }

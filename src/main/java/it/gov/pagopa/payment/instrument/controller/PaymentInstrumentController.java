@@ -3,9 +3,7 @@ package it.gov.pagopa.payment.instrument.controller;
 import it.gov.pagopa.payment.instrument.dto.DeactivationBodyDTO;
 import it.gov.pagopa.payment.instrument.dto.EnrollmentBodyDTO;
 import it.gov.pagopa.payment.instrument.dto.HpanGetDTO;
-import it.gov.pagopa.payment.instrument.dto.InstrumentResponseDTO;
 import it.gov.pagopa.payment.instrument.dto.UnsubscribeBodyDTO;
-import java.io.IOException;
 import javax.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -31,8 +29,8 @@ public interface PaymentInstrumentController {
    * @return
    */
   @PutMapping("/enroll")
-  ResponseEntity<InstrumentResponseDTO> enrollInstrument(
-      @Valid @RequestBody EnrollmentBodyDTO body) throws IOException;
+  ResponseEntity<Void> enrollInstrument(
+      @Valid @RequestBody EnrollmentBodyDTO body);
 
   /**
    * Deactivation of a Payment Instrument
@@ -41,7 +39,7 @@ public interface PaymentInstrumentController {
    * @return
    */
   @DeleteMapping("/deactivate")
-  ResponseEntity<InstrumentResponseDTO> deleteInstrument(
+  ResponseEntity<Void> deleteInstrument(
       @Valid @RequestBody DeactivationBodyDTO body);
 
   /**
