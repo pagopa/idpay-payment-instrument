@@ -49,6 +49,20 @@ spring:
                           jaas:
                             config: ${KAFKA_RULE_ENGINE_SASL_JAAS_CONFIG:}
 
+        kafka-re-ack:
+          type: kafka
+          environment:
+            spring:
+              cloud:
+                stream:
+                  kafka:
+                    binder:
+                      brokers: ${KAFKA_BINDER_BROKER_ENDPOINT_LIST:}
+                      configuration:
+                        sasl:
+                          jaas:
+                            config: ${KAFKA_RE_ACK_SASL_JAAS_CONFIG:}
+
         kafka-rtd:
           type: kafka
           environment:
@@ -91,11 +105,16 @@ spring:
                           jaas:
                             config: ${KAFKA_ERRORS_SASL_JAAS_CONFIG:}
       bindings:
-        paymentInstrumentQueue-in-0:
+        consumerRtd-in-0:
           binder: kafka-delete-rtd
           content-type: ${KAFKA_CONTENT_TYPE:application/json}
           destination: ${KAFKA_TOPIC_DELETE_RTD:}
           group: ${KAFKA_DELETE_RTD_GROUP_IN:}
+        ackConsumer-in-0:
+          binder: kafka-re-ack
+          content-type: ${KAFKA_CONTENT_TYPE:application/json}
+          destination: ${KAFKA_TOPIC_RE_ACK:}
+          group: ${KAFKA_RE_ACK_GROUP_IN:}
         paymentInstrumentQueue-out-0:
           binder: kafka-re
           content-type: ${KAFKA_CONTENT_TYPE:application/json}
@@ -109,7 +128,7 @@ spring:
           content-type: ${KAFKA_CONTENT_TYPE:application/json}
           destination: ${KAFKA_TOPIC_ERRORS:}
       function:
-        definition: paymentInstrumentQueue
+        definition: paymentInstrumentQueue;consumerRtd;ackConsumer
       kafka:
         binder:
           auto-create-topics: false
@@ -120,7 +139,7 @@ spring:
             sasl.mechanism: ${KAFKA_CONFIG_SASL_MECHANISM:PLAIN}
             security.protocol: ${KAFKA_CONFIG_SECURITY_PROTOCOL:SASL_SSL}
         bindings:
-          paymentInstrumentQueue-in-0:
+          consumerRtd-in-0:
             consumer:
               startOffset: ${KAFKA_RTD_DELETE_REQUEST_START_OFFSET:${KAFKA_CONSUMER_CONFIG_START_OFFSET:earliest}}
               autoCommitOffset: ${KAFKA_RTD_DELETE_AUTO_COMMIT:${KAFKA_CONSUMER_CONFIG_AUTO_COMMIT:true}}
@@ -133,6 +152,19 @@ spring:
                 socket.connection.setup.timeout:
                   max.ms: ${KAFKA_RTD_DELETE_REQUEST_CONNECTION_TIMEOUT_MAX_MS:${KAFKA_CONSUMER_CONFIG_CONNECTION_TIMEOUT_MAX_MS:200000}}
                   ms: ${KAFKA_RTD_DELETE_REQUEST_CONNECTION_TIMEOUT_MS:${KAFKA_CONSUMER_CONFIG_CONNECTION_TIMEOUT_MS:100000}}
+          ackConsumer-in-0:
+            consumer:
+              startOffset: ${KAFKA_RE_ACK_REQUEST_START_OFFSET:${KAFKA_CONSUMER_CONFIG_START_OFFSET:earliest}}
+              autoCommitOffset: ${KAFKA_RE_ACK_AUTO_COMMIT:${KAFKA_CONSUMER_CONFIG_AUTO_COMMIT:true}}
+              standardHeaders: ${KAFKA_RE_ACK_STANDARD_HEADERS:${KAFKA_CONSUMER_CONFIG_STANDARD_HEADERS:both}}
+              configuration:
+                max.poll:
+                  records: ${KAFKA_RE_ACK_MAX_POLL_SIZE:${KAFKA_CONSUMER_CONFIG_MAX_POLL_SIZE:500}}
+                  interval.ms: ${KAFKA_RE_ACK_INTERVAL_TIMEOUT_MS:${KAFKA_CONFIG_MAX_POLL_INTERVAL_TIMEOUT_MS:300000}}
+                connections.max.idle.ms: ${KAFKA_RE_ACK_REQUEST_CONNECTIONS_MAX_IDLE_MS:${KAFKA_CONSUMER_CONFIG_CONNECTIONS_MAX_IDLE_MS:300000}}
+                socket.connection.setup.timeout:
+                  max.ms: ${KAFKA_RE_ACK_REQUEST_CONNECTION_TIMEOUT_MAX_MS:${KAFKA_CONSUMER_CONFIG_CONNECTION_TIMEOUT_MAX_MS:200000}}
+                  ms: ${KAFKA_RE_ACK_REQUEST_CONNECTION_TIMEOUT_MS:${KAFKA_CONSUMER_CONFIG_CONNECTION_TIMEOUT_MS:100000}}
   config:
     activate:
       on-profile: default

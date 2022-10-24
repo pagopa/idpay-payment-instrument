@@ -14,6 +14,7 @@ import it.gov.pagopa.payment.instrument.dto.EncryptedCfDTO;
 import it.gov.pagopa.payment.instrument.dto.HpanDTO;
 import it.gov.pagopa.payment.instrument.dto.HpanGetDTO;
 import it.gov.pagopa.payment.instrument.dto.RTDOperationDTO;
+import it.gov.pagopa.payment.instrument.dto.RuleEngineAckDTO;
 import it.gov.pagopa.payment.instrument.dto.RuleEngineQueueDTO;
 import it.gov.pagopa.payment.instrument.dto.WalletCallDTO;
 import it.gov.pagopa.payment.instrument.dto.WalletDTO;
@@ -348,6 +349,11 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     hpanGetDTO.setHpanList(hpanDTOList);
 
     return hpanGetDTO;
+  }
+
+  @Override
+  public void processAck(RuleEngineAckDTO ruleEngineAckDTO) {
+    log.info("Processing message: {}", ruleEngineAckDTO);
   }
 
   @Override
