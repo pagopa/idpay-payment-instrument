@@ -373,16 +373,15 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
 
   @Override
   public void processAck(RuleEngineAckDTO ruleEngineAckDTO) {
-    log.info("Processing message: {}", ruleEngineAckDTO);
+    log.info("[PROCESS_ACK] Processing new message.");
 
     if (ruleEngineAckDTO.getOperationType().equals(PaymentInstrumentConstants.OPERATION_ADD)) {
+      log.info("[PROCESS_ACK] Processing ACK for an enrollment request.");
       processAckEnroll(ruleEngineAckDTO);
     }
   }
 
   private void processAckEnroll(RuleEngineAckDTO ruleEngineAckDTO) {
-
-    int nInstr = 0;
 
     String hpan =
         (!ruleEngineAckDTO.getHpanList().isEmpty()) ? ruleEngineAckDTO.getHpanList().get(0)
@@ -410,11 +409,12 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
 
       instrument.setActivationDate(ruleEngineAckDTO.getTimestamp());
 
-      nInstr = countByInitiativeIdAndUserIdAndStatus(instrument.getInitiativeId(),
-          instrument.getUserId(), PaymentInstrumentConstants.STATUS_ACTIVE);
     }
     instrument.setStatus(status);
     paymentInstrumentRepository.save(instrument);
+
+    int nInstr = countByInitiativeIdAndUserIdAndStatus(instrument.getInitiativeId(),
+        instrument.getUserId(), PaymentInstrumentConstants.STATUS_ACTIVE);
 
     InstrumentAckDTO dto = ackMapper.ackToWallet(ruleEngineAckDTO, instrument.getChannel(),
         instrument.getMaskedPan(), instrument.getBrandLogo(), nInstr);
