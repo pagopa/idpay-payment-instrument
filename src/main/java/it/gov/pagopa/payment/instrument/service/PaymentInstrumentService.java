@@ -10,7 +10,7 @@ import java.util.List;
 
 public interface PaymentInstrumentService {
 
-  PaymentMethodInfoList enrollInstrument(String initiativeId, String userId, String idWallet,
+  void enrollInstrument(String initiativeId, String userId, String idWallet,
       String channel, LocalDateTime activationDate);
 
   PaymentMethodInfoList deactivateInstrument(String initiativeId, String userId, String instrumentId, LocalDateTime deactivationDate);
