@@ -64,7 +64,7 @@
 					"response": []
 				},
 				{
-					"name": "Get Hpan List",
+					"name": "Get PI List",
 					"event": [
 						{
 							"listen": "test",
@@ -116,15 +116,16 @@
 							}
 						},
 						"url": {
-							"raw": "{{baseUrl}}/idpay/wallet/instrument/wallet_postman_e2e_test",
+							"raw": "{{baseUrl}}/idpay/wallet/{{initiativeId}}/instruments/",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"idpay",
 								"wallet",
-								"instrument",
-								"wallet_postman_e2e_test"
+								"{{initiativeId}}",
+								"instruments",
+								""
 							]
 						}
 					},
@@ -184,15 +185,16 @@
 							}
 						},
 						"url": {
-							"raw": "{{baseUrl}}/idpay/wallet/instrument/test_initiative_fail",
+							"raw": "{{baseUrl}}/idpay/wallet/test_initiative_fail/instruments/",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
 								"idpay",
 								"wallet",
-								"instrument",
-								"test_initiative_fail"
+								"test_initiative_fail",
+								"instruments",
+								""
 							]
 						}
 					},
@@ -230,6 +232,11 @@
 		{
 			"key": "Ocp-Apim-Trace",
 			"value": "true",
+			"type": "string"
+		},
+		{
+			"key": "initiativeId",
+			"value": "634d17c22499fd7841a916b8",
 			"type": "string"
 		}
 	]
