@@ -386,7 +386,6 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     if (ruleEngineAckDTO.getOperationType().equals(PaymentInstrumentConstants.OPERATION_ADD)) {
       log.info("[PROCESS_ACK] Processing ACK for an enrollment request.");
       processAckEnroll(ruleEngineAckDTO);
-      return;
     }
 
     if (ruleEngineAckDTO.getOperationType().equals(PaymentInstrumentConstants.OPERATION_DELETE)) {
