@@ -400,9 +400,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
         (!ruleEngineAckDTO.getHpanList().isEmpty()) ? ruleEngineAckDTO.getHpanList().get(0)
             : ruleEngineAckDTO.getRejectedHpanList().get(0);
 
-    String status =
-        (!ruleEngineAckDTO.getHpanList().isEmpty()) ? PaymentInstrumentConstants.STATUS_INACTIVE
-            : PaymentInstrumentConstants.STATUS_ACTIVE;
+    String status = PaymentInstrumentConstants.STATUS_INACTIVE;
 
     PaymentInstrument instrument = paymentInstrumentRepository.findByInitiativeIdAndUserIdAndHpanAndStatus(
             ruleEngineAckDTO.getInitiativeId(), ruleEngineAckDTO.getUserId(),
@@ -413,6 +411,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       log.info("[PROCESS_ACK_DEACTIVATE] No pending deactivation requests found for this ACK.");
       return;
     }
+
     if (!ruleEngineAckDTO.getHpanList().isEmpty()) {
       log.info("[PROCESS_ACK_DEACTIVATE] Deactivation OK: sending to RTD.");
 
@@ -424,6 +423,16 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       instrument.setDeactivationDate(ruleEngineAckDTO.getTimestamp());
 
     }
+
+    if(!ruleEngineAckDTO.getRejectedHpanList().isEmpty()){
+
+      status = PaymentInstrumentConstants.STATUS_ACTIVE;
+
+      log.info("[PROCESS_ACK_DEACTIVATE] Deactivation KO: resetting Payment Instrument to status {}.", status);
+
+      instrument.setDeleteChannel(null);
+    }
+
     instrument.setStatus(status);
     paymentInstrumentRepository.save(instrument);
 
