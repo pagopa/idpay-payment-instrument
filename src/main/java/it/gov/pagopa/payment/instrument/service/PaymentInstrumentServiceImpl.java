@@ -242,7 +242,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       encryptedCfDTO = encryptRestConnector.upsertToken(
           new CFDTO(dto.getFiscalCode()));
       log.info(String.valueOf(System.currentTimeMillis()));
-    }catch (Exception e ){
+    } catch (Exception e) {
       log.info("Error PDV - Encrypt ");
     }
     List<PaymentInstrument> instruments = paymentInstrumentRepository.findByHpanAndUserIdAndStatus(
@@ -261,13 +261,11 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     }
     walletRestConnector.updateWallet(new WalletCallDTO(walletDTOS));
     instruments.forEach(instrument ->
-        checkAndDelete(instrument, LocalDateTime.parse(dto.getDeactivationDate()),
-            PaymentInstrumentConstants.PM));
+        checkAndDelete(instrument, LocalDateTime.parse(dto.getDeactivationDate())));
   }
 
   private void checkAndDelete(PaymentInstrument instrument,
-      LocalDateTime deactivationDate,
-      String channel) {
+      LocalDateTime deactivationDate) {
     PaymentMethodInfoList infoList = new PaymentMethodInfoList();
 
     if (instrument.getStatus().equals(PaymentInstrumentConstants.STATUS_INACTIVE)) {
@@ -276,7 +274,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
 
     instrument.setStatus(PaymentInstrumentConstants.STATUS_INACTIVE);
     instrument.setDeactivationDate(deactivationDate);
-    instrument.setDeleteChannel(channel);
+    instrument.setDeleteChannel(PaymentInstrumentConstants.PM);
     paymentInstrumentRepository.save(instrument);
 
     infoList.setHpan(instrument.getHpan());
@@ -285,22 +283,11 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
 
     List<PaymentMethodInfoList> paymentMethodInfoList = List.of(infoList);
     List<String> hpanList = Arrays.asList(instrument.getHpan());
-    if(channel.equals(PaymentInstrumentConstants.PM)){
-      try {
-        sendToRuleEngine(instrument.getUserId(), instrument.getInitiativeId(),
-            paymentMethodInfoList, PaymentInstrumentConstants.OPERATION_DELETE);
-      } catch (Exception exception) {
-        this.sendToQueueError(exception, hpanList, PaymentInstrumentConstants.OPERATION_DELETE);
-      }
-    }
-    if(channel.equals(PaymentInstrumentConstants.IO)) {
-      try {
-        sendToRuleEngine(instrument.getUserId(), instrument.getInitiativeId(),
-            paymentMethodInfoList, PaymentInstrumentConstants.OPERATION_DELETE);
-      } catch (Exception e) {
-        this.rollbackInstruments(List.of(instrument));
-        throw new PaymentInstrumentException(HttpStatus.BAD_REQUEST.value(), e.getMessage());
-      }
+    try {
+      sendToRuleEngine(instrument.getUserId(), instrument.getInitiativeId(),
+          paymentMethodInfoList, PaymentInstrumentConstants.OPERATION_DELETE);
+    } catch (Exception exception) {
+      this.sendToQueueError(exception, hpanList, PaymentInstrumentConstants.OPERATION_DELETE);
     }
     sendToRtd(hpanList, PaymentInstrumentConstants.OPERATION_DELETE);
   }
@@ -351,7 +338,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
 
       try {
         rtdProducer.sendInstrument(rtdOperationDTO);
-      }catch(Exception exception){
+      } catch (Exception exception) {
         this.sendToQueueError(exception, hpanList, operation);
       }
     }
