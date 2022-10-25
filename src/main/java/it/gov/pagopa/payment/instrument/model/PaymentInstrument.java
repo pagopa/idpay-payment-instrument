@@ -1,27 +1,15 @@
 package it.gov.pagopa.payment.instrument.model;
 
 import java.time.LocalDateTime;
+import lombok.Builder;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Data
 @Document(collection = "payment_instrument")
+@Builder
 public class PaymentInstrument {
-
-  public PaymentInstrument(String initiativeId, String userId, String idWallet,
-      String hpan, String maskedPan, String brandLogo, String status, String channel,
-      LocalDateTime activationDate) {
-    this.userId = userId;
-    this.initiativeId = initiativeId;
-    this.idWallet = idWallet;
-    this.hpan = hpan;
-    this.maskedPan = maskedPan;
-    this.brandLogo = brandLogo;
-    this.status = status;
-    this.channel = channel;
-    this.activationDate = activationDate;
-  }
 
   @Id
   private String id;
@@ -43,6 +31,6 @@ public class PaymentInstrument {
 
   private LocalDateTime activationDate;
 
-  private LocalDateTime requestDeactivationDate;
+  private LocalDateTime deactivationDate;
 
 }

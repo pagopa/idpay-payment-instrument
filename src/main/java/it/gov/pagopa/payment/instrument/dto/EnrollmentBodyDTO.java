@@ -1,7 +1,6 @@
 package it.gov.pagopa.payment.instrument.dto;
 
 import it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants;
-import java.time.LocalDateTime;
 import javax.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -21,8 +20,6 @@ public class EnrollmentBodyDTO {
 
   @NotBlank(message = PaymentInstrumentConstants.ERROR_MANDATORY_FIELD)
   String channel;
-
-  LocalDateTime activationDate;
 
 }
 
