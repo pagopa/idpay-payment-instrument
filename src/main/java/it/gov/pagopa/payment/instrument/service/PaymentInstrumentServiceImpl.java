@@ -197,11 +197,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       this.rollbackInstruments(paymentInstrumentList);
       throw new PaymentInstrumentException(HttpStatus.BAD_REQUEST.value(), e.getMessage());
     }
-    try {
-      sendToRtd(hpanList, PaymentInstrumentConstants.OPERATION_DELETE);
-    } catch (Exception e) {
-      this.sendToQueueError(e, hpanList, PaymentInstrumentConstants.OPERATION_DELETE);
-    }
+    sendToRtd(hpanList, PaymentInstrumentConstants.OPERATION_DELETE);
   }
 
   @Override
@@ -240,8 +236,15 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
   @Override
   public void deactivateInstrumentPM(DeactivationPMBodyDTO dto) {
     log.info("[DEACTIVATE_INSTRUMENT_PM] Delete instrument from PM");
-    EncryptedCfDTO encryptedCfDTO = encryptRestConnector.upsertToken(
-        new CFDTO(dto.getFiscalCode()));
+    EncryptedCfDTO encryptedCfDTO = new EncryptedCfDTO();
+
+    try {
+      encryptedCfDTO = encryptRestConnector.upsertToken(
+          new CFDTO(dto.getFiscalCode()));
+      log.info(String.valueOf(System.currentTimeMillis()));
+    } catch (Exception e) {
+      log.info("Error PDV - Encrypt ");
+    }
     List<PaymentInstrument> instruments = paymentInstrumentRepository.findByHpanAndUserIdAndStatus(
         dto.getHashPan(), encryptedCfDTO.getToken(), PaymentInstrumentConstants.STATUS_ACTIVE);
     if (instruments.isEmpty()) {
@@ -258,14 +261,11 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     }
     walletRestConnector.updateWallet(new WalletCallDTO(walletDTOS));
     instruments.forEach(instrument ->
-        checkAndDelete(instrument, LocalDateTime.parse(dto.getDeactivationDate()),
-            PaymentInstrumentConstants.PM)
-    );
+        checkAndDelete(instrument, LocalDateTime.parse(dto.getDeactivationDate())));
   }
 
   private void checkAndDelete(PaymentInstrument instrument,
-      LocalDateTime deactivationDate,
-      String channel) {
+      LocalDateTime deactivationDate) {
     PaymentMethodInfoList infoList = new PaymentMethodInfoList();
 
     if (instrument.getStatus().equals(PaymentInstrumentConstants.STATUS_INACTIVE)) {
@@ -274,7 +274,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
 
     instrument.setStatus(PaymentInstrumentConstants.STATUS_INACTIVE);
     instrument.setDeactivationDate(deactivationDate);
-    instrument.setDeleteChannel(channel);
+    instrument.setDeleteChannel(PaymentInstrumentConstants.PM);
     paymentInstrumentRepository.save(instrument);
 
     infoList.setHpan(instrument.getHpan());
@@ -286,15 +286,10 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     try {
       sendToRuleEngine(instrument.getUserId(), instrument.getInitiativeId(),
           paymentMethodInfoList, PaymentInstrumentConstants.OPERATION_DELETE);
-    } catch (Exception e) {
-      this.rollbackInstruments(List.of(instrument));
-      throw new PaymentInstrumentException(HttpStatus.BAD_REQUEST.value(), e.getMessage());
+    } catch (Exception exception) {
+      this.sendToQueueError(exception, hpanList, PaymentInstrumentConstants.OPERATION_DELETE);
     }
-    try {
-      sendToRtd(hpanList, PaymentInstrumentConstants.OPERATION_DELETE);
-    } catch (Exception e) {
-      this.sendToQueueError(e, hpanList, PaymentInstrumentConstants.OPERATION_DELETE);
-    }
+    sendToRtd(hpanList, PaymentInstrumentConstants.OPERATION_DELETE);
   }
 
   private void sendToRuleEngine(String userId, String initiativeId, List<PaymentMethodInfoList>
@@ -341,7 +336,11 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
 
       log.info("[PaymentInstrumentService - Operation: {}] Sending message to RTD.", operation);
 
-      rtdProducer.sendInstrument(rtdOperationDTO);
+      try {
+        rtdProducer.sendInstrument(rtdOperationDTO);
+      } catch (Exception exception) {
+        this.sendToQueueError(exception, hpanList, operation);
+      }
     }
   }
 
@@ -387,7 +386,6 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     if (ruleEngineAckDTO.getOperationType().equals(PaymentInstrumentConstants.OPERATION_ADD)) {
       log.info("[PROCESS_ACK] Processing ACK for an enrollment request.");
       processAckEnroll(ruleEngineAckDTO);
-      return;
     }
 
     if (ruleEngineAckDTO.getOperationType().equals(PaymentInstrumentConstants.OPERATION_DELETE)) {
