@@ -330,7 +330,7 @@ class PaymentInstrumentServiceTest {
     Mockito.when(
             paymentInstrumentRepositoryMock.findByInitiativeIdAndUserIdAndId(INITIATIVE_ID,
                 USER_ID, INSTRUMENT_ID))
-        .thenReturn(List.of(TEST_INSTRUMENT, TEST_INACTIVE_INSTRUMENT));
+        .thenReturn(Optional.of(TEST_INSTRUMENT));
 
     Mockito.when(paymentInstrumentRepositoryMock.countByHpanAndStatus(HPAN,
         PaymentInstrumentConstants.STATUS_ACTIVE)).thenReturn(0);
@@ -451,7 +451,7 @@ class PaymentInstrumentServiceTest {
     Mockito.when(
             paymentInstrumentRepositoryMock.findByInitiativeIdAndUserIdAndId(INITIATIVE_ID,
                 USER_ID, INSTRUMENT_ID))
-        .thenReturn(List.of(TEST_INSTRUMENT, TEST_INACTIVE_INSTRUMENT));
+        .thenReturn(Optional.of(TEST_INSTRUMENT));
 
     try {
       paymentInstrumentService.deactivateInstrument(INITIATIVE_ID, USER_ID, INSTRUMENT_ID
@@ -468,7 +468,7 @@ class PaymentInstrumentServiceTest {
     Mockito.when(
             paymentInstrumentRepositoryMock.findByInitiativeIdAndUserIdAndId(INITIATIVE_ID,
                 USER_ID, INSTRUMENT_ID))
-        .thenReturn(List.of(TEST_INACTIVE_INSTRUMENT));
+        .thenReturn(Optional.of(TEST_INACTIVE_INSTRUMENT));
 
     try {
       paymentInstrumentService.deactivateInstrument(INITIATIVE_ID, USER_ID, INSTRUMENT_ID
@@ -483,7 +483,7 @@ class PaymentInstrumentServiceTest {
     Mockito.when(
             paymentInstrumentRepositoryMock.findByInitiativeIdAndUserIdAndId(INITIATIVE_ID,
                 USER_ID, INSTRUMENT_ID))
-        .thenReturn(List.of());
+        .thenReturn(Optional.empty());
 
     try {
       paymentInstrumentService.deactivateInstrument(INITIATIVE_ID, USER_ID, INSTRUMENT_ID

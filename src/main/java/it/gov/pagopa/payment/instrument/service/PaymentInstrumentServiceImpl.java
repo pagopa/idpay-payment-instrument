@@ -209,34 +209,32 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       String instrumentId) {
     log.info("[DEACTIVATE_INSTRUMENT] Deleting instrument");
 
-    List<PaymentInstrument> instruments = paymentInstrumentRepository.findByInitiativeIdAndUserIdAndId(
-        initiativeId, userId, instrumentId);
+    PaymentInstrument instrument = paymentInstrumentRepository.findByInitiativeIdAndUserIdAndId(
+        initiativeId, userId, instrumentId).orElse(null);
 
-    if (instruments.isEmpty()) {
+    if (instrument == null) {
       throw new PaymentInstrumentException(HttpStatus.NOT_FOUND.value(),
           PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_NOT_FOUND);
     }
 
-    instruments.forEach(instrument -> {
-      if (instrument.getStatus().equals(PaymentInstrumentConstants.STATUS_ACTIVE)) {
-        instrument.setStatus(PaymentInstrumentConstants.STATUS_PENDING_DEACTIVATION_REQUEST);
-        instrument.setDeleteChannel(PaymentInstrumentConstants.IO);
+    if (instrument.getStatus().equals(PaymentInstrumentConstants.STATUS_ACTIVE)) {
+      instrument.setStatus(PaymentInstrumentConstants.STATUS_PENDING_DEACTIVATION_REQUEST);
+      instrument.setDeleteChannel(PaymentInstrumentConstants.IO);
+      paymentInstrumentRepository.save(instrument);
+      PaymentMethodInfoList infoList = new PaymentMethodInfoList(instrument.getHpan(),
+          instrument.getMaskedPan(), instrument.getBrandLogo());
+      try {
+        sendToRuleEngine(userId, initiativeId,
+            List.of(infoList),
+            PaymentInstrumentConstants.OPERATION_DELETE);
+      } catch (Exception e) {
+        log.info(
+            "[DEACTIVATE_INSTRUMENT] Couldn't send to Rule Engine: resetting the Payment Instrument.");
+        instrument.setStatus(PaymentInstrumentConstants.STATUS_ACTIVE);
         paymentInstrumentRepository.save(instrument);
-        PaymentMethodInfoList infoList = new PaymentMethodInfoList(instrument.getHpan(),
-            instrument.getMaskedPan(), instrument.getBrandLogo());
-        try {
-          sendToRuleEngine(userId, initiativeId,
-              List.of(infoList),
-              PaymentInstrumentConstants.OPERATION_DELETE);
-        } catch (Exception e) {
-          log.info(
-              "[DEACTIVATE_INSTRUMENT] Couldn't send to Rule Engine: resetting the Payment Instrument.");
-          instrument.setStatus(PaymentInstrumentConstants.STATUS_ACTIVE);
-          paymentInstrumentRepository.save(instrument);
-          throw new PaymentInstrumentException(HttpStatus.BAD_REQUEST.value(), e.getMessage());
-        }
+        throw new PaymentInstrumentException(HttpStatus.BAD_REQUEST.value(), e.getMessage());
       }
-    });
+    }
   }
 
   @Override

@@ -13,7 +13,7 @@ public interface PaymentInstrumentRepository extends MongoRepository<PaymentInst
 
   List<PaymentInstrument> findByIdWalletAndStatusNotContaining(String idWallet, String status);
 
-  List<PaymentInstrument> findByInitiativeIdAndUserIdAndId(String initiativeId, String userId,
+  Optional<PaymentInstrument> findByInitiativeIdAndUserIdAndId(String initiativeId, String userId,
       String instrumentId);
 
   int countByInitiativeIdAndUserIdAndStatus(String initiativeId, String userId, String status);
