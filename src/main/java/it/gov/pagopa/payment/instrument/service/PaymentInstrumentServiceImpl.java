@@ -142,11 +142,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     List<String> hpanList = new ArrayList<>();
     paymentMethodInfoList.forEach(methodInfoList -> hpanList.add(methodInfoList.getHpan()));
 
-    try {
-      sendToRtd(hpanList, PaymentInstrumentConstants.OPERATION_ADD);
-    } catch (Exception e) {
-      this.sendToQueueError(e, hpanList, PaymentInstrumentConstants.OPERATION_ADD);
-    }
+    sendToRtd(hpanList, PaymentInstrumentConstants.OPERATION_ADD);
     return infoList;
   }
 
@@ -178,11 +174,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       this.rollbackInstruments(paymentInstrumentList);
       throw new PaymentInstrumentException(HttpStatus.BAD_REQUEST.value(), e.getMessage());
     }
-    try {
-      sendToRtd(hpanList, PaymentInstrumentConstants.OPERATION_DELETE);
-    } catch (Exception e) {
-      this.sendToQueueError(e, hpanList, PaymentInstrumentConstants.OPERATION_DELETE);
-    }
+    sendToRtd(hpanList, PaymentInstrumentConstants.OPERATION_DELETE);
   }
 
   @Override
@@ -207,8 +199,15 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
   @Override
   public void deactivateInstrumentPM(DeactivationPMBodyDTO dto) {
     log.info("[DELETE-PAYMENT-INSTRUMENT] Delete instrument from PM");
-    EncryptedCfDTO encryptedCfDTO = encryptRestConnector.upsertToken(
-        new CFDTO(dto.getFiscalCode()));
+    EncryptedCfDTO encryptedCfDTO = new EncryptedCfDTO();
+
+try {
+  encryptedCfDTO = encryptRestConnector.upsertToken(
+      new CFDTO(dto.getFiscalCode()));
+  log.info(String.valueOf(System.currentTimeMillis()));
+}catch (Exception e ){
+  log.info("Error PDV - Encrypt ");
+}
     List<PaymentInstrument> instruments = paymentInstrumentRepository.findByHpanAndUserIdAndStatus(
         dto.getHashPan(), encryptedCfDTO.getToken(), PaymentInstrumentConstants.STATUS_ACTIVE);
     if (instruments.isEmpty()) {
@@ -226,8 +225,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     walletRestConnector.updateWallet(new WalletCallDTO(walletDTOS));
     instruments.forEach(instrument ->
         checkAndDelete(instrument, LocalDateTime.parse(dto.getDeactivationDate()),
-            PaymentInstrumentConstants.PM)
-    );
+            PaymentInstrumentConstants.PM));
   }
 
   private PaymentMethodInfoList checkAndDelete(PaymentInstrument instrument,
@@ -252,18 +250,24 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
 
     List<PaymentMethodInfoList> paymentMethodInfoList = List.of(infoList);
     List<String> hpanList = Arrays.asList(instrument.getHpan());
-    try {
-      sendToRuleEngine(instrument.getUserId(), instrument.getInitiativeId(),
-          paymentMethodInfoList, PaymentInstrumentConstants.OPERATION_DELETE);
-    } catch (Exception e) {
-      this.rollbackInstruments(List.of(instrument));
-      throw new PaymentInstrumentException(HttpStatus.BAD_REQUEST.value(), e.getMessage());
+    if(channel.equals(PaymentInstrumentConstants.PM)){
+      try {
+        sendToRuleEngine(instrument.getUserId(), instrument.getInitiativeId(),
+            paymentMethodInfoList, PaymentInstrumentConstants.OPERATION_DELETE);
+      } catch (Exception exception) {
+        this.sendToQueueError(exception, hpanList, PaymentInstrumentConstants.OPERATION_DELETE);
+      }
     }
-    try {
-      sendToRtd(hpanList, PaymentInstrumentConstants.OPERATION_DELETE);
-    } catch (Exception e) {
-      this.sendToQueueError(e, hpanList, PaymentInstrumentConstants.OPERATION_DELETE);
+    if(channel.equals(PaymentInstrumentConstants.IO)) {
+      try {
+        sendToRuleEngine(instrument.getUserId(), instrument.getInitiativeId(),
+            paymentMethodInfoList, PaymentInstrumentConstants.OPERATION_DELETE);
+      } catch (Exception e) {
+        this.rollbackInstruments(List.of(instrument));
+        throw new PaymentInstrumentException(HttpStatus.BAD_REQUEST.value(), e.getMessage());
+      }
     }
+    sendToRtd(hpanList, PaymentInstrumentConstants.OPERATION_DELETE);
     return infoList;
   }
 
@@ -311,7 +315,11 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
 
       log.info("[PaymentInstrumentService - Operation: {}] Sending message to RTD.", operation);
 
-      rtdProducer.sendInstrument(rtdOperationDTO);
+      try {
+        rtdProducer.sendInstrument(rtdOperationDTO);
+      }catch(Exception exception){
+        this.sendToQueueError(exception, hpanList, operation);
+      }
     }
   }
 
