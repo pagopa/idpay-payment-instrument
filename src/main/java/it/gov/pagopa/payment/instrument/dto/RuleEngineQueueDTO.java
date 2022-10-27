@@ -16,6 +16,7 @@ public class RuleEngineQueueDTO {
 
   private String userId;
   private String initiativeId;
+  private String channel;
   private List<PaymentMethodInfoList> infoList;
   private String operationType;
   private LocalDateTime operationDate;

@@ -106,7 +106,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     paymentInstrumentRepository.save(newInstrument);
 
     try {
-      sendToRuleEngine(newInstrument.getUserId(), newInstrument.getInitiativeId(),
+      sendToRuleEngine(newInstrument.getUserId(), newInstrument.getInitiativeId(), channel,
           paymentMethodInfoList,
           PaymentInstrumentConstants.OPERATION_ADD);
     } catch (Exception e) {
@@ -191,7 +191,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     }
     paymentInstrumentRepository.saveAll(paymentInstrumentList);
     try {
-      sendToRuleEngine(userId, initiativeId, paymentMethodInfoList,
+      sendToRuleEngine(userId, initiativeId, PaymentInstrumentConstants.IO, paymentMethodInfoList,
           PaymentInstrumentConstants.OPERATION_DELETE);
     } catch (Exception e) {
       this.rollbackInstruments(paymentInstrumentList);
@@ -220,7 +220,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       PaymentMethodInfoList infoList = new PaymentMethodInfoList(instrument.getHpan(),
           instrument.getMaskedPan(), instrument.getBrandLogo());
       try {
-        sendToRuleEngine(userId, initiativeId,
+        sendToRuleEngine(userId, initiativeId, PaymentInstrumentConstants.IO,
             List.of(infoList),
             PaymentInstrumentConstants.OPERATION_DELETE);
       } catch (Exception e) {
@@ -285,6 +285,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     List<String> hpanList = Arrays.asList(instrument.getHpan());
     try {
       sendToRuleEngine(instrument.getUserId(), instrument.getInitiativeId(),
+          PaymentInstrumentConstants.PM,
           paymentMethodInfoList, PaymentInstrumentConstants.OPERATION_DELETE);
     } catch (Exception exception) {
       this.sendToQueueError(exception, hpanList, PaymentInstrumentConstants.OPERATION_DELETE);
@@ -292,13 +293,15 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     sendToRtd(hpanList, PaymentInstrumentConstants.OPERATION_DELETE);
   }
 
-  private void sendToRuleEngine(String userId, String initiativeId, List<PaymentMethodInfoList>
-      paymentMethodInfoList, String operation) {
+  private void sendToRuleEngine(String userId, String initiativeId, String channel,
+      List<PaymentMethodInfoList>
+          paymentMethodInfoList, String operation) {
 
     RuleEngineQueueDTO ruleEngineQueueDTO = RuleEngineQueueDTO.builder()
         .userId(userId)
         .initiativeId(initiativeId)
         .infoList(paymentMethodInfoList)
+        .channel(channel)
         .operationType(operation)
         .operationDate(LocalDateTime.now())
         .build();
@@ -424,11 +427,13 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
 
     }
 
-    if(!ruleEngineAckDTO.getRejectedHpanList().isEmpty()){
+    if (!ruleEngineAckDTO.getRejectedHpanList().isEmpty()) {
 
       status = PaymentInstrumentConstants.STATUS_ACTIVE;
 
-      log.info("[PROCESS_ACK_DEACTIVATE] Deactivation KO: resetting Payment Instrument to status {}.", status);
+      log.info(
+          "[PROCESS_ACK_DEACTIVATE] Deactivation KO: resetting Payment Instrument to status {}.",
+          status);
 
       instrument.setDeleteChannel(null);
     }

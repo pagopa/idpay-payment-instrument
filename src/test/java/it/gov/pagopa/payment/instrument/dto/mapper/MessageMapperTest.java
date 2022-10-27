@@ -33,7 +33,6 @@ class MessageMapperTest {
     PAYMENT_METHOD_INFO_LIST.setHpan(HPAN);
     PAYMENT_METHOD_INFO_LIST.setMaskedPan(MASKED_PAN);
     PAYMENT_METHOD_INFO_LIST.setBrandLogo(BRAND_LOGO);
-//    INFO_LIST.add(PAYMENT_METHOD_INFO_LIST);
 
     ruleEngineQueueDTO.setUserId(USER_ID);
     ruleEngineQueueDTO.setInitiativeId(INITIATIVE_ID);
