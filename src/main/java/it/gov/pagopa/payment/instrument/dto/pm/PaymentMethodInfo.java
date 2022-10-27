@@ -14,9 +14,7 @@ public class PaymentMethodInfo {
   String expireYear;
   String hashPan;
   String holder;
-  List<String> htokenList;
-  String issuerAbiCode;
-  CardType type;
+  String type;
   String bankName;
   String instituteCode;
   String numberObfuscated;
@@ -27,11 +25,5 @@ public class PaymentMethodInfo {
   public static class BPayPaymentInstrumentWallet{
     Boolean defaultReceive;
     Boolean defaultSend;
-  }
-  public enum CardType{
-    PP,
-    DEB,
-    CRD,
-    PRV
   }
 }
