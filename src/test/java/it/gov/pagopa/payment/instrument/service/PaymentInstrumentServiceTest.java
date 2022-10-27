@@ -39,6 +39,7 @@ import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
 import it.gov.pagopa.payment.instrument.model.PaymentInstrument;
 import it.gov.pagopa.payment.instrument.repository.PaymentInstrumentRepository;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -108,6 +109,8 @@ class PaymentInstrumentServiceTest {
   private static final String ONBOARDING_CHANNEL = "ONBOARDING_CHANNEL";
   private static final String BANK_NAME = "BANK_NAME";
   private static final String INSTITUTE_CODE = "INSTITUTE_CODE";
+
+  private static final String TEST_DATE_PM = "2022-10-21T09:14:34.010+00:00";
   private static final List<BPayPaymentInstrumentWallet> PAYMENT_INSTRUMENTS = null;
   private static final PaymentMethodInfo PAYMENT_METHOD_INFO = new PaymentMethodInfo(BLURRED_NUMBER,
       BRAND, BRAND_LOGO, EXPIRE_MONTH, EXPIRE_YEAR, HPAN, HOLDER, ISSUER_ABI_CODE,
@@ -661,8 +664,7 @@ class PaymentInstrumentServiceTest {
     }).when(paymentInstrumentRepositoryMock).save(Mockito.any(PaymentInstrument.class));
 
     try {
-      DeactivationPMBodyDTO deactivationPMBodyDTO = new DeactivationPMBodyDTO(USER_ID, HPAN,
-          LocalDateTime.now().toString());
+      DeactivationPMBodyDTO deactivationPMBodyDTO = new DeactivationPMBodyDTO(USER_ID, HPAN, TEST_DATE_PM);
       paymentInstrumentService.deactivateInstrumentPM(deactivationPMBodyDTO);
     } catch (PaymentInstrumentException e) {
       Assertions.fail();
@@ -675,7 +677,7 @@ class PaymentInstrumentServiceTest {
   @Test
   void deactivateInstrument_PM_KO_PDV() {
     Mockito.doThrow(new PaymentInstrumentException(404, "")).when(encryptRestConnector).upsertToken(Mockito.any());
-    DeactivationPMBodyDTO deactivationPMBodyDTO = new DeactivationPMBodyDTO(USER_ID,HPAN, LocalDateTime.now().toString());
+    DeactivationPMBodyDTO deactivationPMBodyDTO = new DeactivationPMBodyDTO(USER_ID,HPAN, TEST_DATE_PM);
     try {
       paymentInstrumentService.deactivateInstrumentPM(deactivationPMBodyDTO);
       Assertions.fail();
@@ -714,7 +716,7 @@ class PaymentInstrumentServiceTest {
     }).when(paymentInstrumentRepositoryMock).save(Mockito.any(PaymentInstrument.class));
 
     try {
-      DeactivationPMBodyDTO deactivationPMBodyDTO = new DeactivationPMBodyDTO(USER_ID,HPAN, LocalDateTime.now().toString());
+      DeactivationPMBodyDTO deactivationPMBodyDTO = new DeactivationPMBodyDTO(USER_ID,HPAN, TEST_DATE_PM);
       paymentInstrumentService.deactivateInstrumentPM(deactivationPMBodyDTO);
     } catch (PaymentInstrumentException e) {
       Assertions.fail();
