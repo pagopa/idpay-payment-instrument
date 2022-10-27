@@ -32,6 +32,7 @@ import it.gov.pagopa.payment.instrument.repository.PaymentInstrumentRepository;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -236,6 +237,9 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
   @Override
   public void deactivateInstrumentPM(DeactivationPMBodyDTO dto) {
     log.info("[DEACTIVATE_INSTRUMENT_PM] Delete instrument from PM");
+    log.info(LocalDateTime.now().toString());
+    log.info(dto.getDeactivationDate());
+
     EncryptedCfDTO encryptedCfDTO = new EncryptedCfDTO();
 
     try {
@@ -261,7 +265,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     }
     walletRestConnector.updateWallet(new WalletCallDTO(walletDTOS));
     instruments.forEach(instrument ->
-        checkAndDelete(instrument, LocalDateTime.parse(dto.getDeactivationDate())));
+        checkAndDelete(instrument, LocalDateTime.parse(dto.getDeactivationDate(), DateTimeFormatter.ISO_OFFSET_DATE_TIME)));
   }
 
   private void checkAndDelete(PaymentInstrument instrument,
