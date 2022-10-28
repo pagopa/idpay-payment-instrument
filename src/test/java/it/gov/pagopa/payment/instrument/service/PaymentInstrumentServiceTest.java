@@ -125,7 +125,8 @@ class PaymentInstrumentServiceTest {
       FAVOURITE, ID_WALLET, ONBOARDING_CHANNEL, UPDATE_DATE, PaymentInstrumentConstants.SATISPAY,
       PAYMENT_METHOD_INFO);
   private static final WalletV2 WALLET_V2_BPAY = new WalletV2(CREATE_DATE, ENABLEABLE_FUNCTIONS,
-      FAVOURITE, ID_WALLET, ONBOARDING_CHANNEL, UPDATE_DATE, PaymentInstrumentConstants.BPAY, PAYMENT_METHOD_INFO);
+      FAVOURITE, ID_WALLET, ONBOARDING_CHANNEL, UPDATE_DATE, PaymentInstrumentConstants.BPAY,
+      PAYMENT_METHOD_INFO);
 
 
   private static final List<WalletV2> WALLET_V2_LIST_CARD = List.of(WALLET_V2_CARD);
@@ -641,7 +642,7 @@ class PaymentInstrumentServiceTest {
   void deactivateInstrument_PM() {
     TEST_INSTRUMENT.setStatus(PaymentInstrumentConstants.STATUS_ACTIVE);
     TEST_INSTRUMENT.setDeactivationDate(null);
-    WalletDTO walletDTO = new WalletDTO(INITIATIVE_ID, USER_ID, HPAN,BRAND_LOGO,MASKED_PAN);
+    WalletDTO walletDTO = new WalletDTO(INITIATIVE_ID, USER_ID, HPAN, BRAND_LOGO, MASKED_PAN);
     EncryptedCfDTO encryptedCfDTO = new EncryptedCfDTO(USER_ID);
 
     Mockito.when(
@@ -664,7 +665,8 @@ class PaymentInstrumentServiceTest {
     }).when(paymentInstrumentRepositoryMock).save(Mockito.any(PaymentInstrument.class));
 
     try {
-      DeactivationPMBodyDTO deactivationPMBodyDTO = new DeactivationPMBodyDTO(USER_ID, HPAN, TEST_DATE_PM);
+      DeactivationPMBodyDTO deactivationPMBodyDTO = new DeactivationPMBodyDTO(USER_ID, HPAN,
+          TEST_DATE_PM);
       paymentInstrumentService.deactivateInstrumentPM(deactivationPMBodyDTO);
     } catch (PaymentInstrumentException e) {
       Assertions.fail();
@@ -676,29 +678,30 @@ class PaymentInstrumentServiceTest {
 
   @Test
   void deactivateInstrument_PM_KO_PDV() {
-    Mockito.doThrow(new PaymentInstrumentException(404, "")).when(encryptRestConnector).upsertToken(Mockito.any());
-    DeactivationPMBodyDTO deactivationPMBodyDTO = new DeactivationPMBodyDTO(USER_ID,HPAN, TEST_DATE_PM);
-    try {
-      paymentInstrumentService.deactivateInstrumentPM(deactivationPMBodyDTO);
-      Assertions.fail();
-    } catch (PaymentInstrumentException e) {
-      assertEquals(404,e.getCode());
-    }
+    Mockito.doThrow(new PaymentInstrumentException(404, "")).when(encryptRestConnector)
+        .upsertToken(Mockito.any());
+    DeactivationPMBodyDTO deactivationPMBodyDTO = new DeactivationPMBodyDTO(USER_ID, HPAN,
+        TEST_DATE_PM);
+    paymentInstrumentService.deactivateInstrumentPM(deactivationPMBodyDTO);
+
+    Mockito.verify(walletRestConnector, Mockito.times(0)).updateWallet(Mockito.any());
+
   }
 
   @Test
   void deactivateInstrument_PM_queue_error_rule_engine() {
     TEST_INSTRUMENT.setStatus(PaymentInstrumentConstants.STATUS_ACTIVE);
     TEST_INSTRUMENT.setDeactivationDate(null);
-    WalletDTO walletDTO = new WalletDTO(INITIATIVE_ID, USER_ID, HPAN,BRAND_LOGO,MASKED_PAN);
+    WalletDTO walletDTO = new WalletDTO(INITIATIVE_ID, USER_ID, HPAN, BRAND_LOGO, MASKED_PAN);
     EncryptedCfDTO encryptedCfDTO = new EncryptedCfDTO(USER_ID);
 
-
     Mockito.when(
-            paymentInstrumentRepositoryMock.findByHpanAndUserIdAndStatus(HPAN,USER_ID,PaymentInstrumentConstants.STATUS_ACTIVE))
+            paymentInstrumentRepositoryMock.findByHpanAndUserIdAndStatus(HPAN, USER_ID,
+                PaymentInstrumentConstants.STATUS_ACTIVE))
         .thenReturn(List.of(TEST_INSTRUMENT, TEST_INACTIVE_INSTRUMENT));
 
-    Mockito.when(encryptRestConnector.upsertToken(Mockito.any(CFDTO.class))).thenReturn(encryptedCfDTO);
+    Mockito.when(encryptRestConnector.upsertToken(Mockito.any(CFDTO.class)))
+        .thenReturn(encryptedCfDTO);
 
     Mockito.doNothing().when(walletRestConnector).updateWallet(Mockito.any(WalletCallDTO.class));
 
@@ -716,7 +719,8 @@ class PaymentInstrumentServiceTest {
     }).when(paymentInstrumentRepositoryMock).save(Mockito.any(PaymentInstrument.class));
 
     try {
-      DeactivationPMBodyDTO deactivationPMBodyDTO = new DeactivationPMBodyDTO(USER_ID,HPAN, TEST_DATE_PM);
+      DeactivationPMBodyDTO deactivationPMBodyDTO = new DeactivationPMBodyDTO(USER_ID, HPAN,
+          TEST_DATE_PM);
       paymentInstrumentService.deactivateInstrumentPM(deactivationPMBodyDTO);
     } catch (PaymentInstrumentException e) {
       Assertions.fail();
@@ -749,12 +753,9 @@ class PaymentInstrumentServiceTest {
         .thenReturn(encryptedCfDTO);
     DeactivationPMBodyDTO deactivationPMBodyDTO = new DeactivationPMBodyDTO(USER_ID, HPAN,
         LocalDateTime.now().toString());
-    try {
-      paymentInstrumentService.deactivateInstrumentPM(deactivationPMBodyDTO);
-      Assertions.fail();
-    } catch (PaymentInstrumentException e) {
-      assertEquals(HttpStatus.NOT_FOUND.value(), e.getCode());
-    }
+    paymentInstrumentService.deactivateInstrumentPM(deactivationPMBodyDTO);
+
+    Mockito.verify(walletRestConnector, Mockito.times(0)).updateWallet(Mockito.any());
   }
 
   @Test

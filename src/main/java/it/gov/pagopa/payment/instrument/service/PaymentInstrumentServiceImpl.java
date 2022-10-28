@@ -237,24 +237,20 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
   @Override
   public void deactivateInstrumentPM(DeactivationPMBodyDTO dto) {
     log.info("[DEACTIVATE_INSTRUMENT_PM] Delete instrument from PM");
-    log.info(LocalDateTime.now().toString());
-    log.info(dto.getDeactivationDate());
 
     EncryptedCfDTO encryptedCfDTO = new EncryptedCfDTO();
 
     try {
       encryptedCfDTO = encryptRestConnector.upsertToken(
           new CFDTO(dto.getFiscalCode()));
-      log.info(String.valueOf(System.currentTimeMillis()));
     } catch (Exception e) {
-      log.info("Error PDV - Encrypt ");
+      log.info("[DEACTIVATE_INSTRUMENT_PM] Error while encrypting.");
     }
     List<PaymentInstrument> instruments = paymentInstrumentRepository.findByHpanAndUserIdAndStatus(
         dto.getHashPan(), encryptedCfDTO.getToken(), PaymentInstrumentConstants.STATUS_ACTIVE);
     if (instruments.isEmpty()) {
       log.info("[DEACTIVATE_INSTRUMENT_PM] No instrument to delete");
-      throw new PaymentInstrumentException(HttpStatus.NOT_FOUND.value(),
-          PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_NOT_FOUND);
+      return;
     }
     List<WalletDTO> walletDTOS = new ArrayList<>();
     for (PaymentInstrument instrument : instruments) {
