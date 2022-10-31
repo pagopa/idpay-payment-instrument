@@ -7,9 +7,6 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class InstrumentResponseDTO {
-
-  Integer ninstr = null;
-
+public class DecryptCfDTO {
+  private String pii;
 }
-

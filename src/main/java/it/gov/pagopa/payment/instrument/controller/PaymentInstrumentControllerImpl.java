@@ -1,10 +1,8 @@
 package it.gov.pagopa.payment.instrument.controller;
 
-import it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants;
 import it.gov.pagopa.payment.instrument.dto.DeactivationBodyDTO;
 import it.gov.pagopa.payment.instrument.dto.EnrollmentBodyDTO;
 import it.gov.pagopa.payment.instrument.dto.HpanGetDTO;
-import it.gov.pagopa.payment.instrument.dto.InstrumentResponseDTO;
 import it.gov.pagopa.payment.instrument.dto.UnsubscribeBodyDTO;
 import it.gov.pagopa.payment.instrument.service.PaymentInstrumentService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,37 +17,37 @@ public class PaymentInstrumentControllerImpl implements PaymentInstrumentControl
   PaymentInstrumentService paymentInstrumentService;
 
   @Override
-  public ResponseEntity<InstrumentResponseDTO> enrollInstrument(EnrollmentBodyDTO body) {
-    paymentInstrumentService.enrollInstrument(body.getInitiativeId(), body.getUserId(),
-        body.getHpan(),
-        body.getChannel(),
-        body.getActivationDate());
-    int nInstr = paymentInstrumentService.countByInitiativeIdAndUserIdAndStatus(body.getInitiativeId(),
-        body.getUserId(), PaymentInstrumentConstants.STATUS_ACTIVE);
-    return new ResponseEntity<>(new InstrumentResponseDTO(nInstr), HttpStatus.OK);
+  public ResponseEntity<Void> enrollInstrument(EnrollmentBodyDTO body)
+      {
+    paymentInstrumentService.enrollInstrument(
+        body.getInitiativeId(),
+        body.getUserId(),
+        body.getIdWallet(),
+        body.getChannel()
+    );
+
+    return new ResponseEntity<>(HttpStatus.OK);
   }
 
 
-
   @Override
-  public ResponseEntity<InstrumentResponseDTO> deleteInstrument(DeactivationBodyDTO body) {
+  public ResponseEntity<Void> deleteInstrument(DeactivationBodyDTO body) {
     paymentInstrumentService.deactivateInstrument(body.getInitiativeId(), body.getUserId(),
-        body.getHpan(), body.getDeactivationDate());
-    int nInstr = paymentInstrumentService.countByInitiativeIdAndUserIdAndStatus(body.getInitiativeId(),
-        body.getUserId(), PaymentInstrumentConstants.STATUS_ACTIVE);
-    return new ResponseEntity<>(new InstrumentResponseDTO(nInstr), HttpStatus.OK);
+        body.getInstrumentId());
+    return new ResponseEntity<>(HttpStatus.OK);
   }
 
 
   @Override
   public ResponseEntity<Void> disableAllInstrument(UnsubscribeBodyDTO body) {
-    paymentInstrumentService.deactivateAllInstrument(body.getInitiativeId(), body.getUserId(), body.getUnsubscribeDate());
+    paymentInstrumentService.deactivateAllInstrument(body.getInitiativeId(), body.getUserId(),
+        body.getUnsubscribeDate());
     return new ResponseEntity<>(HttpStatus.NO_CONTENT);
   }
 
   @Override
   public ResponseEntity<HpanGetDTO> getHpan(String initiativeId, String userId) {
     HpanGetDTO hpanGetDTO = paymentInstrumentService.gethpan(initiativeId, userId);
-    return new ResponseEntity<>(hpanGetDTO , HttpStatus.OK);
+    return new ResponseEntity<>(hpanGetDTO, HttpStatus.OK);
   }
 }

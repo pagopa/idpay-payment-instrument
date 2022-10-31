@@ -1,0 +1,38 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPath": "/pm/wallet-ext/v1/external/walletv2"
+  },
+  "response": {
+    "status": "200",
+    "jsonBody": {
+          "idWallet": 84018,
+          "walletType": "Card",
+          "enableableFunctions": [
+            "BPD",
+            "FA",
+            "pagoPA"
+          ],
+          "pagoPA": true,
+          "onboardingChannel": "IO",
+          "favourite": false,
+          "createDate": "2021-07-28 17:12:58",
+          "info": {
+            "type": "CardInfo",
+            "holder": "Mario Rossi",
+            "blurredNumber": "1230",
+            "hashPan": "c668b58b936d6e9b6286fc7fc6bfb7bb254ef8041356208e99ea35bb57f87390",
+            "expireMonth": "12",
+            "expireYear": "2022",
+            "brand": "OTHER",
+            "brandLogo": "https://uat.wisp2.pagopa.gov.it/wallet/assets/img/creditcard/generic.png"
+          }
+
+    },
+    "headers": {
+      "Fiscal-Code": "08f91943-8594-4bc2-961a-dbe732db1ee6",
+      "Ocp-Apim-Subscription-Key": "9f133edb58284b998cef81a753d8b608",
+      "Content-Type": "application/json"
+    }
+  }
+}

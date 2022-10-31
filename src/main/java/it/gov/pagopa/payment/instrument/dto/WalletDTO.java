@@ -9,13 +9,11 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class HpanDTO {
+public class WalletDTO {
 
+  private String initiativeId;
+  private String userId;
   private String hpan;
-  private String maskedPan;
   private String brandLogo;
-  private String idWallet;
-  private String instrumentId;
-  private String channel;
-
+  private String maskedPan;
 }

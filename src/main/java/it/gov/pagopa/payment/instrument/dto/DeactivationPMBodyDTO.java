@@ -7,16 +7,16 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class DeactivationBodyDTO {
+public class DeactivationPMBodyDTO {
 
   @NotBlank(message = PaymentInstrumentConstants.ERROR_MANDATORY_FIELD)
-  String userId;
+  String fiscalCode;
+
 
   @NotBlank(message = PaymentInstrumentConstants.ERROR_MANDATORY_FIELD)
-  String initiativeId;
+  String hashPan;
 
-  @NotBlank(message = PaymentInstrumentConstants.ERROR_MANDATORY_FIELD)
-  String instrumentId;
+  String deactivationDate;
 
 }
 

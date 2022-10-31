@@ -1,0 +1,174 @@
+api.key.encrypt: ${PDV_ENCRYPT_API_KEY:}
+api.key.decrypt: ${PDV_DECRYPT_API_KEY:}
+logging:
+  level:
+    it:
+      gov:
+        pagopa: ${LOG_LEVEL_PAGOPA:DEBUG}
+    org:
+      springframework:
+        boot: ${LOG_LEVEL_SPRING_BOOT:INFO}
+        cloud: ${LOG_LEVEL_SPRING_CLOUD:WARN}
+        data: ${LOG_LEVEL_SPRING_DATA:INFO}
+    root: ${LOG_LEVEL_ROOT:INFO}
+wallet:
+  uri: ${WALLET_URI:}
+rest-client:
+  pm:
+    serviceCode: ${PM_SERVICE_NAME:idpay-service-pm}
+    baseUrl: ${PM_SERVICE_BASE_URL:}
+    apim-key: ${PM_SERVICE_APIM_KEY:}
+    apim-trace: ${PM_SERVICE_APIM_TRACE:true}
+  wallet:
+    serviceCode: idpay-wallet
+  encryptpdv:
+    base-url: ${PDV_ENCRYPT_BASE_URL:}
+    cf: ${PDV_ENCRYPT_SERVICE_CODE:pdv-ms-tokenizer-encrypt}
+  decrypt:
+    baseUrl: ${PDV_DECRYPT_BASE_URL:}
+    cf: ${PDV_DECRYPT_SERVICE_CODE:pdv-ms-tokenizer}
+spring:
+  application:
+    name: idpay-payment-instrument
+  cloud:
+    stream:
+      binders:
+        kafka-re:
+          type: kafka
+          environment:
+            spring:
+              cloud:
+                stream:
+                  kafka:
+                    binder:
+                      brokers: ${KAFKA_BINDER_BROKER_ENDPOINT_LIST:}
+                      configuration:
+                        key:
+                          serializer: org.apache.kafka.common.serialization.StringSerializer
+                        sasl:
+                          jaas:
+                            config: ${KAFKA_RULE_ENGINE_SASL_JAAS_CONFIG:}
+
+        kafka-re-ack:
+          type: kafka
+          environment:
+            spring:
+              cloud:
+                stream:
+                  kafka:
+                    binder:
+                      brokers: ${KAFKA_BINDER_BROKER_ENDPOINT_LIST:}
+                      configuration:
+                        sasl:
+                          jaas:
+                            config: ${KAFKA_RE_ACK_SASL_JAAS_CONFIG:}
+
+        kafka-rtd:
+          type: kafka
+          environment:
+            spring:
+              cloud:
+                stream:
+                  kafka:
+                    binder:
+                      brokers: ${KAFKA_BINDER_BROKER_ENDPOINT_RTD:}
+                      configuration:
+                        sasl:
+                          jaas:
+                            config: ${KAFKA_RTD_SASL_JAAS_CONFIG:}
+
+        kafka-delete-rtd:
+          type: kafka
+          environment:
+            spring:
+              cloud:
+                stream:
+                  kafka:
+                    binder:
+                      brokers: ${KAFKA_BINDER_BROKER_ENDPOINT_RTD:}
+                      configuration:
+                        sasl:
+                          jaas:
+                            config: ${KAFKA_DELETE_RTD_SASL_JAAS_CONFIG:}
+
+        kafka-errors:
+          type: kafka
+          environment:
+            spring:
+              cloud:
+                stream:
+                  kafka:
+                    binder:
+                      brokers: ${KAFKA_BINDER_BROKER_ENDPOINT_ERRORS:}
+                      configuration:
+                        sasl:
+                          jaas:
+                            config: ${KAFKA_ERRORS_SASL_JAAS_CONFIG:}
+      bindings:
+        consumerRtd-in-0:
+          binder: kafka-delete-rtd
+          content-type: ${KAFKA_CONTENT_TYPE:application/json}
+          destination: ${KAFKA_TOPIC_DELETE_RTD:}
+          group: ${KAFKA_DELETE_RTD_GROUP_IN:}
+        ackConsumer-in-0:
+          binder: kafka-re-ack
+          content-type: ${KAFKA_CONTENT_TYPE:application/json}
+          destination: ${KAFKA_TOPIC_RE_ACK:}
+          group: ${KAFKA_RE_ACK_GROUP_IN:}
+        paymentInstrumentQueue-out-0:
+          binder: kafka-re
+          content-type: ${KAFKA_CONTENT_TYPE:application/json}
+          destination: ${KAFKA_TOPIC_RULE_ENGINE:}
+        paymentInstrumentQueue-out-1:
+          binder: kafka-rtd
+          content-type: ${KAFKA_CONTENT_TYPE:application/json}
+          destination: ${KAFKA_TOPIC_RTD:}
+        paymentInstrumentQueue-out-2:
+          binder: kafka-errors
+          content-type: ${KAFKA_CONTENT_TYPE:application/json}
+          destination: ${KAFKA_TOPIC_ERRORS:}
+      function:
+        definition: paymentInstrumentQueue;consumerRtd;ackConsumer
+      kafka:
+        binder:
+          auto-create-topics: false
+          configuration:
+            heartbeat.interval.ms: ${KAFKA_CONFIG_HEARTBEAT_INTERVAL_MS:30000}
+            session.timeout.ms: ${KAFKA_CONFIG_SESSION_TIMEOUT_MS:60000}
+            request.timeout.ms: ${KAFKA_CONFIG_REQUEST_TIMEOUT_MS:60000}
+            sasl.mechanism: ${KAFKA_CONFIG_SASL_MECHANISM:PLAIN}
+            security.protocol: ${KAFKA_CONFIG_SECURITY_PROTOCOL:SASL_SSL}
+        bindings:
+          consumerRtd-in-0:
+            consumer:
+              startOffset: ${KAFKA_RTD_DELETE_REQUEST_START_OFFSET:${KAFKA_CONSUMER_CONFIG_START_OFFSET:earliest}}
+              autoCommitOffset: ${KAFKA_RTD_DELETE_AUTO_COMMIT:${KAFKA_CONSUMER_CONFIG_AUTO_COMMIT:true}}
+              standardHeaders: ${KAFKA_RTD_DELETE_STANDARD_HEADERS:${KAFKA_CONSUMER_CONFIG_STANDARD_HEADERS:both}}
+              configuration:
+                max.poll:
+                  records: ${KAFKA_RTD_DELETE_MAX_POLL_SIZE:${KAFKA_CONSUMER_CONFIG_MAX_POLL_SIZE:500}}
+                  interval.ms: ${KAFKA_RTD_DELETE_INTERVAL_TIMEOUT_MS:${KAFKA_CONFIG_MAX_POLL_INTERVAL_TIMEOUT_MS:300000}}
+                connections.max.idle.ms: ${KAFKA_RTD_DELETE_REQUEST_CONNECTIONS_MAX_IDLE_MS:${KAFKA_CONSUMER_CONFIG_CONNECTIONS_MAX_IDLE_MS:300000}}
+                socket.connection.setup.timeout:
+                  max.ms: ${KAFKA_RTD_DELETE_REQUEST_CONNECTION_TIMEOUT_MAX_MS:${KAFKA_CONSUMER_CONFIG_CONNECTION_TIMEOUT_MAX_MS:200000}}
+                  ms: ${KAFKA_RTD_DELETE_REQUEST_CONNECTION_TIMEOUT_MS:${KAFKA_CONSUMER_CONFIG_CONNECTION_TIMEOUT_MS:100000}}
+          ackConsumer-in-0:
+            consumer:
+              startOffset: ${KAFKA_RE_ACK_REQUEST_START_OFFSET:${KAFKA_CONSUMER_CONFIG_START_OFFSET:earliest}}
+              autoCommitOffset: ${KAFKA_RE_ACK_AUTO_COMMIT:${KAFKA_CONSUMER_CONFIG_AUTO_COMMIT:true}}
+              standardHeaders: ${KAFKA_RE_ACK_STANDARD_HEADERS:${KAFKA_CONSUMER_CONFIG_STANDARD_HEADERS:both}}
+              configuration:
+                max.poll:
+                  records: ${KAFKA_RE_ACK_MAX_POLL_SIZE:${KAFKA_CONSUMER_CONFIG_MAX_POLL_SIZE:500}}
+                  interval.ms: ${KAFKA_RE_ACK_INTERVAL_TIMEOUT_MS:${KAFKA_CONFIG_MAX_POLL_INTERVAL_TIMEOUT_MS:300000}}
+                connections.max.idle.ms: ${KAFKA_RE_ACK_REQUEST_CONNECTIONS_MAX_IDLE_MS:${KAFKA_CONSUMER_CONFIG_CONNECTIONS_MAX_IDLE_MS:300000}}
+                socket.connection.setup.timeout:
+                  max.ms: ${KAFKA_RE_ACK_REQUEST_CONNECTION_TIMEOUT_MAX_MS:${KAFKA_CONSUMER_CONFIG_CONNECTION_TIMEOUT_MAX_MS:200000}}
+                  ms: ${KAFKA_RE_ACK_REQUEST_CONNECTION_TIMEOUT_MS:${KAFKA_CONSUMER_CONFIG_CONNECTION_TIMEOUT_MS:100000}}
+  config:
+    activate:
+      on-profile: default
+  data:
+    mongodb:
+      database: ${MONGODB_DBNAME}
+      uri: ${MONGODB_URI}
