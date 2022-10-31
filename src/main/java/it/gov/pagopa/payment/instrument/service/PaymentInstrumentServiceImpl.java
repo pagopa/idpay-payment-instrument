@@ -32,6 +32,7 @@ import it.gov.pagopa.payment.instrument.repository.PaymentInstrumentRepository;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -236,21 +237,20 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
   @Override
   public void deactivateInstrumentPM(DeactivationPMBodyDTO dto) {
     log.info("[DEACTIVATE_INSTRUMENT_PM] Delete instrument from PM");
+
     EncryptedCfDTO encryptedCfDTO = new EncryptedCfDTO();
 
     try {
       encryptedCfDTO = encryptRestConnector.upsertToken(
           new CFDTO(dto.getFiscalCode()));
-      log.info(String.valueOf(System.currentTimeMillis()));
     } catch (Exception e) {
-      log.info("Error PDV - Encrypt ");
+      log.info("[DEACTIVATE_INSTRUMENT_PM] Error while encrypting.");
     }
     List<PaymentInstrument> instruments = paymentInstrumentRepository.findByHpanAndUserIdAndStatus(
         dto.getHashPan(), encryptedCfDTO.getToken(), PaymentInstrumentConstants.STATUS_ACTIVE);
     if (instruments.isEmpty()) {
       log.info("[DEACTIVATE_INSTRUMENT_PM] No instrument to delete");
-      throw new PaymentInstrumentException(HttpStatus.NOT_FOUND.value(),
-          PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_NOT_FOUND);
+      return;
     }
     List<WalletDTO> walletDTOS = new ArrayList<>();
     for (PaymentInstrument instrument : instruments) {
@@ -261,7 +261,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     }
     walletRestConnector.updateWallet(new WalletCallDTO(walletDTOS));
     instruments.forEach(instrument ->
-        checkAndDelete(instrument, LocalDateTime.parse(dto.getDeactivationDate())));
+        checkAndDelete(instrument, LocalDateTime.parse(dto.getDeactivationDate(), DateTimeFormatter.ISO_OFFSET_DATE_TIME)));
   }
 
   private void checkAndDelete(PaymentInstrument instrument,
