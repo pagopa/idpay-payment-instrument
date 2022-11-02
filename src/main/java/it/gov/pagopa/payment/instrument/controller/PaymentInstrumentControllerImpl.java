@@ -40,7 +40,7 @@ public class PaymentInstrumentControllerImpl implements PaymentInstrumentControl
 
   @Override
   public ResponseEntity<Void> disableAllInstrument(UnsubscribeBodyDTO body) {
-    paymentInstrumentService.deactivateAllInstrument(body.getInitiativeId(), body.getUserId(),
+    paymentInstrumentService.deactivateAllInstruments(body.getInitiativeId(), body.getUserId(),
         body.getUnsubscribeDate());
     return new ResponseEntity<>(HttpStatus.NO_CONTENT);
   }
