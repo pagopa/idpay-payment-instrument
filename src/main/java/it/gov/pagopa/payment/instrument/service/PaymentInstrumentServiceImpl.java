@@ -21,6 +21,7 @@ import it.gov.pagopa.payment.instrument.dto.mapper.MessageMapper;
 import it.gov.pagopa.payment.instrument.dto.pm.PaymentMethodInfoList;
 import it.gov.pagopa.payment.instrument.dto.pm.WalletV2;
 import it.gov.pagopa.payment.instrument.dto.pm.WalletV2ListResponse;
+import it.gov.pagopa.payment.instrument.dto.rtd.RTDEnrollAckDTO;
 import it.gov.pagopa.payment.instrument.dto.rtd.RTDEventsDTO;
 import it.gov.pagopa.payment.instrument.dto.rtd.RTDMessage;
 import it.gov.pagopa.payment.instrument.dto.rtd.RTDOperationDTO;
@@ -173,7 +174,8 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
   }
 
   @Override
-  public void deactivateAllInstruments(String initiativeId, String userId, String deactivationDate) {
+  public void deactivateAllInstruments(String initiativeId, String userId,
+      String deactivationDate) {
     List<PaymentInstrument> paymentInstrumentList = paymentInstrumentRepository.findByInitiativeIdAndUserIdAndStatus(
         initiativeId, userId, PaymentInstrumentConstants.STATUS_ACTIVE);
 
@@ -238,12 +240,33 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
 
   @Override
   public void processRtdMessage(RTDEventsDTO dto) {
-    if(dto instanceof RTDRevokeCardDTO revokeCardDTO){
+    if (dto instanceof RTDRevokeCardDTO revokeCardDTO) {
       deactivateInstrumentFromPM(revokeCardDTO.getRtdMessage());
+    }
+
+    if (dto instanceof RTDEnrollAckDTO enrollAckDTO) {
+      saveAckFromRTD(enrollAckDTO.getRtdMessage());
     }
   }
 
-  private void deactivateInstrumentFromPM(RTDMessage rtdMessage){
+  private void saveAckFromRTD(RTDMessage rtdMessage) {
+    log.info("[SAVE_ACK_FROM_RTD] Processing new ACK from RTD");
+
+    List<PaymentInstrument> instruments = paymentInstrumentRepository.findByHpanAndStatus(
+        rtdMessage.getHpan(), PaymentInstrumentConstants.STATUS_ACTIVE);
+
+    if (instruments.isEmpty()) {
+      log.info("[SAVE_ACK_FROM_RTD] No instrument to update");
+      return;
+    }
+
+    instruments.forEach(instrument ->
+        instrument.setRtdAckDate(LocalDateTime.from(rtdMessage.getTimestamp()))
+    );
+    paymentInstrumentRepository.saveAll(instruments);
+  }
+
+  private void deactivateInstrumentFromPM(RTDMessage rtdMessage) {
     log.info("[DEACTIVATE_INSTRUMENT_PM] Delete instrument from PM");
 
     EncryptedCfDTO encryptedCfDTO = new EncryptedCfDTO();
@@ -269,7 +292,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     }
     walletRestConnector.updateWallet(new WalletCallDTO(walletDTOS));
     instruments.forEach(instrument ->
-        checkAndDelete(instrument, LocalDateTime.from(rtdMessage.getDeactivationDate())));
+        checkAndDelete(instrument, LocalDateTime.from(rtdMessage.getTimestamp())));
   }
 
   private void checkAndDelete(PaymentInstrument instrument,

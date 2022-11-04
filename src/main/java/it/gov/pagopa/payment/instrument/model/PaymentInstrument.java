@@ -13,24 +13,16 @@ public class PaymentInstrument {
 
   @Id
   private String id;
-
   private String userId;
-
   private String initiativeId;
-
   private String idWallet;
   private String hpan;
-
   private String maskedPan;
-
   private String brandLogo;
-
   private String status;
   private String channel;
   private String deleteChannel;
-
   private LocalDateTime activationDate;
-
   private LocalDateTime deactivationDate;
-
+  private LocalDateTime rtdAckDate;
 }

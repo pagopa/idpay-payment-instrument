@@ -1,5 +1,7 @@
 package it.gov.pagopa.payment.instrument.dto.rtd;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.OffsetDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -16,9 +18,9 @@ public class RTDMessage {
 
   String par;
 
+  @JsonProperty("timestamp")
+  @JsonAlias("deactivationDate")
   OffsetDateTime timestamp;
-
-  OffsetDateTime deactivationDate;
 
 }
 
