@@ -28,6 +28,7 @@ import it.gov.pagopa.payment.instrument.dto.pm.PaymentMethodInfo;
 import it.gov.pagopa.payment.instrument.dto.pm.PaymentMethodInfo.BPayPaymentInstrumentWallet;
 import it.gov.pagopa.payment.instrument.dto.pm.WalletV2;
 import it.gov.pagopa.payment.instrument.dto.pm.WalletV2ListResponse;
+import it.gov.pagopa.payment.instrument.dto.rtd.RTDEnrollAckDTO;
 import it.gov.pagopa.payment.instrument.dto.rtd.RTDMessage;
 import it.gov.pagopa.payment.instrument.dto.rtd.RTDOperationDTO;
 import it.gov.pagopa.payment.instrument.dto.rtd.RTDRevokeCardDTO;
@@ -125,7 +126,8 @@ class PaymentInstrumentServiceTest {
   private static final WalletV2 WALLET_V2_BPAY = new WalletV2(CREATE_DATE, ENABLEABLE_FUNCTIONS,
       FAVOURITE, ID_WALLET, ONBOARDING_CHANNEL, UPDATE_DATE, PaymentInstrumentConstants.BPAY,
       PAYMENT_METHOD_INFO);
-  private static final RTDMessage RTD_MESSAGE = new RTDMessage(USER_ID, HPAN, HPAN, HPAN, OffsetDateTime.now(), OffsetDateTime.now());
+  private static final RTDMessage RTD_MESSAGE = new RTDMessage(USER_ID, HPAN, HPAN, HPAN,
+      OffsetDateTime.now());
   private static final List<WalletV2> WALLET_V2_LIST_CARD = List.of(WALLET_V2_CARD);
   private static final List<WalletV2> WALLET_V2_LIST_SATISPAY = List.of(WALLET_V2_SATISPAY);
   private static final List<WalletV2> WALLET_V2_LIST_BPAY = List.of(WALLET_V2_BPAY);
@@ -826,6 +828,31 @@ class PaymentInstrumentServiceTest {
         TEST_PENDING_DEACTIVATION_INSTRUMENT.getStatus());
     Mockito.verify(paymentInstrumentRepositoryMock, Mockito.times(1))
         .save(Mockito.any(PaymentInstrument.class));
+  }
+
+  @Test
+  void saveAckFromRTD() {
+    final RTDEnrollAckDTO dto = new RTDEnrollAckDTO("EnrollAck", RTD_MESSAGE);
+
+    Mockito.when(paymentInstrumentRepositoryMock.findByHpanAndStatus(HPAN,
+        PaymentInstrumentConstants.STATUS_ACTIVE)).thenReturn(List.of(TEST_INSTRUMENT));
+
+    paymentInstrumentService.processRtdMessage(dto);
+
+    assertNotNull(TEST_INSTRUMENT.getRtdAckDate());
+    Mockito.verify(paymentInstrumentRepositoryMock, Mockito.times(1)).saveAll(Mockito.anyList());
+  }
+
+  @Test
+  void saveAckFromRTD_empty() {
+    final RTDEnrollAckDTO dto = new RTDEnrollAckDTO("EnrollAck", RTD_MESSAGE);
+
+    Mockito.when(paymentInstrumentRepositoryMock.findByHpanAndStatus(HPAN,
+        PaymentInstrumentConstants.STATUS_ACTIVE)).thenReturn(List.of());
+
+    paymentInstrumentService.processRtdMessage(dto);
+
+    Mockito.verify(paymentInstrumentRepositoryMock, Mockito.times(0)).saveAll(Mockito.anyList());
   }
 
 }
