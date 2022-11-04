@@ -7,13 +7,11 @@ import it.gov.pagopa.payment.instrument.connector.PMRestClientConnector;
 import it.gov.pagopa.payment.instrument.connector.WalletRestConnector;
 import it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants;
 import it.gov.pagopa.payment.instrument.dto.CFDTO;
-import it.gov.pagopa.payment.instrument.dto.DeactivationPMBodyDTO;
 import it.gov.pagopa.payment.instrument.dto.DecryptCfDTO;
 import it.gov.pagopa.payment.instrument.dto.EncryptedCfDTO;
 import it.gov.pagopa.payment.instrument.dto.HpanDTO;
 import it.gov.pagopa.payment.instrument.dto.HpanGetDTO;
 import it.gov.pagopa.payment.instrument.dto.InstrumentAckDTO;
-import it.gov.pagopa.payment.instrument.dto.RTDOperationDTO;
 import it.gov.pagopa.payment.instrument.dto.RuleEngineAckDTO;
 import it.gov.pagopa.payment.instrument.dto.RuleEngineQueueDTO;
 import it.gov.pagopa.payment.instrument.dto.WalletCallDTO;
@@ -23,6 +21,10 @@ import it.gov.pagopa.payment.instrument.dto.mapper.MessageMapper;
 import it.gov.pagopa.payment.instrument.dto.pm.PaymentMethodInfoList;
 import it.gov.pagopa.payment.instrument.dto.pm.WalletV2;
 import it.gov.pagopa.payment.instrument.dto.pm.WalletV2ListResponse;
+import it.gov.pagopa.payment.instrument.dto.rtd.RTDEventsDTO;
+import it.gov.pagopa.payment.instrument.dto.rtd.RTDMessage;
+import it.gov.pagopa.payment.instrument.dto.rtd.RTDOperationDTO;
+import it.gov.pagopa.payment.instrument.dto.rtd.RTDRevokeCardDTO;
 import it.gov.pagopa.payment.instrument.event.producer.ErrorProducer;
 import it.gov.pagopa.payment.instrument.event.producer.RTDProducer;
 import it.gov.pagopa.payment.instrument.event.producer.RuleEngineProducer;
@@ -171,7 +173,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
   }
 
   @Override
-  public void deactivateAllInstrument(String initiativeId, String userId, String deactivationDate) {
+  public void deactivateAllInstruments(String initiativeId, String userId, String deactivationDate) {
     List<PaymentInstrument> paymentInstrumentList = paymentInstrumentRepository.findByInitiativeIdAndUserIdAndStatus(
         initiativeId, userId, PaymentInstrumentConstants.STATUS_ACTIVE);
 
@@ -235,19 +237,25 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
   }
 
   @Override
-  public void deactivateInstrumentPM(DeactivationPMBodyDTO dto) {
+  public void processRtdMessage(RTDEventsDTO dto) {
+    if(dto instanceof RTDRevokeCardDTO revokeCardDTO){
+      deactivateInstrumentFromPM(revokeCardDTO.getRtdMessage());
+    }
+  }
+
+  private void deactivateInstrumentFromPM(RTDMessage rtdMessage){
     log.info("[DEACTIVATE_INSTRUMENT_PM] Delete instrument from PM");
 
     EncryptedCfDTO encryptedCfDTO = new EncryptedCfDTO();
 
     try {
       encryptedCfDTO = encryptRestConnector.upsertToken(
-          new CFDTO(dto.getFiscalCode()));
+          new CFDTO(rtdMessage.getFiscalCode()));
     } catch (Exception e) {
       log.info("[DEACTIVATE_INSTRUMENT_PM] Error while encrypting.");
     }
     List<PaymentInstrument> instruments = paymentInstrumentRepository.findByHpanAndUserIdAndStatus(
-        dto.getHashPan(), encryptedCfDTO.getToken(), PaymentInstrumentConstants.STATUS_ACTIVE);
+        rtdMessage.getHpan(), encryptedCfDTO.getToken(), PaymentInstrumentConstants.STATUS_ACTIVE);
     if (instruments.isEmpty()) {
       log.info("[DEACTIVATE_INSTRUMENT_PM] No instrument to delete");
       return;
@@ -261,7 +269,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     }
     walletRestConnector.updateWallet(new WalletCallDTO(walletDTOS));
     instruments.forEach(instrument ->
-        checkAndDelete(instrument, LocalDateTime.parse(dto.getDeactivationDate(), DateTimeFormatter.ISO_OFFSET_DATE_TIME)));
+        checkAndDelete(instrument, LocalDateTime.from(rtdMessage.getDeactivationDate())));
   }
 
   private void checkAndDelete(PaymentInstrument instrument,
@@ -282,7 +290,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     infoList.setBrandLogo(instrument.getBrandLogo());
 
     List<PaymentMethodInfoList> paymentMethodInfoList = List.of(infoList);
-    List<String> hpanList = Arrays.asList(instrument.getHpan());
+    List<String> hpanList = List.of(instrument.getHpan());
     try {
       sendToRuleEngine(instrument.getUserId(), instrument.getInitiativeId(),
           PaymentInstrumentConstants.PM,
@@ -333,8 +341,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
           RTDOperationDTO.builder()
               .hpanList(toRtd)
               .operationType(operation)
-              .application("IDPAY")
-              .operationDate(LocalDateTime.now())
+              .application("ID_PAY")
               .build();
 
       log.info("[PaymentInstrumentService - Operation: {}] Sending message to RTD.", operation);
@@ -513,7 +520,6 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
             .hpanList(hpanList)
             .operationType(operation)
             .application("IDPAY")
-            .operationDate(LocalDateTime.now())
             .build();
 
     final MessageBuilder<?> errorMessage = MessageBuilder.withPayload(rtdOperationDTO)

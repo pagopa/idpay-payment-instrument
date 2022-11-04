@@ -16,22 +16,21 @@ import it.gov.pagopa.payment.instrument.connector.PMRestClientConnector;
 import it.gov.pagopa.payment.instrument.connector.WalletRestConnector;
 import it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants;
 import it.gov.pagopa.payment.instrument.dto.CFDTO;
-import it.gov.pagopa.payment.instrument.dto.DeactivationPMBodyDTO;
 import it.gov.pagopa.payment.instrument.dto.DecryptCfDTO;
 import it.gov.pagopa.payment.instrument.dto.EncryptedCfDTO;
 import it.gov.pagopa.payment.instrument.dto.HpanDTO;
 import it.gov.pagopa.payment.instrument.dto.HpanGetDTO;
-import it.gov.pagopa.payment.instrument.dto.RTDOperationDTO;
-import it.gov.pagopa.payment.instrument.dto.RuleEngineQueueDTO;
 import it.gov.pagopa.payment.instrument.dto.RuleEngineAckDTO;
 import it.gov.pagopa.payment.instrument.dto.WalletCallDTO;
-import it.gov.pagopa.payment.instrument.dto.WalletDTO;
 import it.gov.pagopa.payment.instrument.dto.mapper.AckMapper;
 import it.gov.pagopa.payment.instrument.dto.mapper.MessageMapper;
 import it.gov.pagopa.payment.instrument.dto.pm.PaymentMethodInfo;
 import it.gov.pagopa.payment.instrument.dto.pm.PaymentMethodInfo.BPayPaymentInstrumentWallet;
 import it.gov.pagopa.payment.instrument.dto.pm.WalletV2;
 import it.gov.pagopa.payment.instrument.dto.pm.WalletV2ListResponse;
+import it.gov.pagopa.payment.instrument.dto.rtd.RTDMessage;
+import it.gov.pagopa.payment.instrument.dto.rtd.RTDOperationDTO;
+import it.gov.pagopa.payment.instrument.dto.rtd.RTDRevokeCardDTO;
 import it.gov.pagopa.payment.instrument.event.producer.ErrorProducer;
 import it.gov.pagopa.payment.instrument.event.producer.RTDProducer;
 import it.gov.pagopa.payment.instrument.event.producer.RuleEngineProducer;
@@ -39,7 +38,7 @@ import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
 import it.gov.pagopa.payment.instrument.model.PaymentInstrument;
 import it.gov.pagopa.payment.instrument.repository.PaymentInstrumentRepository;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -109,7 +108,6 @@ class PaymentInstrumentServiceTest {
   private static final String ONBOARDING_CHANNEL = "ONBOARDING_CHANNEL";
   private static final String BANK_NAME = "BANK_NAME";
   private static final String INSTITUTE_CODE = "INSTITUTE_CODE";
-
   private static final String TEST_DATE_PM = "2022-10-21T09:14:34.010+00:00";
   private static final List<BPayPaymentInstrumentWallet> PAYMENT_INSTRUMENTS = null;
   private static final PaymentMethodInfo PAYMENT_METHOD_INFO = new PaymentMethodInfo(BLURRED_NUMBER,
@@ -127,8 +125,7 @@ class PaymentInstrumentServiceTest {
   private static final WalletV2 WALLET_V2_BPAY = new WalletV2(CREATE_DATE, ENABLEABLE_FUNCTIONS,
       FAVOURITE, ID_WALLET, ONBOARDING_CHANNEL, UPDATE_DATE, PaymentInstrumentConstants.BPAY,
       PAYMENT_METHOD_INFO);
-
-
+  private static final RTDMessage RTD_MESSAGE = new RTDMessage(USER_ID, HPAN, HPAN, HPAN, OffsetDateTime.now(), OffsetDateTime.now());
   private static final List<WalletV2> WALLET_V2_LIST_CARD = List.of(WALLET_V2_CARD);
   private static final List<WalletV2> WALLET_V2_LIST_SATISPAY = List.of(WALLET_V2_SATISPAY);
   private static final List<WalletV2> WALLET_V2_LIST_BPAY = List.of(WALLET_V2_BPAY);
@@ -570,7 +567,7 @@ class PaymentInstrumentServiceTest {
             })
         .when(paymentInstrumentRepositoryMock).save(Mockito.any(PaymentInstrument.class));
 
-    paymentInstrumentService.deactivateAllInstrument(INITIATIVE_ID, USER_ID,
+    paymentInstrumentService.deactivateAllInstruments(INITIATIVE_ID, USER_ID,
         LocalDateTime.now().toString());
     assertNotNull(TEST_INSTRUMENT.getDeactivationDate());
     assertEquals(PaymentInstrumentConstants.STATUS_INACTIVE, TEST_INSTRUMENT.getStatus());
@@ -599,7 +596,7 @@ class PaymentInstrumentServiceTest {
             })
         .when(paymentInstrumentRepositoryMock).save(Mockito.any(PaymentInstrument.class));
 
-    paymentInstrumentService.deactivateAllInstrument(INITIATIVE_ID, USER_ID,
+    paymentInstrumentService.deactivateAllInstruments(INITIATIVE_ID, USER_ID,
         LocalDateTime.now().toString());
     assertNotNull(TEST_INSTRUMENT.getDeactivationDate());
     assertEquals(PaymentInstrumentConstants.STATUS_INACTIVE, TEST_INSTRUMENT.getStatus());
@@ -628,7 +625,7 @@ class PaymentInstrumentServiceTest {
         .when(paymentInstrumentRepositoryMock).save(Mockito.any(PaymentInstrument.class));
 
     try {
-      paymentInstrumentService.deactivateAllInstrument(INITIATIVE_ID, USER_ID,
+      paymentInstrumentService.deactivateAllInstruments(INITIATIVE_ID, USER_ID,
           LocalDateTime.now().toString());
       fail();
     } catch (Exception e) {
@@ -642,7 +639,6 @@ class PaymentInstrumentServiceTest {
   void deactivateInstrument_PM() {
     TEST_INSTRUMENT.setStatus(PaymentInstrumentConstants.STATUS_ACTIVE);
     TEST_INSTRUMENT.setDeactivationDate(null);
-    WalletDTO walletDTO = new WalletDTO(INITIATIVE_ID, USER_ID, HPAN, BRAND_LOGO, MASKED_PAN);
     EncryptedCfDTO encryptedCfDTO = new EncryptedCfDTO(USER_ID);
 
     Mockito.when(
@@ -665,9 +661,8 @@ class PaymentInstrumentServiceTest {
     }).when(paymentInstrumentRepositoryMock).save(Mockito.any(PaymentInstrument.class));
 
     try {
-      DeactivationPMBodyDTO deactivationPMBodyDTO = new DeactivationPMBodyDTO(USER_ID, HPAN,
-          TEST_DATE_PM);
-      paymentInstrumentService.deactivateInstrumentPM(deactivationPMBodyDTO);
+      RTDRevokeCardDTO RTDRevokeCardDTO = new RTDRevokeCardDTO("RevokeCard", RTD_MESSAGE);
+      paymentInstrumentService.processRtdMessage(RTDRevokeCardDTO);
     } catch (PaymentInstrumentException e) {
       Assertions.fail();
     }
@@ -680,9 +675,8 @@ class PaymentInstrumentServiceTest {
   void deactivateInstrument_PM_KO_PDV() {
     Mockito.doThrow(new PaymentInstrumentException(404, "")).when(encryptRestConnector)
         .upsertToken(Mockito.any());
-    DeactivationPMBodyDTO deactivationPMBodyDTO = new DeactivationPMBodyDTO(USER_ID, HPAN,
-        TEST_DATE_PM);
-    paymentInstrumentService.deactivateInstrumentPM(deactivationPMBodyDTO);
+    RTDRevokeCardDTO RTDRevokeCardDTO = new RTDRevokeCardDTO("RevokeCard", RTD_MESSAGE);
+    paymentInstrumentService.processRtdMessage(RTDRevokeCardDTO);
 
     Mockito.verify(walletRestConnector, Mockito.times(0)).updateWallet(Mockito.any());
 
@@ -692,7 +686,6 @@ class PaymentInstrumentServiceTest {
   void deactivateInstrument_PM_queue_error_rule_engine() {
     TEST_INSTRUMENT.setStatus(PaymentInstrumentConstants.STATUS_ACTIVE);
     TEST_INSTRUMENT.setDeactivationDate(null);
-    WalletDTO walletDTO = new WalletDTO(INITIATIVE_ID, USER_ID, HPAN, BRAND_LOGO, MASKED_PAN);
     EncryptedCfDTO encryptedCfDTO = new EncryptedCfDTO(USER_ID);
 
     Mockito.when(
@@ -719,9 +712,8 @@ class PaymentInstrumentServiceTest {
     }).when(paymentInstrumentRepositoryMock).save(Mockito.any(PaymentInstrument.class));
 
     try {
-      DeactivationPMBodyDTO deactivationPMBodyDTO = new DeactivationPMBodyDTO(USER_ID, HPAN,
-          TEST_DATE_PM);
-      paymentInstrumentService.deactivateInstrumentPM(deactivationPMBodyDTO);
+      RTDRevokeCardDTO RTDRevokeCardDTO = new RTDRevokeCardDTO("RevokeCard", RTD_MESSAGE);
+      paymentInstrumentService.processRtdMessage(RTDRevokeCardDTO);
     } catch (PaymentInstrumentException e) {
       Assertions.fail();
     }
@@ -751,9 +743,8 @@ class PaymentInstrumentServiceTest {
         .thenReturn(List.of());
     Mockito.when(encryptRestConnector.upsertToken(Mockito.any(CFDTO.class)))
         .thenReturn(encryptedCfDTO);
-    DeactivationPMBodyDTO deactivationPMBodyDTO = new DeactivationPMBodyDTO(USER_ID, HPAN,
-        LocalDateTime.now().toString());
-    paymentInstrumentService.deactivateInstrumentPM(deactivationPMBodyDTO);
+    RTDRevokeCardDTO RTDRevokeCardDTO = new RTDRevokeCardDTO("RevokeCard", RTD_MESSAGE);
+    paymentInstrumentService.processRtdMessage(RTDRevokeCardDTO);
 
     Mockito.verify(walletRestConnector, Mockito.times(0)).updateWallet(Mockito.any());
   }
