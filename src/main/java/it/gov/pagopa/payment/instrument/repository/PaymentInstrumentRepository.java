@@ -29,5 +29,7 @@ public interface PaymentInstrumentRepository extends MongoRepository<PaymentInst
       String userId, String hpan, String status);
 
   List<PaymentInstrument> findByHpanAndUserIdAndStatus(String hpan, String userId,
-      String statusActive);
+      String status);
+
+  List<PaymentInstrument> findByHpanAndStatus(String hpan, String status);
 }

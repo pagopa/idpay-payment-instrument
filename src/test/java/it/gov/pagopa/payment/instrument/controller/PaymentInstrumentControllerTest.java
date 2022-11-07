@@ -234,7 +234,7 @@ class PaymentInstrumentControllerTest {
         LocalDateTime.now().toString());
 
     Mockito.doNothing().when(paymentInstrumentServiceMock)
-        .deactivateAllInstrument(INITIATIVE_ID, USER_ID, LocalDateTime.now().toString());
+        .deactivateAllInstruments(INITIATIVE_ID, USER_ID, LocalDateTime.now().toString());
 
     mvc.perform(
             MockMvcRequestBuilders.delete(BASE_URL + DISABLE_ALL_URL)
