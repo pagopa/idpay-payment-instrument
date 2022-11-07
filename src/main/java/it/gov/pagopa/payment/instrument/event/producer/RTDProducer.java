@@ -1,6 +1,6 @@
 package it.gov.pagopa.payment.instrument.event.producer;
 
-import it.gov.pagopa.payment.instrument.dto.RTDOperationDTO;
+import it.gov.pagopa.payment.instrument.dto.rtd.RTDOperationDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
