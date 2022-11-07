@@ -126,7 +126,7 @@ class PaymentInstrumentServiceTest {
   private static final WalletV2 WALLET_V2_BPAY = new WalletV2(CREATE_DATE, ENABLEABLE_FUNCTIONS,
       FAVOURITE, ID_WALLET, ONBOARDING_CHANNEL, UPDATE_DATE, PaymentInstrumentConstants.BPAY,
       PAYMENT_METHOD_INFO);
-  private static final RTDMessage RTD_MESSAGE = new RTDMessage(USER_ID, HPAN, HPAN, HPAN,
+  private static final RTDMessage RTD_MESSAGE = new RTDMessage(USER_ID, HPAN, HPAN, HPAN, "ID_PAY",
       OffsetDateTime.now());
   private static final List<WalletV2> WALLET_V2_LIST_CARD = List.of(WALLET_V2_CARD);
   private static final List<WalletV2> WALLET_V2_LIST_SATISPAY = List.of(WALLET_V2_SATISPAY);

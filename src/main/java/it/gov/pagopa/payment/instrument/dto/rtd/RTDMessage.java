@@ -18,6 +18,8 @@ public class RTDMessage {
 
   String par;
 
+  String application;
+
   @JsonProperty("timestamp")
   @JsonAlias("deactivationDate")
   OffsetDateTime timestamp;
