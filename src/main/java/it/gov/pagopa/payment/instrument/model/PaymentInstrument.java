@@ -19,6 +19,7 @@ public class PaymentInstrument {
   private String hpan;
   private String maskedPan;
   private String brandLogo;
+  private boolean consent;
   private String status;
   private String channel;
   private String deleteChannel;

@@ -69,7 +69,7 @@ class PaymentInstrumentControllerTest {
   private static final HpanGetDTO HPANGETDTO = new HpanGetDTO();
   private static final List<PaymentMethodInfoList> INFO_LIST = new ArrayList<>();
   private static final PaymentMethodInfoList PAYMENT_METHOD_INFO_LIST = new PaymentMethodInfoList(
-      HPAN, MASKED_PAN, BRAND_LOGO);
+      HPAN, MASKED_PAN, BRAND_LOGO,true);
   private static final PaymentMethodInfoList PAYMENT_METHOD_INFO_LIST_INDEM = new PaymentMethodInfoList();
 
   @MockBean

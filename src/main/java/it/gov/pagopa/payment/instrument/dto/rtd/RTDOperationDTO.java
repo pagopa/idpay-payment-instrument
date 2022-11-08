@@ -8,7 +8,7 @@ import lombok.Getter;
 @Builder
 public class RTDOperationDTO {
 
-  private List<String> hpanList;
+  private List<RTDHpanListDTO> hpanList;
 
   private String operationType;
 
