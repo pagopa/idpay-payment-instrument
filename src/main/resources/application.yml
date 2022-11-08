@@ -75,7 +75,7 @@ spring:
                       configuration:
                         sasl:
                           jaas:
-                            config: ${KAFKA_RTD_SASL_JAAS_CONFIG:}
+                            config: ${KAFKA_RTD_OUT_SASL_JAAS_CONFIG:}
 
         kafka-delete-rtd:
           type: kafka
@@ -89,7 +89,7 @@ spring:
                       configuration:
                         sasl:
                           jaas:
-                            config: ${KAFKA_DELETE_RTD_SASL_JAAS_CONFIG:}
+                            config: ${KAFKA_RTD_IN_SASL_JAAS_CONFIG:}
 
         kafka-errors:
           type: kafka
@@ -108,8 +108,8 @@ spring:
         consumerRtd-in-0:
           binder: kafka-delete-rtd
           content-type: ${KAFKA_CONTENT_TYPE:application/json}
-          destination: ${KAFKA_TOPIC_DELETE_RTD:}
-          group: ${KAFKA_DELETE_RTD_GROUP_IN:}
+          destination: ${KAFKA_TOPIC_RTD_IN:}
+          group: ${KAFKA_RTD_IN_GROUP:}
         ackConsumer-in-0:
           binder: kafka-re-ack
           content-type: ${KAFKA_CONTENT_TYPE:application/json}
@@ -122,7 +122,7 @@ spring:
         paymentInstrumentQueue-out-1:
           binder: kafka-rtd
           content-type: ${KAFKA_CONTENT_TYPE:application/json}
-          destination: ${KAFKA_TOPIC_RTD:}
+          destination: ${KAFKA_TOPIC_RTD_OUT:}
         paymentInstrumentQueue-out-2:
           binder: kafka-errors
           content-type: ${KAFKA_CONTENT_TYPE:application/json}
