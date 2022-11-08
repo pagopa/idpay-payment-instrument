@@ -247,11 +247,11 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
   @Override
   public void processRtdMessage(RTDEventsDTO dto) {
     if (dto instanceof RTDRevokeCardDTO revokeCardDTO) {
-      deactivateInstrumentFromPM(revokeCardDTO.getRtdMessage());
+      deactivateInstrumentFromPM(revokeCardDTO.getData());
     }
 
     if (dto instanceof RTDEnrollAckDTO enrollAckDTO) {
-      saveAckFromRTD(enrollAckDTO.getRtdMessage());
+      saveAckFromRTD(enrollAckDTO.getData());
     }
   }
 

@@ -9,7 +9,7 @@ public class RTDRevokeTokenDTO implements RTDEventsDTO {
 
   String type;
 
-  RTDMessage rtdMessage;
+  RTDMessage data;
 
 }
 
