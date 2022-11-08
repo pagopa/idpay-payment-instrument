@@ -130,6 +130,8 @@ class PaymentInstrumentServiceTest {
       PAYMENT_METHOD_INFO);
   private static final RTDMessage RTD_MESSAGE = new RTDMessage(USER_ID, HPAN, HPAN, HPAN, "ID_PAY",
       OffsetDateTime.now(), null);
+  private static final RTDMessage RTD_MESSAGE_NOT_IDPAY = new RTDMessage(USER_ID, HPAN, HPAN, HPAN, "TEST",
+      OffsetDateTime.now(), null);
   private static final List<WalletV2> WALLET_V2_LIST_CARD = List.of(WALLET_V2_CARD);
   private static final List<WalletV2> WALLET_V2_LIST_PBD_KO = List.of(WALLET_V2_PBD_KO);
   private static final List<WalletV2> WALLET_V2_LIST_SATISPAY = List.of(WALLET_V2_SATISPAY);
@@ -862,6 +864,18 @@ class PaymentInstrumentServiceTest {
 
     assertNotNull(TEST_INSTRUMENT.getRtdAckDate());
     Mockito.verify(paymentInstrumentRepositoryMock, Mockito.times(1)).saveAll(Mockito.anyList());
+  }
+
+  @Test
+  void saveAckFromRTD_not_idpay_message() {
+    final RTDEnrollAckDTO dto = new RTDEnrollAckDTO("EnrollAck", RTD_MESSAGE_NOT_IDPAY);
+
+    Mockito.when(paymentInstrumentRepositoryMock.findByHpanAndStatus(HPAN,
+        PaymentInstrumentConstants.STATUS_ACTIVE)).thenReturn(List.of(TEST_INSTRUMENT));
+
+    paymentInstrumentService.processRtdMessage(dto);
+
+    Mockito.verify(paymentInstrumentRepositoryMock, Mockito.times(0)).saveAll(Mockito.anyList());
   }
 
   @Test
