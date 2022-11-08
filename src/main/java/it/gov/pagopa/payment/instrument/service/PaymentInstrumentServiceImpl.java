@@ -258,6 +258,11 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
   private void saveAckFromRTD(RTDMessage rtdMessage) {
     log.info("[SAVE_ACK_FROM_RTD] Processing new ACK from RTD");
 
+    if(!rtdMessage.getApplication().equals(PaymentInstrumentConstants.ID_PAY)){
+      log.info("[SAVE_ACK_FROM_RTD] This message is for another application. No processing to be done");
+      return;
+    }
+
     List<PaymentInstrument> instruments = paymentInstrumentRepository.findByHpanAndStatus(
         rtdMessage.getHpan(), PaymentInstrumentConstants.STATUS_ACTIVE);
 
@@ -370,7 +375,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
           RTDOperationDTO.builder()
               .hpanList(toRtd)
               .operationType(operation)
-              .application("ID_PAY")
+              .application(PaymentInstrumentConstants.ID_PAY)
               .build();
 
       log.info("[PaymentInstrumentService - Operation: {}] Sending message to RTD.", operation);
