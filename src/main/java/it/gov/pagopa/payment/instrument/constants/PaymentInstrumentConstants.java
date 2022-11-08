@@ -27,6 +27,7 @@ public final class PaymentInstrumentConstants {
   public static final String IO="APP_IO";
   public static final String SATISPAY = "Satispay";
   public static final String BPAY = "BPay";
+  public static final String BPD = "BPD";
   public static final String STATUS_PENDING_ENROLLMENT_REQUEST = "PENDING_ENROLLMENT_REQUEST";
   public static final String STATUS_PENDING_DEACTIVATION_REQUEST = "PENDING_DEACTIVATION_REQUEST";
   public static final String STATUS_FAILED_ENROLLMENT_REQUEST = "INACTIVE_FAILED_ENROLLMENT_REQUEST";

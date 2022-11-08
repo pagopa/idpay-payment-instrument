@@ -9,7 +9,7 @@ public class RTDEnrollAckDTO implements RTDEventsDTO {
 
   String type;
 
-  RTDMessage rtdMessage;
+  RTDMessage data;
 
 }
 

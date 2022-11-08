@@ -35,9 +35,7 @@ import it.gov.pagopa.payment.instrument.repository.PaymentInstrumentRepository;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -97,17 +95,8 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     PaymentMethodInfoList infoList = getPaymentMethodInfoList(
         userId, idWallet, paymentMethodInfoList);
 
-    PaymentInstrument newInstrument = PaymentInstrument.builder()
-        .initiativeId(initiativeId)
-        .userId(userId)
-        .idWallet(idWallet)
-        .hpan(infoList.getHpan())
-        .maskedPan(infoList.getMaskedPan())
-        .brandLogo(infoList.getBrandLogo())
-        .status(PaymentInstrumentConstants.STATUS_PENDING_ENROLLMENT_REQUEST)
-        .channel(channel)
-        .build();
-    paymentInstrumentRepository.save(newInstrument);
+    PaymentInstrument newInstrument = savePaymentInstrument(
+        initiativeId, userId, idWallet, channel, infoList);
 
     try {
       sendToRuleEngine(newInstrument.getUserId(), newInstrument.getInitiativeId(), channel,
@@ -119,6 +108,22 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       paymentInstrumentRepository.delete(newInstrument);
       throw new PaymentInstrumentException(HttpStatus.BAD_REQUEST.value(), e.getMessage());
     }
+  }
+
+  private PaymentInstrument savePaymentInstrument(String initiativeId, String userId,
+      String idWallet, String channel, PaymentMethodInfoList infoList) {
+    PaymentInstrument newInstrument = PaymentInstrument.builder()
+        .initiativeId(initiativeId)
+        .userId(userId)
+        .idWallet(idWallet)
+        .hpan(infoList.getHpan())
+        .maskedPan(infoList.getMaskedPan())
+        .brandLogo(infoList.getBrandLogo())
+        .status(PaymentInstrumentConstants.STATUS_PENDING_ENROLLMENT_REQUEST)
+        .channel(channel)
+        .build();
+    paymentInstrumentRepository.save(newInstrument);
+    return newInstrument;
   }
 
   private PaymentMethodInfoList getPaymentMethodInfoList(String userId, String idWallet,
@@ -141,7 +146,8 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     int countIdWallet = 0;
 
     for (WalletV2 v2 : walletV2ListResponse.getData()) {
-      if (v2.getIdWallet().equals(idWallet)) {
+      if (v2.getIdWallet().equals(idWallet) && v2.getEnableableFunctions()
+          .contains(PaymentInstrumentConstants.BPD)) {
         switch (v2.getWalletType()) {
           case PaymentInstrumentConstants.SATISPAY -> {
             infoList.setHpan(v2.getInfo().getUuid());
@@ -241,11 +247,11 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
   @Override
   public void processRtdMessage(RTDEventsDTO dto) {
     if (dto instanceof RTDRevokeCardDTO revokeCardDTO) {
-      deactivateInstrumentFromPM(revokeCardDTO.getRtdMessage());
+      deactivateInstrumentFromPM(revokeCardDTO.getData());
     }
 
     if (dto instanceof RTDEnrollAckDTO enrollAckDTO) {
-      saveAckFromRTD(enrollAckDTO.getRtdMessage());
+      saveAckFromRTD(enrollAckDTO.getData());
     }
   }
 

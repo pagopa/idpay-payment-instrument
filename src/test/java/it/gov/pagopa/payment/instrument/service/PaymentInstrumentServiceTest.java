@@ -99,17 +99,17 @@ class PaymentInstrumentServiceTest {
   private static final String EXPIRE_MONTH = "EXPIRE_MONTH";
   private static final String EXPIRE_YEAR = "EXPIRE_YEAR";
   private static final String HOLDER = "HOLDER";
-  private static final List<String> HTOKEN_LIST = new ArrayList<>();
   private static final String ISSUER_ABI_CODE = "ISSUER_ABI_CODE";
   private static final String UUID = "UUID";
   private static final String BRAND_LOGO = "BAND_LOGO";
+  private static final String BPD = "BPD";
   private static final String CREATE_DATE = "LocalDateTime.now()";
-  private static final List<String> ENABLEABLE_FUNCTIONS = new ArrayList<>();
+  private static final List<String> ENABLEABLE_FUNCTIONS = List.of(BPD);
+  private static final List<String> ENABLEABLE_FUNCTIONS_KO = List.of("TEST_KO");
   private static final Boolean FAVOURITE = true;
   private static final String ONBOARDING_CHANNEL = "ONBOARDING_CHANNEL";
   private static final String BANK_NAME = "BANK_NAME";
   private static final String INSTITUTE_CODE = "INSTITUTE_CODE";
-  private static final String TEST_DATE_PM = "2022-10-21T09:14:34.010+00:00";
   private static final List<BPayPaymentInstrumentWallet> PAYMENT_INSTRUMENTS = null;
   private static final PaymentMethodInfo PAYMENT_METHOD_INFO = new PaymentMethodInfo(BLURRED_NUMBER,
       BRAND, BRAND_LOGO, EXPIRE_MONTH, EXPIRE_YEAR, HPAN, HOLDER, ISSUER_ABI_CODE,
@@ -117,6 +117,8 @@ class PaymentInstrumentServiceTest {
       UUID, UUID);
   private static final String UPDATE_DATE = "LocalDateTime.now()";
   private static final WalletV2 WALLET_V2_CARD = new WalletV2(CREATE_DATE, ENABLEABLE_FUNCTIONS,
+      FAVOURITE, ID_WALLET, ONBOARDING_CHANNEL, UPDATE_DATE, "CARD", PAYMENT_METHOD_INFO);
+  private static final WalletV2 WALLET_V2_PBD_KO = new WalletV2(CREATE_DATE, ENABLEABLE_FUNCTIONS_KO,
       FAVOURITE, ID_WALLET, ONBOARDING_CHANNEL, UPDATE_DATE, "CARD", PAYMENT_METHOD_INFO);
   private static final WalletV2 WALLET_V2_SATISPAY = new WalletV2(CREATE_DATE,
 
@@ -129,10 +131,13 @@ class PaymentInstrumentServiceTest {
   private static final RTDMessage RTD_MESSAGE = new RTDMessage(USER_ID, HPAN, HPAN, HPAN, "ID_PAY",
       OffsetDateTime.now());
   private static final List<WalletV2> WALLET_V2_LIST_CARD = List.of(WALLET_V2_CARD);
+  private static final List<WalletV2> WALLET_V2_LIST_PBD_KO = List.of(WALLET_V2_PBD_KO);
   private static final List<WalletV2> WALLET_V2_LIST_SATISPAY = List.of(WALLET_V2_SATISPAY);
   private static final List<WalletV2> WALLET_V2_LIST_BPAY = List.of(WALLET_V2_BPAY);
   private static final WalletV2ListResponse WALLET_V_2_LIST_RESPONSE_CARD = new WalletV2ListResponse(
       WALLET_V2_LIST_CARD);
+  private static final WalletV2ListResponse WALLET_V_2_LIST_RESPONSE_PBD_KO = new WalletV2ListResponse(
+      WALLET_V2_LIST_PBD_KO);
   private static final WalletV2ListResponse WALLET_V_2_LIST_RESPONSE_SATISPAY = new WalletV2ListResponse(
       WALLET_V2_LIST_SATISPAY);
   private static final WalletV2ListResponse WALLET_V_2_LIST_RESPONSE_BPAY = new WalletV2ListResponse(
@@ -197,6 +202,22 @@ class PaymentInstrumentServiceTest {
       );
     } catch (PaymentInstrumentException e) {
       fail();
+    }
+  }
+  @Test
+  void enrollInstrument_ko_consent() {
+    Mockito.when(paymentInstrumentRepositoryMock.findByIdWalletAndStatusNotContaining(ID_WALLET,
+        PaymentInstrumentConstants.STATUS_INACTIVE)).thenReturn(new ArrayList<>());
+
+    Mockito.when(decryptRestConnector.getPiiByToken(USER_ID)).thenReturn(DECRYPT_CF_DTO);
+    Mockito.when(
+        pmRestClientConnector.getWalletList(USER_ID)).thenReturn(WALLET_V_2_LIST_RESPONSE_PBD_KO);
+
+    try {
+      paymentInstrumentService.enrollInstrument(INITIATIVE_ID, USER_ID, ID_WALLET, CHANNEL);
+      fail();
+    } catch (PaymentInstrumentException e) {
+      assertEquals(HttpStatus.NOT_FOUND.value(), e.getCode());
     }
   }
 
