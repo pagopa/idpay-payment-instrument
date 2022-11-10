@@ -475,8 +475,6 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       hpanListDTO.setHpan(hpan);
       hpanListDTO.setConsent(instrument.isConsent());
 
-      sendToRtd(List.of(hpanListDTO), ruleEngineAckDTO.getOperationType());
-
       log.info("[PROCESS_ACK_DEACTIVATE] Deactivation OK: updating instrument status to {}.",
           PaymentInstrumentConstants.STATUS_INACTIVE);
 
@@ -497,6 +495,8 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
 
     instrument.setStatus(status);
     paymentInstrumentRepository.save(instrument);
+
+    sendToRtd(List.of(hpanListDTO), ruleEngineAckDTO.getOperationType());
 
     int nInstr = countByInitiativeIdAndUserIdAndStatus(instrument.getInitiativeId(),
         instrument.getUserId(), PaymentInstrumentConstants.STATUS_ACTIVE);
@@ -537,8 +537,6 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       hpanListDTO.setHpan(hpan);
       hpanListDTO.setConsent(instrument.isConsent());
 
-      sendToRtd(List.of(hpanListDTO), ruleEngineAckDTO.getOperationType());
-
       log.info("[PROCESS_ACK_ENROLL] Enrollment OK: updating instrument status to {}.",
           PaymentInstrumentConstants.STATUS_ACTIVE);
 
@@ -547,6 +545,8 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     }
     instrument.setStatus(status);
     paymentInstrumentRepository.save(instrument);
+
+    sendToRtd(List.of(hpanListDTO), ruleEngineAckDTO.getOperationType());
 
     int nInstr = countByInitiativeIdAndUserIdAndStatus(instrument.getInitiativeId(),
         instrument.getUserId(), PaymentInstrumentConstants.STATUS_ACTIVE);
