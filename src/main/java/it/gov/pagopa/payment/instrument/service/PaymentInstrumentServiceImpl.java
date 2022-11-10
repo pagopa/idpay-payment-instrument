@@ -266,6 +266,8 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
   private void saveAckFromRTD(RTDMessage rtdMessage) {
     log.info("[SAVE_ACK_FROM_RTD] Processing new ACK from RTD");
 
+    log.info("[SAVE_ACK_FROM_RTD] Processing new ACK from RTD : {}", rtdMessage);
+
     if(!rtdMessage.getApplication().equals(PaymentInstrumentConstants.ID_PAY)){
       log.info("[SAVE_ACK_FROM_RTD] This message is for another application. No processing to be done");
       return;
@@ -287,6 +289,8 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
 
   private void deactivateInstrumentFromPM(RTDMessage rtdMessage) {
     log.info("[DEACTIVATE_INSTRUMENT_PM] Delete instrument from PM");
+
+    log.info("[DEACTIVATE_INSTRUMENT_PM] Processing new revoke from RTD : {}", rtdMessage);
 
     EncryptedCfDTO encryptedCfDTO = new EncryptedCfDTO();
 
@@ -496,8 +500,6 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     instrument.setStatus(status);
     paymentInstrumentRepository.save(instrument);
 
-    sendToRtd(List.of(hpanListDTO), ruleEngineAckDTO.getOperationType());
-
     int nInstr = countByInitiativeIdAndUserIdAndStatus(instrument.getInitiativeId(),
         instrument.getUserId(), PaymentInstrumentConstants.STATUS_ACTIVE);
 
@@ -507,6 +509,8 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     log.info("[PROCESS_ACK_DEACTIVATE] Deactivation OK: updating wallet.");
 
     walletRestConnector.processAck(dto);
+
+    sendToRtd(List.of(hpanListDTO), ruleEngineAckDTO.getOperationType());
   }
 
   private void processAckEnroll(RuleEngineAckDTO ruleEngineAckDTO) {
@@ -546,8 +550,6 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     instrument.setStatus(status);
     paymentInstrumentRepository.save(instrument);
 
-    sendToRtd(List.of(hpanListDTO), ruleEngineAckDTO.getOperationType());
-
     int nInstr = countByInitiativeIdAndUserIdAndStatus(instrument.getInitiativeId(),
         instrument.getUserId(), PaymentInstrumentConstants.STATUS_ACTIVE);
 
@@ -558,6 +560,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
 
     walletRestConnector.processAck(dto);
 
+    sendToRtd(List.of(hpanListDTO), ruleEngineAckDTO.getOperationType());
   }
 
   @Override
