@@ -461,8 +461,6 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
         (!ruleEngineAckDTO.getHpanList().isEmpty()) ? ruleEngineAckDTO.getHpanList().get(0)
             : ruleEngineAckDTO.getRejectedHpanList().get(0);
 
-    String status = PaymentInstrumentConstants.STATUS_INACTIVE;
-
     PaymentInstrument instrument = paymentInstrumentRepository.findByInitiativeIdAndUserIdAndHpanAndStatus(
             ruleEngineAckDTO.getInitiativeId(), ruleEngineAckDTO.getUserId(),
             hpan, PaymentInstrumentConstants.STATUS_PENDING_DEACTIVATION_REQUEST)
@@ -474,7 +472,6 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     }
 
     if (!ruleEngineAckDTO.getHpanList().isEmpty()) {
-      log.info("[PROCESS_ACK_DEACTIVATE] Deactivation OK: sending to RTD.");
 
       hpanListDTO.setHpan(hpan);
       hpanListDTO.setConsent(instrument.isConsent());
@@ -483,22 +480,23 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
           PaymentInstrumentConstants.STATUS_INACTIVE);
 
       instrument.setDeactivationDate(ruleEngineAckDTO.getTimestamp());
+      instrument.setStatus(PaymentInstrumentConstants.STATUS_INACTIVE);
+      paymentInstrumentRepository.save(instrument);
 
+      log.info("[PROCESS_ACK_DEACTIVATE] Deactivation OK: sending to RTD.");
+      sendToRtd(List.of(hpanListDTO), ruleEngineAckDTO.getOperationType());
     }
 
     if (!ruleEngineAckDTO.getRejectedHpanList().isEmpty()) {
 
-      status = PaymentInstrumentConstants.STATUS_ACTIVE;
-
       log.info(
           "[PROCESS_ACK_DEACTIVATE] Deactivation KO: resetting Payment Instrument to status {}.",
-          status);
+          PaymentInstrumentConstants.STATUS_ACTIVE);
 
       instrument.setDeleteChannel(null);
+      instrument.setStatus(PaymentInstrumentConstants.STATUS_ACTIVE);
+      paymentInstrumentRepository.save(instrument);
     }
-
-    instrument.setStatus(status);
-    paymentInstrumentRepository.save(instrument);
 
     int nInstr = countByInitiativeIdAndUserIdAndStatus(instrument.getInitiativeId(),
         instrument.getUserId(), PaymentInstrumentConstants.STATUS_ACTIVE);
@@ -510,7 +508,6 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
 
     walletRestConnector.processAck(dto);
 
-    sendToRtd(List.of(hpanListDTO), ruleEngineAckDTO.getOperationType());
   }
 
   private void processAckEnroll(RuleEngineAckDTO ruleEngineAckDTO) {
@@ -536,7 +533,6 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       return;
     }
     if (!ruleEngineAckDTO.getHpanList().isEmpty()) {
-      log.info("[PROCESS_ACK_ENROLL] Enrollment OK: sending to RTD.");
 
       hpanListDTO.setHpan(hpan);
       hpanListDTO.setConsent(instrument.isConsent());
@@ -547,8 +543,14 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       instrument.setActivationDate(ruleEngineAckDTO.getTimestamp());
 
     }
+
     instrument.setStatus(status);
     paymentInstrumentRepository.save(instrument);
+
+    if (!ruleEngineAckDTO.getHpanList().isEmpty()) {
+      log.info("[PROCESS_ACK_ENROLL] Enrollment OK: sending to RTD.");
+      sendToRtd(List.of(hpanListDTO), ruleEngineAckDTO.getOperationType());
+    }
 
     int nInstr = countByInitiativeIdAndUserIdAndStatus(instrument.getInitiativeId(),
         instrument.getUserId(), PaymentInstrumentConstants.STATUS_ACTIVE);
@@ -560,7 +562,6 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
 
     walletRestConnector.processAck(dto);
 
-    sendToRtd(List.of(hpanListDTO), ruleEngineAckDTO.getOperationType());
   }
 
   @Override

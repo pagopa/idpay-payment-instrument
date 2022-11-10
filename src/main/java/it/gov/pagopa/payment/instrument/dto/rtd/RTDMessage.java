@@ -3,9 +3,9 @@ package it.gov.pagopa.payment.instrument.dto.rtd;
 import java.time.OffsetDateTime;
 import java.util.List;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Data;
 
-@Getter
+@Data
 @AllArgsConstructor
 public class RTDMessage {
 
