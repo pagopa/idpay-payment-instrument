@@ -118,7 +118,8 @@ class PaymentInstrumentServiceTest {
   private static final String UPDATE_DATE = "LocalDateTime.now()";
   private static final WalletV2 WALLET_V2_CARD = new WalletV2(CREATE_DATE, ENABLEABLE_FUNCTIONS,
       FAVOURITE, ID_WALLET, ONBOARDING_CHANNEL, UPDATE_DATE, "CARD", PAYMENT_METHOD_INFO);
-  private static final WalletV2 WALLET_V2_PBD_KO = new WalletV2(CREATE_DATE, ENABLEABLE_FUNCTIONS_KO,
+  private static final WalletV2 WALLET_V2_PBD_KO = new WalletV2(CREATE_DATE,
+      ENABLEABLE_FUNCTIONS_KO,
       FAVOURITE, ID_WALLET, ONBOARDING_CHANNEL, UPDATE_DATE, "CARD", PAYMENT_METHOD_INFO);
   private static final WalletV2 WALLET_V2_SATISPAY = new WalletV2(CREATE_DATE,
 
@@ -130,7 +131,8 @@ class PaymentInstrumentServiceTest {
       PAYMENT_METHOD_INFO);
   private static final RTDMessage RTD_MESSAGE = new RTDMessage(USER_ID, HPAN, HPAN, HPAN, "ID_PAY",
       OffsetDateTime.now(), null);
-  private static final RTDMessage RTD_MESSAGE_NOT_IDPAY = new RTDMessage(USER_ID, HPAN, HPAN, HPAN, "TEST",
+  private static final RTDMessage RTD_MESSAGE_NOT_IDPAY = new RTDMessage(USER_ID, HPAN, HPAN, HPAN,
+      "TEST",
       OffsetDateTime.now(), null);
   private static final List<WalletV2> WALLET_V2_LIST_CARD = List.of(WALLET_V2_CARD);
   private static final List<WalletV2> WALLET_V2_LIST_PBD_KO = List.of(WALLET_V2_PBD_KO);
@@ -206,6 +208,7 @@ class PaymentInstrumentServiceTest {
       fail();
     }
   }
+
   @Test
   void enrollInstrument_ko_consent() {
     Mockito.when(paymentInstrumentRepositoryMock.findByIdWalletAndStatusNotContaining(ID_WALLET,
@@ -535,33 +538,28 @@ class PaymentInstrumentServiceTest {
   }
 
   @Test
-  void getHpan_ok() {
-    List<PaymentInstrument> paymentInstruments = new ArrayList<>();
-    paymentInstruments.add(TEST_INSTRUMENT);
+  void getHpan_satus_active_ok() {
+    List<PaymentInstrument> paymentInstruments = List.of(TEST_INSTRUMENT);
 
     Mockito.when(
-            paymentInstrumentRepositoryMock.findByInitiativeIdAndUserId(INITIATIVE_ID, USER_ID))
+            paymentInstrumentRepositoryMock.findByInitiativeIdAndUserIdAndStatusNotContaining(INITIATIVE_ID,
+                USER_ID, PaymentInstrumentConstants.STATUS_INACTIVE))
         .thenReturn(paymentInstruments);
     try {
       HpanGetDTO hpanGetDTO = paymentInstrumentService.gethpan(INITIATIVE_ID, USER_ID);
-      HpanDTO actual = hpanGetDTO.getHpanList().get(0);
-      assertEquals(TEST_INSTRUMENT.getHpan(), actual.getHpan());
-      assertEquals(TEST_INSTRUMENT.getChannel(), actual.getChannel());
-      assertEquals(TEST_INSTRUMENT.getMaskedPan(), actual.getMaskedPan());
-      assertEquals(TEST_INSTRUMENT.getBrandLogo(), actual.getBrandLogo());
       assertFalse(hpanGetDTO.getHpanList().isEmpty());
     } catch (PaymentInstrumentException e) {
       Assertions.fail();
     }
-
   }
 
   @Test
-  void getHpan_ko() {
+  void getHpan_ko_empty() {
     List<PaymentInstrument> paymentInstruments = new ArrayList<>();
 
     Mockito.when(
-            paymentInstrumentRepositoryMock.findByInitiativeIdAndUserId(INITIATIVE_ID, USER_ID))
+            paymentInstrumentRepositoryMock.findByInitiativeIdAndUserIdAndStatusNotContaining(INITIATIVE_ID,
+                USER_ID, PaymentInstrumentConstants.STATUS_INACTIVE))
         .thenReturn(paymentInstruments);
     try {
       paymentInstrumentService.gethpan(INITIATIVE_ID, USER_ID);
@@ -571,6 +569,50 @@ class PaymentInstrumentServiceTest {
       assertEquals(PaymentInstrumentConstants.ERROR_INITIATIVE_USER, e.getMessage());
     }
 
+  }
+
+  @Test
+  void getHpan_status_pending_enrollment_ok() {
+    List<PaymentInstrument> paymentInstruments = List.of(TEST_PENDING_ENROLLMENT_INSTRUMENT);
+
+    Mockito.when(
+            paymentInstrumentRepositoryMock.findByInitiativeIdAndUserIdAndStatusNotContaining(INITIATIVE_ID,
+                USER_ID, PaymentInstrumentConstants.STATUS_INACTIVE))
+        .thenReturn(paymentInstruments);
+    try {
+      HpanGetDTO hpanGetDTO = paymentInstrumentService.gethpan(INITIATIVE_ID, USER_ID);
+      HpanDTO actual = hpanGetDTO.getHpanList().get(0);
+      assertEquals(TEST_PENDING_ENROLLMENT_INSTRUMENT.getId(), actual.getInstrumentId());
+      assertEquals(TEST_PENDING_ENROLLMENT_INSTRUMENT.getStatus(), actual.getStatus());
+      assertEquals(TEST_PENDING_ENROLLMENT_INSTRUMENT.getChannel(), actual.getChannel());
+      assertEquals(TEST_PENDING_ENROLLMENT_INSTRUMENT.getMaskedPan(), actual.getMaskedPan());
+      assertEquals(TEST_PENDING_ENROLLMENT_INSTRUMENT.getBrandLogo(), actual.getBrandLogo());
+      assertFalse(hpanGetDTO.getHpanList().isEmpty());
+    } catch (PaymentInstrumentException e) {
+      Assertions.fail();
+    }
+  }
+
+  @Test
+  void getHpan_status_pending_deactivation_ok() {
+    List<PaymentInstrument> paymentInstruments = List.of(TEST_PENDING_DEACTIVATION_INSTRUMENT);
+
+    Mockito.when(
+            paymentInstrumentRepositoryMock.findByInitiativeIdAndUserIdAndStatusNotContaining(INITIATIVE_ID,
+                USER_ID, PaymentInstrumentConstants.STATUS_INACTIVE))
+        .thenReturn(paymentInstruments);
+    try {
+      HpanGetDTO hpanGetDTO = paymentInstrumentService.gethpan(INITIATIVE_ID, USER_ID);
+      HpanDTO actual = hpanGetDTO.getHpanList().get(0);
+      assertEquals(TEST_PENDING_DEACTIVATION_INSTRUMENT.getId(), actual.getInstrumentId());
+      assertEquals(TEST_PENDING_DEACTIVATION_INSTRUMENT.getChannel(), actual.getChannel());
+      assertEquals(TEST_PENDING_DEACTIVATION_INSTRUMENT.getMaskedPan(), actual.getMaskedPan());
+      assertEquals(TEST_PENDING_DEACTIVATION_INSTRUMENT.getStatus(), actual.getStatus());
+      assertEquals(TEST_PENDING_DEACTIVATION_INSTRUMENT.getBrandLogo(), actual.getBrandLogo());
+      assertFalse(hpanGetDTO.getHpanList().isEmpty());
+    } catch (PaymentInstrumentException e) {
+      Assertions.fail();
+    }
   }
 
   @Test

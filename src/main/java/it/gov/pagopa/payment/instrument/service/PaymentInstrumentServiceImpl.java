@@ -266,8 +266,9 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
   private void saveAckFromRTD(RTDMessage rtdMessage) {
     log.info("[SAVE_ACK_FROM_RTD] Processing new ACK from RTD");
 
-    if(!rtdMessage.getApplication().equals(PaymentInstrumentConstants.ID_PAY)){
-      log.info("[SAVE_ACK_FROM_RTD] This message is for another application. No processing to be done");
+    if (!rtdMessage.getApplication().equals(PaymentInstrumentConstants.ID_PAY)) {
+      log.info(
+          "[SAVE_ACK_FROM_RTD] This message is for another application. No processing to be done");
       return;
     }
 
@@ -411,8 +412,8 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
 
   @Override
   public HpanGetDTO gethpan(String initiativeId, String userId) {
-    List<PaymentInstrument> paymentInstrument = paymentInstrumentRepository.findByInitiativeIdAndUserId(
-        initiativeId, userId);
+    List<PaymentInstrument> paymentInstrument = paymentInstrumentRepository.findByInitiativeIdAndUserIdAndStatusNotContaining(
+        initiativeId, userId, PaymentInstrumentConstants.STATUS_INACTIVE);
 
     if (paymentInstrument.isEmpty()) {
       throw new PaymentInstrumentException(HttpStatus.NOT_FOUND.value(),
@@ -423,14 +424,14 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     List<HpanDTO> hpanDTOList = new ArrayList<>();
 
     for (PaymentInstrument paymentInstruments : paymentInstrument) {
-      HpanDTO hpanDTO = new HpanDTO();
-      hpanDTO.setHpan(paymentInstruments.getHpan());
-      hpanDTO.setChannel(paymentInstruments.getChannel());
-      hpanDTO.setBrandLogo(paymentInstruments.getBrandLogo());
-      hpanDTO.setMaskedPan(paymentInstruments.getMaskedPan());
-      hpanDTO.setInstrumentId(paymentInstruments.getId());
-      hpanDTO.setIdWallet(paymentInstruments.getIdWallet());
-      hpanDTOList.add(hpanDTO);
+        HpanDTO hpanDTO = new HpanDTO();
+        hpanDTO.setChannel(paymentInstruments.getChannel());
+        hpanDTO.setBrandLogo(paymentInstruments.getBrandLogo());
+        hpanDTO.setMaskedPan(paymentInstruments.getMaskedPan());
+        hpanDTO.setStatus(paymentInstruments.getStatus());
+        hpanDTO.setInstrumentId(paymentInstruments.getId());
+        hpanDTO.setIdWallet(paymentInstruments.getIdWallet());
+        hpanDTOList.add(hpanDTO);
     }
     hpanGetDTO.setHpanList(hpanDTOList);
 
@@ -524,7 +525,6 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
             ruleEngineAckDTO.getInitiativeId(), ruleEngineAckDTO.getUserId(),
             hpan, PaymentInstrumentConstants.STATUS_PENDING_ENROLLMENT_REQUEST)
         .orElse(null);
-
 
     if (instrument == null) {
       log.info("[PROCESS_ACK_ENROLL] No pending enrollment requests found for this ACK.");
