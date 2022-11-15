@@ -539,7 +539,17 @@ class PaymentInstrumentServiceTest {
 
   @Test
   void getHpan_satus_active_ok() {
-    List<PaymentInstrument> paymentInstruments = List.of(TEST_INSTRUMENT);
+    final PaymentInstrument INSTRUMENT = PaymentInstrument.builder()
+        .initiativeId(INITIATIVE_ID)
+        .userId(USER_ID)
+        .idWallet(ID_WALLET)
+        .hpan(HPAN)
+        .maskedPan(MASKED_PAN)
+        .brandLogo(BRAND_LOGO)
+        .status(PaymentInstrumentConstants.STATUS_ACTIVE)
+        .channel(CHANNEL)
+        .build();
+    List<PaymentInstrument> paymentInstruments = List.of(INSTRUMENT);
 
     Mockito.when(
             paymentInstrumentRepositoryMock.findByInitiativeIdAndUserIdAndStatusNotContaining(INITIATIVE_ID,
@@ -573,7 +583,17 @@ class PaymentInstrumentServiceTest {
 
   @Test
   void getHpan_status_pending_enrollment_ok() {
-    List<PaymentInstrument> paymentInstruments = List.of(TEST_PENDING_ENROLLMENT_INSTRUMENT);
+    final PaymentInstrument INSTRUMENT = PaymentInstrument.builder()
+        .initiativeId(INITIATIVE_ID)
+        .userId(USER_ID)
+        .idWallet(ID_WALLET)
+        .hpan(HPAN)
+        .maskedPan(MASKED_PAN)
+        .brandLogo(BRAND_LOGO)
+        .status(PaymentInstrumentConstants.STATUS_PENDING_ENROLLMENT_REQUEST)
+        .channel(CHANNEL)
+        .build();
+    List<PaymentInstrument> paymentInstruments = List.of(INSTRUMENT);
 
     Mockito.when(
             paymentInstrumentRepositoryMock.findByInitiativeIdAndUserIdAndStatusNotContaining(INITIATIVE_ID,
@@ -582,11 +602,11 @@ class PaymentInstrumentServiceTest {
     try {
       HpanGetDTO hpanGetDTO = paymentInstrumentService.gethpan(INITIATIVE_ID, USER_ID);
       HpanDTO actual = hpanGetDTO.getHpanList().get(0);
-      assertEquals(TEST_PENDING_ENROLLMENT_INSTRUMENT.getId(), actual.getInstrumentId());
-      assertEquals(TEST_PENDING_ENROLLMENT_INSTRUMENT.getStatus(), actual.getStatus());
-      assertEquals(TEST_PENDING_ENROLLMENT_INSTRUMENT.getChannel(), actual.getChannel());
-      assertEquals(TEST_PENDING_ENROLLMENT_INSTRUMENT.getMaskedPan(), actual.getMaskedPan());
-      assertEquals(TEST_PENDING_ENROLLMENT_INSTRUMENT.getBrandLogo(), actual.getBrandLogo());
+      assertEquals(INSTRUMENT.getId(), actual.getInstrumentId());
+      assertEquals(INSTRUMENT.getStatus(), actual.getStatus());
+      assertEquals(INSTRUMENT.getChannel(), actual.getChannel());
+      assertEquals(INSTRUMENT.getMaskedPan(), actual.getMaskedPan());
+      assertEquals(INSTRUMENT.getBrandLogo(), actual.getBrandLogo());
       assertFalse(hpanGetDTO.getHpanList().isEmpty());
     } catch (PaymentInstrumentException e) {
       Assertions.fail();
@@ -595,7 +615,17 @@ class PaymentInstrumentServiceTest {
 
   @Test
   void getHpan_status_pending_deactivation_ok() {
-    List<PaymentInstrument> paymentInstruments = List.of(TEST_PENDING_DEACTIVATION_INSTRUMENT);
+    final PaymentInstrument INSTRUMENT = PaymentInstrument.builder()
+        .initiativeId(INITIATIVE_ID)
+        .userId(USER_ID)
+        .idWallet(ID_WALLET)
+        .hpan(HPAN)
+        .maskedPan(MASKED_PAN)
+        .brandLogo(BRAND_LOGO)
+        .status(PaymentInstrumentConstants.STATUS_PENDING_DEACTIVATION_REQUEST)
+        .channel(CHANNEL)
+        .build();
+    List<PaymentInstrument> paymentInstruments = List.of(INSTRUMENT);
 
     Mockito.when(
             paymentInstrumentRepositoryMock.findByInitiativeIdAndUserIdAndStatusNotContaining(INITIATIVE_ID,
@@ -604,11 +634,11 @@ class PaymentInstrumentServiceTest {
     try {
       HpanGetDTO hpanGetDTO = paymentInstrumentService.gethpan(INITIATIVE_ID, USER_ID);
       HpanDTO actual = hpanGetDTO.getHpanList().get(0);
-      assertEquals(TEST_PENDING_DEACTIVATION_INSTRUMENT.getId(), actual.getInstrumentId());
-      assertEquals(TEST_PENDING_DEACTIVATION_INSTRUMENT.getChannel(), actual.getChannel());
-      assertEquals(TEST_PENDING_DEACTIVATION_INSTRUMENT.getMaskedPan(), actual.getMaskedPan());
-      assertEquals(TEST_PENDING_DEACTIVATION_INSTRUMENT.getStatus(), actual.getStatus());
-      assertEquals(TEST_PENDING_DEACTIVATION_INSTRUMENT.getBrandLogo(), actual.getBrandLogo());
+      assertEquals(INSTRUMENT.getId(), actual.getInstrumentId());
+      assertEquals(INSTRUMENT.getChannel(), actual.getChannel());
+      assertEquals(INSTRUMENT.getMaskedPan(), actual.getMaskedPan());
+      assertEquals(INSTRUMENT.getStatus(), actual.getStatus());
+      assertEquals(INSTRUMENT.getBrandLogo(), actual.getBrandLogo());
       assertFalse(hpanGetDTO.getHpanList().isEmpty());
     } catch (PaymentInstrumentException e) {
       Assertions.fail();
