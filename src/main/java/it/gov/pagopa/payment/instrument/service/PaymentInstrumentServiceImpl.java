@@ -412,8 +412,8 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
 
   @Override
   public HpanGetDTO gethpan(String initiativeId, String userId) {
-    List<PaymentInstrument> paymentInstrument = paymentInstrumentRepository.findByInitiativeIdAndUserId(
-        initiativeId, userId);
+    List<PaymentInstrument> paymentInstrument = paymentInstrumentRepository.findByInitiativeIdAndUserIdAndStatusNotContaining(
+        initiativeId, userId, PaymentInstrumentConstants.STATUS_INACTIVE);
 
     if (paymentInstrument.isEmpty()) {
       throw new PaymentInstrumentException(HttpStatus.NOT_FOUND.value(),
@@ -424,12 +424,6 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     List<HpanDTO> hpanDTOList = new ArrayList<>();
 
     for (PaymentInstrument paymentInstruments : paymentInstrument) {
-      if (paymentInstruments.getStatus().equals(PaymentInstrumentConstants.STATUS_ACTIVE) ||
-          paymentInstruments.getStatus()
-              .equals(PaymentInstrumentConstants.STATUS_PENDING_ENROLLMENT_REQUEST) ||
-          paymentInstruments.getStatus()
-              .equals(PaymentInstrumentConstants.STATUS_PENDING_DEACTIVATION_REQUEST)) {
-
         HpanDTO hpanDTO = new HpanDTO();
         hpanDTO.setChannel(paymentInstruments.getChannel());
         hpanDTO.setBrandLogo(paymentInstruments.getBrandLogo());
@@ -438,7 +432,6 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
         hpanDTO.setInstrumentId(paymentInstruments.getId());
         hpanDTO.setIdWallet(paymentInstruments.getIdWallet());
         hpanDTOList.add(hpanDTO);
-      }
     }
     hpanGetDTO.setHpanList(hpanDTOList);
 
