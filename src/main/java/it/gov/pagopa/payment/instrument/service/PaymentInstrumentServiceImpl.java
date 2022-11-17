@@ -299,20 +299,24 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     } catch (Exception e) {
       log.info("[DEACTIVATE_INSTRUMENT_PM] Error while encrypting.");
     }
-    List<PaymentInstrument> instruments = paymentInstrumentRepository.findByHpanAndUserIdAndStatus(
-        rtdMessage.getHpan(), encryptedCfDTO.getToken(), PaymentInstrumentConstants.STATUS_ACTIVE);
+    List<PaymentInstrument> instruments = paymentInstrumentRepository.findByInitiativeIdAndUserIdAndStatusNotContaining(
+        rtdMessage.getHpan(), encryptedCfDTO.getToken(), PaymentInstrumentConstants.STATUS_INACTIVE);
     if (instruments.isEmpty()) {
       log.info("[DEACTIVATE_INSTRUMENT_PM] No instrument to delete");
       return;
     }
     List<WalletDTO> walletDTOS = new ArrayList<>();
     for (PaymentInstrument instrument : instruments) {
-      WalletDTO walletDTO = new WalletDTO(instrument.getInitiativeId(), instrument.getUserId(),
-          instrument.getHpan(),
-          instrument.getBrandLogo(), instrument.getMaskedPan());
-      walletDTOS.add(walletDTO);
+      if(instrument.getStatus().equals(PaymentInstrumentConstants.STATUS_ACTIVE)){
+        WalletDTO walletDTO = new WalletDTO(instrument.getInitiativeId(), instrument.getUserId(),
+            instrument.getHpan(),
+            instrument.getBrandLogo(), instrument.getMaskedPan());
+        walletDTOS.add(walletDTO);
+      }
     }
-    walletRestConnector.updateWallet(new WalletCallDTO(walletDTOS));
+    if(!walletDTOS.isEmpty()){
+      walletRestConnector.updateWallet(new WalletCallDTO(walletDTOS));
+    }
     instruments.forEach(instrument ->
         checkAndDelete(instrument, LocalDateTime.from(rtdMessage.getTimestamp())));
   }
