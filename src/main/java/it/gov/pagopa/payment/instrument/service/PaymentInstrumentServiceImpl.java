@@ -77,7 +77,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
   @Value(
       "${spring.cloud.stream.binders.kafka-re.environment.spring.cloud.stream.kafka.binder.brokers}")
   String ruleEngineServer;
-  @Value("${spring.cloud.stream.bindings.paymentInstrumentQueue-out-.destination}")
+  @Value("${spring.cloud.stream.bindings.paymentInstrumentQueue-out-0.destination}")
   String ruleEngineTopic;
 
 
