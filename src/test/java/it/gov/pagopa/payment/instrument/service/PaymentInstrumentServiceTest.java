@@ -21,6 +21,7 @@ import it.gov.pagopa.payment.instrument.dto.EncryptedCfDTO;
 import it.gov.pagopa.payment.instrument.dto.HpanDTO;
 import it.gov.pagopa.payment.instrument.dto.HpanGetDTO;
 import it.gov.pagopa.payment.instrument.dto.RuleEngineAckDTO;
+import it.gov.pagopa.payment.instrument.dto.RuleEngineQueueDTO;
 import it.gov.pagopa.payment.instrument.dto.WalletCallDTO;
 import it.gov.pagopa.payment.instrument.dto.mapper.AckMapper;
 import it.gov.pagopa.payment.instrument.dto.mapper.MessageMapper;
@@ -53,6 +54,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -833,6 +835,9 @@ class PaymentInstrumentServiceTest {
 
     Mockito.when(paymentInstrumentRepositoryMock.countByHpanAndStatus(HPAN,
         PaymentInstrumentConstants.STATUS_ACTIVE)).thenReturn(0);
+
+    Mockito.when(messageMapper.apply(Mockito.any(RuleEngineQueueDTO.class))).thenReturn(
+        MessageBuilder.withPayload(new RuleEngineQueueDTO()).build());
 
     Mockito.doAnswer(invocationOnMock -> {
       TEST_INSTRUMENT.setStatus(PaymentInstrumentConstants.STATUS_INACTIVE);

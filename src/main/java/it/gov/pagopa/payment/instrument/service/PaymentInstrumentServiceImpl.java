@@ -40,6 +40,7 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
@@ -68,6 +69,16 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
   private WalletRestConnector walletRestConnector;
   @Autowired
   private AckMapper ackMapper;
+  @Value(
+      "${spring.cloud.stream.binders.kafka-rtd.environment.spring.cloud.stream.kafka.binder.brokers}")
+  String rtdServer;
+  @Value("${spring.cloud.stream.bindings.paymentInstrumentQueue-out-1.destination}")
+  String rtdTopic;
+  @Value(
+      "${spring.cloud.stream.binders.kafka-re.environment.spring.cloud.stream.kafka.binder.brokers}")
+  String ruleEngineServer;
+  @Value("${spring.cloud.stream.bindings.paymentInstrumentQueue-out-.destination}")
+  String ruleEngineTopic;
 
 
   @Override
@@ -349,7 +360,18 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
           PaymentInstrumentConstants.PM,
           paymentMethodInfoList, PaymentInstrumentConstants.OPERATION_DELETE);
     } catch (Exception exception) {
-      this.sendToQueueError(exception, hpanList, PaymentInstrumentConstants.OPERATION_DELETE);
+
+      RuleEngineQueueDTO ruleEngineQueueDTO = RuleEngineQueueDTO.builder()
+          .userId(instrument.getUserId())
+          .initiativeId(instrument.getInitiativeId())
+          .infoList(paymentMethodInfoList)
+          .channel(PaymentInstrumentConstants.PM)
+          .operationType(PaymentInstrumentConstants.OPERATION_DELETE)
+          .operationDate(LocalDateTime.now())
+          .build();
+
+      final MessageBuilder<?> errorMessage = MessageBuilder.withPayload(messageMapper.apply(ruleEngineQueueDTO));
+      this.sendToQueueError(exception, errorMessage, ruleEngineServer, ruleEngineTopic);
     }
     sendToRtd(hpanList, PaymentInstrumentConstants.OPERATION_DELETE);
   }
@@ -402,7 +424,8 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       try {
         rtdProducer.sendInstrument(rtdOperationDTO);
       } catch (Exception exception) {
-        this.sendToQueueError(exception, hpanList, operation);
+        final MessageBuilder<?> errorMessage = MessageBuilder.withPayload(rtdOperationDTO);
+        this.sendToQueueError(exception, errorMessage, rtdServer, rtdTopic);
       }
     }
   }
@@ -576,23 +599,17 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     log.info("Instrument rollbacked: {}", paymentInstrumentList.size());
   }
 
-  private void sendToQueueError(Exception e, List<RTDHpanListDTO> hpanList, String operation) {
-    RTDOperationDTO rtdOperationDTO =
-        RTDOperationDTO.builder()
-            .hpanList(hpanList)
-            .operationType(operation)
-            .application("IDPAY")
-            .build();
+  private void sendToQueueError(Exception e, MessageBuilder<?> errorMessage, String server, String topic) {
 
-    final MessageBuilder<?> errorMessage = MessageBuilder.withPayload(rtdOperationDTO)
+    errorMessage
         .setHeader(PaymentInstrumentConstants.ERROR_MSG_HEADER_SRC_TYPE,
             PaymentInstrumentConstants.KAFKA)
         .setHeader(PaymentInstrumentConstants.ERROR_MSG_HEADER_SRC_SERVER,
-            PaymentInstrumentConstants.BROKER_RTD)
+            server)
         .setHeader(PaymentInstrumentConstants.ERROR_MSG_HEADER_SRC_TOPIC,
-            PaymentInstrumentConstants.TOPIC_RTD)
+            topic)
         .setHeader(PaymentInstrumentConstants.ERROR_MSG_HEADER_DESCRIPTION,
-            PaymentInstrumentConstants.ERROR_RTD)
+            PaymentInstrumentConstants.ERROR_QUEUE)
         .setHeader(PaymentInstrumentConstants.ERROR_MSG_HEADER_RETRYABLE, true)
         .setHeader(PaymentInstrumentConstants.ERROR_MSG_HEADER_STACKTRACE, e.getStackTrace())
         .setHeader(PaymentInstrumentConstants.ERROR_MSG_HEADER_CLASS, e.getClass())
