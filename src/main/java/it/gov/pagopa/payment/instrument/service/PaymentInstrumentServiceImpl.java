@@ -311,21 +311,24 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       log.info("[DEACTIVATE_INSTRUMENT_PM] Error while encrypting.");
     }
     List<PaymentInstrument> instruments = paymentInstrumentRepository.findByInitiativeIdAndUserIdAndStatusNotContaining(
-        rtdMessage.getHpan(), encryptedCfDTO.getToken(), PaymentInstrumentConstants.STATUS_INACTIVE);
+        rtdMessage.getHpan(), encryptedCfDTO.getToken(),
+        PaymentInstrumentConstants.STATUS_INACTIVE);
     if (instruments.isEmpty()) {
       log.info("[DEACTIVATE_INSTRUMENT_PM] No instrument to delete");
       return;
     }
     List<WalletDTO> walletDTOS = new ArrayList<>();
     for (PaymentInstrument instrument : instruments) {
-      if(instrument.getStatus().equals(PaymentInstrumentConstants.STATUS_ACTIVE)){
+      if (instrument.getStatus().equals(PaymentInstrumentConstants.STATUS_ACTIVE)
+          || instrument.getStatus()
+          .equals(PaymentInstrumentConstants.STATUS_PENDING_DEACTIVATION_REQUEST)) {
         WalletDTO walletDTO = new WalletDTO(instrument.getInitiativeId(), instrument.getUserId(),
             instrument.getHpan(),
             instrument.getBrandLogo(), instrument.getMaskedPan());
         walletDTOS.add(walletDTO);
       }
     }
-    if(!walletDTOS.isEmpty()){
+    if (!walletDTOS.isEmpty()) {
       walletRestConnector.updateWallet(new WalletCallDTO(walletDTOS));
     }
     instruments.forEach(instrument ->
@@ -370,7 +373,8 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
           .operationDate(LocalDateTime.now())
           .build();
 
-      final MessageBuilder<?> errorMessage = MessageBuilder.withPayload(messageMapper.apply(ruleEngineQueueDTO));
+      final MessageBuilder<?> errorMessage = MessageBuilder.withPayload(
+          messageMapper.apply(ruleEngineQueueDTO));
       this.sendToQueueError(exception, errorMessage, ruleEngineServer, ruleEngineTopic);
     }
     sendToRtd(hpanList, PaymentInstrumentConstants.OPERATION_DELETE);
@@ -405,8 +409,9 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
 
     for (RTDHpanListDTO hpan : hpanList) {
       if (operation.equals(PaymentInstrumentConstants.OPERATION_ADD) ||
-          paymentInstrumentRepository.countByHpanAndStatus(hpan.getHpan(),
-              PaymentInstrumentConstants.STATUS_ACTIVE) == 0) {
+          paymentInstrumentRepository.countByHpanAndStatusContaining(hpan.getHpan(),
+              List.of(PaymentInstrumentConstants.STATUS_ACTIVE,
+                  PaymentInstrumentConstants.STATUS_PENDING_DEACTIVATION_REQUEST)) == 0) {
         toRtd.add(hpan);
       }
     }
@@ -430,10 +435,10 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     }
   }
 
-  @Override
-  public int countByInitiativeIdAndUserIdAndStatus(String initiativeId, String userId,
-      String status) {
-    return paymentInstrumentRepository.countByInitiativeIdAndUserIdAndStatus(initiativeId, userId,
+  private int countByInitiativeIdAndUserIdAndStatusContaining(String initiativeId, String userId,
+      List<String> status) {
+    return paymentInstrumentRepository.countByInitiativeIdAndUserIdAndStatusContaining(initiativeId,
+        userId,
         status);
   }
 
@@ -451,14 +456,14 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     List<HpanDTO> hpanDTOList = new ArrayList<>();
 
     for (PaymentInstrument paymentInstruments : paymentInstrument) {
-        HpanDTO hpanDTO = new HpanDTO();
-        hpanDTO.setChannel(paymentInstruments.getChannel());
-        hpanDTO.setBrandLogo(paymentInstruments.getBrandLogo());
-        hpanDTO.setMaskedPan(paymentInstruments.getMaskedPan());
-        hpanDTO.setStatus(paymentInstruments.getStatus());
-        hpanDTO.setInstrumentId(paymentInstruments.getId());
-        hpanDTO.setIdWallet(paymentInstruments.getIdWallet());
-        hpanDTOList.add(hpanDTO);
+      HpanDTO hpanDTO = new HpanDTO();
+      hpanDTO.setChannel(paymentInstruments.getChannel());
+      hpanDTO.setBrandLogo(paymentInstruments.getBrandLogo());
+      hpanDTO.setMaskedPan(paymentInstruments.getMaskedPan());
+      hpanDTO.setStatus(paymentInstruments.getStatus());
+      hpanDTO.setInstrumentId(paymentInstruments.getId());
+      hpanDTO.setIdWallet(paymentInstruments.getIdWallet());
+      hpanDTOList.add(hpanDTO);
     }
     hpanGetDTO.setHpanList(hpanDTOList);
 
@@ -524,8 +529,9 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       paymentInstrumentRepository.save(instrument);
     }
 
-    int nInstr = countByInitiativeIdAndUserIdAndStatus(instrument.getInitiativeId(),
-        instrument.getUserId(), PaymentInstrumentConstants.STATUS_ACTIVE);
+    int nInstr = countByInitiativeIdAndUserIdAndStatusContaining(instrument.getInitiativeId(),
+        instrument.getUserId(), List.of(PaymentInstrumentConstants.STATUS_ACTIVE,
+            PaymentInstrumentConstants.STATUS_PENDING_DEACTIVATION_REQUEST));
 
     InstrumentAckDTO dto = ackMapper.ackToWallet(ruleEngineAckDTO, instrument.getDeleteChannel(),
         instrument.getMaskedPan(), instrument.getBrandLogo(), nInstr);
@@ -577,8 +583,9 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       sendToRtd(List.of(hpanListDTO), ruleEngineAckDTO.getOperationType());
     }
 
-    int nInstr = countByInitiativeIdAndUserIdAndStatus(instrument.getInitiativeId(),
-        instrument.getUserId(), PaymentInstrumentConstants.STATUS_ACTIVE);
+    int nInstr = countByInitiativeIdAndUserIdAndStatusContaining(instrument.getInitiativeId(),
+        instrument.getUserId(), List.of(PaymentInstrumentConstants.STATUS_ACTIVE,
+            PaymentInstrumentConstants.STATUS_PENDING_DEACTIVATION_REQUEST));
 
     InstrumentAckDTO dto = ackMapper.ackToWallet(ruleEngineAckDTO, instrument.getChannel(),
         instrument.getMaskedPan(), instrument.getBrandLogo(), nInstr);
@@ -599,7 +606,8 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     log.info("Instrument rollbacked: {}", paymentInstrumentList.size());
   }
 
-  private void sendToQueueError(Exception e, MessageBuilder<?> errorMessage, String server, String topic) {
+  private void sendToQueueError(Exception e, MessageBuilder<?> errorMessage, String server,
+      String topic) {
 
     errorMessage
         .setHeader(PaymentInstrumentConstants.ERROR_MSG_HEADER_SRC_TYPE,

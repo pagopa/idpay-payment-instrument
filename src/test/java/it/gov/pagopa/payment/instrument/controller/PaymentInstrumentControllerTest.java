@@ -85,11 +85,6 @@ class PaymentInstrumentControllerTest {
   void enroll_ok() throws Exception {
     ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
-    Mockito.when(
-            paymentInstrumentServiceMock.countByInitiativeIdAndUserIdAndStatus(INITIATIVE_ID, USER_ID,
-                PaymentInstrumentConstants.STATUS_ACTIVE))
-        .thenReturn(TEST_COUNT);
-
     mvc.perform(MockMvcRequestBuilders.put(BASE_URL + ENROLL_URL)
             .contentType(MediaType.APPLICATION_JSON_VALUE)
             .content(objectMapper.writeValueAsString(ENROLLMENT_BODY_DTO))
@@ -139,11 +134,6 @@ class PaymentInstrumentControllerTest {
   @Test
   void deactivate_ok() throws Exception {
     ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
-
-    Mockito.when(
-            paymentInstrumentServiceMock.countByInitiativeIdAndUserIdAndStatus(INITIATIVE_ID, USER_ID,
-                PaymentInstrumentConstants.STATUS_ACTIVE))
-        .thenReturn(TEST_COUNT);
 
     mvc.perform(MockMvcRequestBuilders.delete(BASE_URL + DEACTIVATE_URL)
             .contentType(MediaType.APPLICATION_JSON_VALUE)
