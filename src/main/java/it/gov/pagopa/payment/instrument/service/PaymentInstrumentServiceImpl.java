@@ -409,7 +409,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
 
     for (RTDHpanListDTO hpan : hpanList) {
       if (operation.equals(PaymentInstrumentConstants.OPERATION_ADD) ||
-          paymentInstrumentRepository.countByHpanAndStatusContaining(hpan.getHpan(),
+          paymentInstrumentRepository.countByHpanAndStatusIn(hpan.getHpan(),
               List.of(PaymentInstrumentConstants.STATUS_ACTIVE,
                   PaymentInstrumentConstants.STATUS_PENDING_DEACTIVATION_REQUEST)) == 0) {
         toRtd.add(hpan);
@@ -435,9 +435,9 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     }
   }
 
-  private int countByInitiativeIdAndUserIdAndStatusContaining(String initiativeId, String userId,
+  private int countByInitiativeIdAndUserIdAndStatusIn(String initiativeId, String userId,
       List<String> status) {
-    return paymentInstrumentRepository.countByInitiativeIdAndUserIdAndStatusContaining(initiativeId,
+    return paymentInstrumentRepository.countByInitiativeIdAndUserIdAndStatusIn(initiativeId,
         userId,
         status);
   }
@@ -529,7 +529,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       paymentInstrumentRepository.save(instrument);
     }
 
-    int nInstr = countByInitiativeIdAndUserIdAndStatusContaining(instrument.getInitiativeId(),
+    int nInstr = countByInitiativeIdAndUserIdAndStatusIn(instrument.getInitiativeId(),
         instrument.getUserId(), List.of(PaymentInstrumentConstants.STATUS_ACTIVE,
             PaymentInstrumentConstants.STATUS_PENDING_DEACTIVATION_REQUEST));
 
@@ -583,7 +583,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       sendToRtd(List.of(hpanListDTO), ruleEngineAckDTO.getOperationType());
     }
 
-    int nInstr = countByInitiativeIdAndUserIdAndStatusContaining(instrument.getInitiativeId(),
+    int nInstr = countByInitiativeIdAndUserIdAndStatusIn(instrument.getInitiativeId(),
         instrument.getUserId(), List.of(PaymentInstrumentConstants.STATUS_ACTIVE,
             PaymentInstrumentConstants.STATUS_PENDING_DEACTIVATION_REQUEST));
 
