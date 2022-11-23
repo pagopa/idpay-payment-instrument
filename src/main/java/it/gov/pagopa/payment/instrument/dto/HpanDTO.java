@@ -11,11 +11,11 @@ import lombok.Setter;
 @AllArgsConstructor
 public class HpanDTO {
 
-  private String hpan;
   private String maskedPan;
   private String brandLogo;
   private String idWallet;
   private String instrumentId;
+  private String status;
   private String channel;
 
 }

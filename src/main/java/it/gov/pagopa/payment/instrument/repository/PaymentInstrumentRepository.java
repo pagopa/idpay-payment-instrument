@@ -16,11 +16,11 @@ public interface PaymentInstrumentRepository extends MongoRepository<PaymentInst
   Optional<PaymentInstrument> findByInitiativeIdAndUserIdAndId(String initiativeId, String userId,
       String instrumentId);
 
-  int countByInitiativeIdAndUserIdAndStatus(String initiativeId, String userId, String status);
+  int countByInitiativeIdAndUserIdAndStatusIn(String initiativeId, String userId, List<String> status);
 
-  int countByHpanAndStatus(String hpan, String status);
+  int countByHpanAndStatusIn(String hpan, List<String> status);
 
-  List<PaymentInstrument> findByInitiativeIdAndUserId(String initiativeId, String userId);
+  List<PaymentInstrument> findByInitiativeIdAndUserIdAndStatusNotContaining(String initiativeId, String userId, String status);
 
   List<PaymentInstrument> findByInitiativeIdAndUserIdAndStatus(String initiativeId, String userId,
       String status);

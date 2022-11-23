@@ -69,7 +69,7 @@ class PaymentInstrumentControllerTest {
   private static final HpanGetDTO HPANGETDTO = new HpanGetDTO();
   private static final List<PaymentMethodInfoList> INFO_LIST = new ArrayList<>();
   private static final PaymentMethodInfoList PAYMENT_METHOD_INFO_LIST = new PaymentMethodInfoList(
-      HPAN, MASKED_PAN, BRAND_LOGO);
+      HPAN, MASKED_PAN, BRAND_LOGO,true);
   private static final PaymentMethodInfoList PAYMENT_METHOD_INFO_LIST_INDEM = new PaymentMethodInfoList();
 
   @MockBean
@@ -84,11 +84,6 @@ class PaymentInstrumentControllerTest {
   @Test
   void enroll_ok() throws Exception {
     ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
-
-    Mockito.when(
-            paymentInstrumentServiceMock.countByInitiativeIdAndUserIdAndStatus(INITIATIVE_ID, USER_ID,
-                PaymentInstrumentConstants.STATUS_ACTIVE))
-        .thenReturn(TEST_COUNT);
 
     mvc.perform(MockMvcRequestBuilders.put(BASE_URL + ENROLL_URL)
             .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -139,11 +134,6 @@ class PaymentInstrumentControllerTest {
   @Test
   void deactivate_ok() throws Exception {
     ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
-
-    Mockito.when(
-            paymentInstrumentServiceMock.countByInitiativeIdAndUserIdAndStatus(INITIATIVE_ID, USER_ID,
-                PaymentInstrumentConstants.STATUS_ACTIVE))
-        .thenReturn(TEST_COUNT);
 
     mvc.perform(MockMvcRequestBuilders.delete(BASE_URL + DEACTIVATE_URL)
             .contentType(MediaType.APPLICATION_JSON_VALUE)
