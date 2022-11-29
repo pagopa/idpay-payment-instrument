@@ -60,7 +60,7 @@ class AckMapperTest {
     assertEquals(USER_ID, actual.getUserId());
     assertEquals(MASKED_PAN, actual.getMaskedPan());
     assertEquals(BRAND_LOGO, actual.getBrandLogo());
-    assertEquals(PaymentInstrumentConstants.OPERATION_ADD.concat("_KO"), actual.getOperationType());
+    assertEquals(PaymentInstrumentConstants.OPERATION_ADD.concat("REJECTED_"), actual.getOperationType());
     assertEquals(CHANNEL, actual.getChannel());
     assertEquals(NINSTR, actual.getNinstr());
     assertEquals(DATE, actual.getOperationDate());

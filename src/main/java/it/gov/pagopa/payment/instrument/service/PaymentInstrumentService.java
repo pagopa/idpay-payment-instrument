@@ -15,7 +15,6 @@ public interface PaymentInstrumentService {
   void processRtdMessage(RTDEventsDTO dto);
   void deactivateAllInstruments(String initiativeId, String userId, String deactivationDate);
   void rollbackInstruments(List<PaymentInstrument> paymentInstrumentList);
-  int countByInitiativeIdAndUserIdAndStatus(String initiativeId, String userId, String status);
   HpanGetDTO gethpan(String initiativeId, String userId);
   void processAck(RuleEngineAckDTO ruleEngineAckDTO);
 }

@@ -9,7 +9,7 @@ public class RTDEnrollVirtualCardDTO implements RTDEventsDTO {
 
   String type;
 
-  RTDMessage rtdMessage;
+  RTDMessage data;
 
 }
 
