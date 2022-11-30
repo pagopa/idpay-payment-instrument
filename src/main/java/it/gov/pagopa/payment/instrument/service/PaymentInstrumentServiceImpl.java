@@ -443,7 +443,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
   }
 
   @Override
-  public HpanGetDTO gethpan(String initiativeId, String userId) {
+  public HpanGetDTO getHpan(String initiativeId, String userId) {
     List<PaymentInstrument> paymentInstrument = paymentInstrumentRepository.findByInitiativeIdAndUserIdAndStatusNotContaining(
         initiativeId, userId, PaymentInstrumentConstants.STATUS_INACTIVE);
 
@@ -452,22 +452,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
           PaymentInstrumentConstants.ERROR_INITIATIVE_USER);
     }
 
-    HpanGetDTO hpanGetDTO = new HpanGetDTO();
-    List<HpanDTO> hpanDTOList = new ArrayList<>();
-
-    for (PaymentInstrument paymentInstruments : paymentInstrument) {
-      HpanDTO hpanDTO = new HpanDTO();
-      hpanDTO.setChannel(paymentInstruments.getChannel());
-      hpanDTO.setBrandLogo(paymentInstruments.getBrandLogo());
-      hpanDTO.setMaskedPan(paymentInstruments.getMaskedPan());
-      hpanDTO.setStatus(paymentInstruments.getStatus());
-      hpanDTO.setInstrumentId(paymentInstruments.getId());
-      hpanDTO.setIdWallet(paymentInstruments.getIdWallet());
-      hpanDTOList.add(hpanDTO);
-    }
-    hpanGetDTO.setHpanList(hpanDTOList);
-
-    return hpanGetDTO;
+    return buildHpanList(paymentInstrument);
   }
 
   @Override
@@ -483,6 +468,37 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       log.info("[PROCESS_ACK] Processing ACK for a deactivation request.");
       processAckDeactivate(ruleEngineAckDTO);
     }
+  }
+
+  @Override
+  public HpanGetDTO getHpanFromIssuer(String initiativeId, String userId, String channel) {
+    List<PaymentInstrument> paymentInstrument = paymentInstrumentRepository.findByInitiativeIdAndUserIdAndChannelAndStatusNotContaining(
+        initiativeId, userId, channel, PaymentInstrumentConstants.STATUS_INACTIVE);
+
+    if (paymentInstrument.isEmpty()) {
+      throw new PaymentInstrumentException(HttpStatus.NOT_FOUND.value(),
+          PaymentInstrumentConstants.ERROR_INITIATIVE_USER);
+    }
+
+    return buildHpanList(paymentInstrument);
+  }
+
+  private HpanGetDTO buildHpanList(List<PaymentInstrument> paymentInstrument) {
+    HpanGetDTO hpanGetDTO = new HpanGetDTO();
+    List<HpanDTO> hpanDTOList = new ArrayList<>();
+
+    for (PaymentInstrument paymentInstruments : paymentInstrument) {
+      HpanDTO hpanDTO = new HpanDTO();
+      hpanDTO.setChannel(paymentInstruments.getChannel());
+      hpanDTO.setBrandLogo(paymentInstruments.getBrandLogo());
+      hpanDTO.setMaskedPan(paymentInstruments.getMaskedPan());
+      hpanDTO.setStatus(paymentInstruments.getStatus());
+      hpanDTO.setInstrumentId(paymentInstruments.getId());
+      hpanDTO.setIdWallet(paymentInstruments.getIdWallet());
+      hpanDTOList.add(hpanDTO);
+    }
+    hpanGetDTO.setHpanList(hpanDTOList);
+    return hpanGetDTO;
   }
 
   private void processAckDeactivate(RuleEngineAckDTO ruleEngineAckDTO) {

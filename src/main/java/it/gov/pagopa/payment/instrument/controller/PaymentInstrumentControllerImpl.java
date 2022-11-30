@@ -47,7 +47,15 @@ public class PaymentInstrumentControllerImpl implements PaymentInstrumentControl
 
   @Override
   public ResponseEntity<HpanGetDTO> getHpan(String initiativeId, String userId) {
-    HpanGetDTO hpanGetDTO = paymentInstrumentService.gethpan(initiativeId, userId);
+    HpanGetDTO hpanGetDTO = paymentInstrumentService.getHpan(initiativeId, userId);
     return new ResponseEntity<>(hpanGetDTO, HttpStatus.OK);
   }
+
+  @Override
+  public ResponseEntity<HpanGetDTO> getHpanFromIssuer(String initiativeId, String userId,
+      String channel) {
+    HpanGetDTO hpanGetDTO = paymentInstrumentService.getHpanFromIssuer(initiativeId, userId, channel);
+    return new ResponseEntity<>(hpanGetDTO, HttpStatus.OK);
+  }
+
 }
