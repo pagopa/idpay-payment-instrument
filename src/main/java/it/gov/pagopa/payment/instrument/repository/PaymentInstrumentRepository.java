@@ -21,6 +21,7 @@ public interface PaymentInstrumentRepository extends MongoRepository<PaymentInst
   int countByHpanAndStatusIn(String hpan, List<String> status);
 
   List<PaymentInstrument> findByInitiativeIdAndUserIdAndStatusNotContaining(String initiativeId, String userId, String status);
+  List<PaymentInstrument> findByInitiativeIdAndUserIdAndChannelAndStatusNotContaining(String initiativeId, String userId, String channel, String status);
 
   List<PaymentInstrument> findByInitiativeIdAndUserIdAndStatus(String initiativeId, String userId,
       String status);
