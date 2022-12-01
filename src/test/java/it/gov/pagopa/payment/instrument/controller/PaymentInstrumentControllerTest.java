@@ -71,6 +71,7 @@ class PaymentInstrumentControllerTest {
   private static final PaymentMethodInfoList PAYMENT_METHOD_INFO_LIST = new PaymentMethodInfoList(
       HPAN, MASKED_PAN, BRAND_LOGO,true);
   private static final PaymentMethodInfoList PAYMENT_METHOD_INFO_LIST_INDEM = new PaymentMethodInfoList();
+  private static final String GETHPANISSUER_URL = "/" + INITIATIVE_ID + "/" + USER_ID + "/" + CHANNEL;
 
   @MockBean
   PaymentInstrumentService paymentInstrumentServiceMock;
@@ -184,9 +185,9 @@ class PaymentInstrumentControllerTest {
   void getHpan_ok() throws Exception {
     List<HpanDTO> hpanDTOList = new ArrayList<>();
     hpanDTOList.add(HPAN_DTO_TEST);
-    HPANGETDTO.setHpanList(hpanDTOList);
+    HPANGETDTO.setInstrumentList(hpanDTOList);
 
-    Mockito.when(paymentInstrumentServiceMock.gethpan(INITIATIVE_ID, USER_ID))
+    Mockito.when(paymentInstrumentServiceMock.getHpan(INITIATIVE_ID, USER_ID))
         .thenReturn(HPANGETDTO);
 
     mvc.perform(
@@ -196,27 +197,7 @@ class PaymentInstrumentControllerTest {
         .andExpect(MockMvcResultMatchers.status().isOk())
         .andReturn();
   }
-
-  @Test
-  void getHpan_ko() throws Exception {
-
-    Mockito.doThrow(new PaymentInstrumentException(HttpStatus.NOT_FOUND.value(),
-            PaymentInstrumentConstants.ERROR_INITIATIVE_USER)).when(paymentInstrumentServiceMock)
-        .gethpan(INITIATIVE_ID, USER_ID);
-
-    MvcResult res = mvc.perform(
-            MockMvcRequestBuilders.get(BASE_URL + GETHPAN_URL)
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .accept(MediaType.APPLICATION_JSON_VALUE))
-        .andExpect(MockMvcResultMatchers.status().isNotFound())
-        .andReturn();
-
-    ErrorDTO error = objectMapper.readValue(res.getResponse().getContentAsString(), ErrorDTO.class);
-
-    assertEquals(HttpStatus.NOT_FOUND.value(), error.getCode());
-    assertEquals(PaymentInstrumentConstants.ERROR_INITIATIVE_USER, error.getMessage());
-  }
-
+  
   @Test
   void disableAllInstrument_ok() throws Exception {
     ObjectMapper objectMapper = new ObjectMapper();
@@ -235,5 +216,20 @@ class PaymentInstrumentControllerTest {
         .andReturn();
   }
 
+  @Test
+  void getHpanFromIssuer_ok() throws Exception {
+    List<HpanDTO> hpanDTOList = new ArrayList<>();
+    hpanDTOList.add(HPAN_DTO_TEST);
+    HPANGETDTO.setInstrumentList(hpanDTOList);
 
+    Mockito.when(paymentInstrumentServiceMock.getHpanFromIssuer(INITIATIVE_ID, USER_ID, CHANNEL))
+        .thenReturn(HPANGETDTO);
+
+    mvc.perform(
+            MockMvcRequestBuilders.get(BASE_URL + GETHPANISSUER_URL)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .accept(MediaType.APPLICATION_JSON_VALUE))
+        .andExpect(MockMvcResultMatchers.status().isOk())
+        .andReturn();
+  }
 }
