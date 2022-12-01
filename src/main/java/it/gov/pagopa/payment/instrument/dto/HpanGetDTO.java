@@ -10,6 +10,7 @@ import lombok.Setter;
 @NoArgsConstructor
 public class HpanGetDTO {
 
-  private List<HpanDTO> hpanList;
+  private List<HpanDTO> instrumentList;
 
 }
+

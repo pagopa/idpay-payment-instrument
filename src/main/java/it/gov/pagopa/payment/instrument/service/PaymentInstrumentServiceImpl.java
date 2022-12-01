@@ -447,11 +447,6 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     List<PaymentInstrument> paymentInstrument = paymentInstrumentRepository.findByInitiativeIdAndUserIdAndStatusNotContaining(
         initiativeId, userId, PaymentInstrumentConstants.STATUS_INACTIVE);
 
-    if (paymentInstrument.isEmpty()) {
-      throw new PaymentInstrumentException(HttpStatus.NOT_FOUND.value(),
-          PaymentInstrumentConstants.ERROR_INITIATIVE_USER);
-    }
-
     return buildHpanList(paymentInstrument);
   }
 
@@ -475,11 +470,6 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     List<PaymentInstrument> paymentInstrument = paymentInstrumentRepository.findByInitiativeIdAndUserIdAndChannelAndStatusNotContaining(
         initiativeId, userId, channel, PaymentInstrumentConstants.STATUS_INACTIVE);
 
-    if (paymentInstrument.isEmpty()) {
-      throw new PaymentInstrumentException(HttpStatus.NOT_FOUND.value(),
-          PaymentInstrumentConstants.ERROR_INITIATIVE_USER);
-    }
-
     return buildHpanList(paymentInstrument);
   }
 
@@ -497,7 +487,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       hpanDTO.setIdWallet(paymentInstruments.getIdWallet());
       hpanDTOList.add(hpanDTO);
     }
-    hpanGetDTO.setHpanList(hpanDTOList);
+    hpanGetDTO.setInstrumentList(hpanDTOList);
     return hpanGetDTO;
   }
 
