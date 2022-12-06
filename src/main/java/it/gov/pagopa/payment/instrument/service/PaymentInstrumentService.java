@@ -1,6 +1,7 @@
 package it.gov.pagopa.payment.instrument.service;
 
 import it.gov.pagopa.payment.instrument.dto.HpanGetDTO;
+import it.gov.pagopa.payment.instrument.dto.InstrumentIssuerDTO;
 import it.gov.pagopa.payment.instrument.dto.RuleEngineAckDTO;
 import it.gov.pagopa.payment.instrument.dto.rtd.RTDEventsDTO;
 import it.gov.pagopa.payment.instrument.model.PaymentInstrument;
@@ -18,4 +19,5 @@ public interface PaymentInstrumentService {
   HpanGetDTO getHpan(String initiativeId, String userId);
   void processAck(RuleEngineAckDTO ruleEngineAckDTO);
   HpanGetDTO getHpanFromIssuer(String initiativeId, String userId, String channel);
+  void enrollFromIssuer(InstrumentIssuerDTO body);
 }

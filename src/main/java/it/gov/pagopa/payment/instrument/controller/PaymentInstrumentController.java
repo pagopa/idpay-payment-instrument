@@ -3,6 +3,7 @@ package it.gov.pagopa.payment.instrument.controller;
 import it.gov.pagopa.payment.instrument.dto.DeactivationBodyDTO;
 import it.gov.pagopa.payment.instrument.dto.EnrollmentBodyDTO;
 import it.gov.pagopa.payment.instrument.dto.HpanGetDTO;
+import it.gov.pagopa.payment.instrument.dto.InstrumentIssuerDTO;
 import it.gov.pagopa.payment.instrument.dto.UnsubscribeBodyDTO;
 import javax.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -38,5 +39,8 @@ public interface PaymentInstrumentController {
   @GetMapping("/{initiativeId}/{userId}/{channel}")
   ResponseEntity<HpanGetDTO> getHpanFromIssuer(@PathVariable("initiativeId") String initiativeId,
       @PathVariable("userId") String userId, @PathVariable("channel") String channel);
+
+  @PutMapping("/hb/enroll")
+  ResponseEntity<HpanGetDTO> enrollFromIssuer(@Valid @RequestBody InstrumentIssuerDTO body);
 
 }
