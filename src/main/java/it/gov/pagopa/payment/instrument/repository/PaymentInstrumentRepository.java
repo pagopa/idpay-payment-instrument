@@ -33,4 +33,5 @@ public interface PaymentInstrumentRepository extends MongoRepository<PaymentInst
       String status);
 
   List<PaymentInstrument> findByHpanAndStatus(String hpan, String status);
+  List<PaymentInstrument> findByHpanAndStatusNotContaining(String hpan, String status);
 }

@@ -20,6 +20,7 @@ import it.gov.pagopa.payment.instrument.dto.DecryptCfDTO;
 import it.gov.pagopa.payment.instrument.dto.EncryptedCfDTO;
 import it.gov.pagopa.payment.instrument.dto.HpanDTO;
 import it.gov.pagopa.payment.instrument.dto.HpanGetDTO;
+import it.gov.pagopa.payment.instrument.dto.InstrumentIssuerDTO;
 import it.gov.pagopa.payment.instrument.dto.RuleEngineAckDTO;
 import it.gov.pagopa.payment.instrument.dto.RuleEngineQueueDTO;
 import it.gov.pagopa.payment.instrument.dto.WalletCallDTO;
@@ -339,7 +340,7 @@ class PaymentInstrumentServiceTest {
   }
 
   @Test
-  void enrollInstrument_ok_already_active() {
+  void enrollInstrument_ko_already_active() {
     Mockito.when(paymentInstrumentRepositoryMock.findByIdWalletAndStatusNotContaining(ID_WALLET,
         PaymentInstrumentConstants.STATUS_INACTIVE)).thenReturn(List.of(TEST_INSTRUMENT));
     Mockito.when(decryptRestConnector.getPiiByToken(USER_ID)).thenReturn(DECRYPT_CF_DTO);
@@ -1113,6 +1114,88 @@ class PaymentInstrumentServiceTest {
       assertFalse(hpanGetDTO.getInstrumentList().isEmpty());
     } catch (PaymentInstrumentException e) {
       Assertions.fail();
+    }
+  }
+
+  @Test
+  void enrollIssuer_ok_empty() {
+
+    final InstrumentIssuerDTO dto = new InstrumentIssuerDTO(INITIATIVE_ID, USER_ID, HPAN, CHANNEL,
+        "", "");
+
+    Mockito.when(paymentInstrumentRepositoryMock.findByHpanAndStatusNotContaining(HPAN,
+        PaymentInstrumentConstants.STATUS_INACTIVE)).thenReturn(new ArrayList<>());
+
+    try {
+      paymentInstrumentService.enrollFromIssuer(dto);
+    } catch (PaymentInstrumentException e) {
+      fail();
+    }
+  }
+
+  @Test
+  void enrollIssuer_ok_idemp() {
+    final InstrumentIssuerDTO dto = new InstrumentIssuerDTO(INITIATIVE_ID, USER_ID, HPAN, CHANNEL,
+        "", "");
+    Mockito.when(paymentInstrumentRepositoryMock.findByHpanAndStatusNotContaining(HPAN,
+        PaymentInstrumentConstants.STATUS_INACTIVE)).thenReturn(List.of(TEST_INSTRUMENT));
+
+    try {
+      paymentInstrumentService.enrollFromIssuer(dto);
+    } catch (PaymentInstrumentException e) {
+      Assertions.fail();
+    }
+  }
+
+  @Test
+  void enrollIssuer_ok_other_initiative() {
+    final InstrumentIssuerDTO dto = new InstrumentIssuerDTO(INITIATIVE_ID, USER_ID, HPAN, CHANNEL,
+        "", "");
+    Mockito.when(paymentInstrumentRepositoryMock.findByHpanAndStatusNotContaining(HPAN,
+        PaymentInstrumentConstants.STATUS_INACTIVE)).thenReturn(List.of(TEST_INSTRUMENT));
+
+    try {
+      paymentInstrumentService.enrollFromIssuer(dto);
+    } catch (PaymentInstrumentException e) {
+      fail();
+    }
+    assertEquals(HPAN, TEST_INSTRUMENT.getHpan());
+  }
+
+  @Test
+  void enrollIssuer_ko_already_active() {
+    final InstrumentIssuerDTO dto = new InstrumentIssuerDTO(INITIATIVE_ID, USER_ID_FAIL, HPAN, CHANNEL, "", "");
+    Mockito.when(paymentInstrumentRepositoryMock.findByHpanAndStatusNotContaining(HPAN,
+        PaymentInstrumentConstants.STATUS_INACTIVE)).thenReturn(List.of(TEST_INSTRUMENT));
+
+    try {
+      paymentInstrumentService.enrollFromIssuer(dto);
+    } catch (PaymentInstrumentException e) {
+      assertEquals(HttpStatus.FORBIDDEN.value(), e.getCode());
+      assertEquals(PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_ALREADY_ACTIVE,
+          e.getMessage());
+    }
+  }
+
+  @Test
+  void enrollIssuer_ko_rule_engine() {
+    final InstrumentIssuerDTO dto = new InstrumentIssuerDTO(INITIATIVE_ID, USER_ID, HPAN, CHANNEL,
+        "", "");
+    Mockito.when(paymentInstrumentRepositoryMock.findByHpanAndStatus(HPAN,
+        PaymentInstrumentConstants.STATUS_ACTIVE)).thenReturn(new ArrayList<>());
+
+    Mockito.when(paymentInstrumentRepositoryMock.countByHpanAndStatusIn(HPAN,
+        List.of(PaymentInstrumentConstants.STATUS_ACTIVE,
+            PaymentInstrumentConstants.STATUS_PENDING_DEACTIVATION_REQUEST))).thenReturn(0);
+
+    Mockito.doThrow(new PaymentInstrumentException(400, "")).when(producer)
+        .sendInstruments(Mockito.any());
+
+    try {
+      paymentInstrumentService.enrollFromIssuer(dto);
+      Assertions.fail();
+    } catch (PaymentInstrumentException e) {
+      assertEquals(HttpStatus.BAD_REQUEST.value(), e.getCode());
     }
   }
 

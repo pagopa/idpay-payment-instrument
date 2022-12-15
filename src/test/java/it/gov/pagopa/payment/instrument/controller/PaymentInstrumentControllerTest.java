@@ -11,6 +11,7 @@ import it.gov.pagopa.payment.instrument.dto.EnrollmentBodyDTO;
 import it.gov.pagopa.payment.instrument.dto.ErrorDTO;
 import it.gov.pagopa.payment.instrument.dto.HpanDTO;
 import it.gov.pagopa.payment.instrument.dto.HpanGetDTO;
+import it.gov.pagopa.payment.instrument.dto.InstrumentIssuerDTO;
 import it.gov.pagopa.payment.instrument.dto.UnsubscribeBodyDTO;
 import it.gov.pagopa.payment.instrument.dto.pm.PaymentMethodInfoList;
 import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
@@ -40,6 +41,7 @@ class PaymentInstrumentControllerTest {
 
   private static final String BASE_URL = "http://localhost:8080/idpay/instrument";
   private static final String ENROLL_URL = "/enroll/";
+  private static final String ENROLL_ISSUER_URL = "/hb/enroll";
   private static final String DEACTIVATE_URL = "/deactivate/";
   private static final String DISABLE_ALL_URL = "/disableall";
   private static final String USER_ID = "TEST_USER_ID";
@@ -50,8 +52,6 @@ class PaymentInstrumentControllerTest {
   private static final String CHANNEL = "TEST_CHANNEL";
   private static final String MASKED_PAN = "MASKED_PAN";
   private static final String BRAND_LOGO = "BAND_LOGO";
-  private static final LocalDateTime TEST_DATE = LocalDateTime.now();
-  private static final int TEST_COUNT = 2;
 
   private static final String GETHPAN_URL = "/" + INITIATIVE_ID + "/" + USER_ID;
   private static final EnrollmentBodyDTO ENROLLMENT_BODY_DTO = new EnrollmentBodyDTO(USER_ID,
@@ -72,6 +72,8 @@ class PaymentInstrumentControllerTest {
       HPAN, MASKED_PAN, BRAND_LOGO,true);
   private static final PaymentMethodInfoList PAYMENT_METHOD_INFO_LIST_INDEM = new PaymentMethodInfoList();
   private static final String GETHPANISSUER_URL = "/" + INITIATIVE_ID + "/" + USER_ID + "/" + CHANNEL;
+  private static final InstrumentIssuerDTO ENROLLMENT_ISSUER_BODY_DTO = new InstrumentIssuerDTO(INITIATIVE_ID, USER_ID, "HPAN", "ISSUER", "", "");
+  private static final InstrumentIssuerDTO ENROLLMENT_ISSUER_BODY_DTO_EMPTY = new InstrumentIssuerDTO(INITIATIVE_ID, USER_ID, "", "", "", "");
 
   @MockBean
   PaymentInstrumentService paymentInstrumentServiceMock;
@@ -231,5 +233,55 @@ class PaymentInstrumentControllerTest {
                 .accept(MediaType.APPLICATION_JSON_VALUE))
         .andExpect(MockMvcResultMatchers.status().isOk())
         .andReturn();
+  }
+
+  @Test
+  void enroll_issuer_ok() throws Exception {
+    ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
+
+    mvc.perform(MockMvcRequestBuilders.put(BASE_URL + ENROLL_ISSUER_URL)
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .content(objectMapper.writeValueAsString(ENROLLMENT_ISSUER_BODY_DTO))
+            .accept(MediaType.APPLICATION_JSON_VALUE)).andExpect(MockMvcResultMatchers.status().isOk())
+        .andReturn();
+
+  }
+
+  @Test
+  void enroll_issuer_empty_body() throws Exception {
+    ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
+
+    MvcResult res = mvc.perform(MockMvcRequestBuilders.put(BASE_URL + ENROLL_ISSUER_URL)
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .content(objectMapper.writeValueAsString(ENROLLMENT_ISSUER_BODY_DTO_EMPTY))
+            .accept(MediaType.APPLICATION_JSON_VALUE))
+        .andExpect(MockMvcResultMatchers.status().isBadRequest()).andReturn();
+
+    ErrorDTO error = objectMapper.readValue(res.getResponse().getContentAsString(), ErrorDTO.class);
+
+    assertEquals(HttpStatus.BAD_REQUEST.value(), error.getCode());
+    assertTrue(error.getMessage().contains(PaymentInstrumentConstants.ERROR_MANDATORY_FIELD));
+  }
+
+  @Test
+  void enroll_issuer_already_active() throws Exception {
+    ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
+
+    Mockito.doThrow(new PaymentInstrumentException(HttpStatus.FORBIDDEN.value(),
+            PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_ALREADY_ACTIVE))
+        .when(paymentInstrumentServiceMock)
+        .enrollFromIssuer(Mockito.any());
+
+    MvcResult res = mvc.perform(MockMvcRequestBuilders.put(BASE_URL + ENROLL_ISSUER_URL)
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .content(objectMapper.writeValueAsString(ENROLLMENT_ISSUER_BODY_DTO))
+            .accept(MediaType.APPLICATION_JSON_VALUE))
+        .andExpect(MockMvcResultMatchers.status().isForbidden()).andReturn();
+
+    ErrorDTO error = objectMapper.readValue(res.getResponse().getContentAsString(), ErrorDTO.class);
+
+    assertEquals(HttpStatus.FORBIDDEN.value(), error.getCode());
+    assertEquals(PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_ALREADY_ACTIVE,
+        error.getMessage());
   }
 }
