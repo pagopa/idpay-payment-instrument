@@ -3,6 +3,7 @@ package it.gov.pagopa.payment.instrument.controller;
 import it.gov.pagopa.payment.instrument.dto.DeactivationBodyDTO;
 import it.gov.pagopa.payment.instrument.dto.EnrollmentBodyDTO;
 import it.gov.pagopa.payment.instrument.dto.HpanGetDTO;
+import it.gov.pagopa.payment.instrument.dto.InstrumentIssuerDTO;
 import it.gov.pagopa.payment.instrument.dto.UnsubscribeBodyDTO;
 import it.gov.pagopa.payment.instrument.service.PaymentInstrumentService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +48,21 @@ public class PaymentInstrumentControllerImpl implements PaymentInstrumentControl
 
   @Override
   public ResponseEntity<HpanGetDTO> getHpan(String initiativeId, String userId) {
-    HpanGetDTO hpanGetDTO = paymentInstrumentService.gethpan(initiativeId, userId);
+    HpanGetDTO hpanGetDTO = paymentInstrumentService.getHpan(initiativeId, userId);
     return new ResponseEntity<>(hpanGetDTO, HttpStatus.OK);
   }
+
+  @Override
+  public ResponseEntity<HpanGetDTO> getHpanFromIssuer(String initiativeId, String userId,
+      String channel) {
+    HpanGetDTO hpanGetDTO = paymentInstrumentService.getHpanFromIssuer(initiativeId, userId, channel);
+    return new ResponseEntity<>(hpanGetDTO, HttpStatus.OK);
+  }
+
+  @Override
+  public ResponseEntity<HpanGetDTO> enrollFromIssuer(InstrumentIssuerDTO body) {
+    paymentInstrumentService.enrollFromIssuer(body);
+    return new ResponseEntity<>(HttpStatus.OK);
+  }
+
 }

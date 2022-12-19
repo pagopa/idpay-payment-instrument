@@ -1,6 +1,7 @@
 package it.gov.pagopa.payment.instrument.service;
 
 import it.gov.pagopa.payment.instrument.dto.HpanGetDTO;
+import it.gov.pagopa.payment.instrument.dto.InstrumentIssuerDTO;
 import it.gov.pagopa.payment.instrument.dto.RuleEngineAckDTO;
 import it.gov.pagopa.payment.instrument.dto.rtd.RTDEventsDTO;
 import it.gov.pagopa.payment.instrument.model.PaymentInstrument;
@@ -15,6 +16,8 @@ public interface PaymentInstrumentService {
   void processRtdMessage(RTDEventsDTO dto);
   void deactivateAllInstruments(String initiativeId, String userId, String deactivationDate);
   void rollbackInstruments(List<PaymentInstrument> paymentInstrumentList);
-  HpanGetDTO gethpan(String initiativeId, String userId);
+  HpanGetDTO getHpan(String initiativeId, String userId);
   void processAck(RuleEngineAckDTO ruleEngineAckDTO);
+  HpanGetDTO getHpanFromIssuer(String initiativeId, String userId, String channel);
+  void enrollFromIssuer(InstrumentIssuerDTO body);
 }
