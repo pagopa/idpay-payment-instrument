@@ -149,6 +149,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       Instant start = Instant.now();
       log.debug("Calling PM service at: " + start);
       walletV2ListResponse = pmRestClientConnector.getWalletList(decryptedCfDTO.getPii());
+      log.info(walletV2ListResponse.toString());
       Instant finish = Instant.now();
       long time = Duration.between(start, finish).toMillis();
       log.info("PM's call finished at: " + finish + " The PM service took: " + time + "ms");
