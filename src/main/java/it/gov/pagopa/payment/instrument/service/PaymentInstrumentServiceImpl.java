@@ -86,9 +86,13 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
   public void enrollInstrument(String initiativeId, String userId, String idWallet,
       String channel) {
 
-    List<PaymentInstrument> instrumentList = paymentInstrumentRepository.findByIdWalletAndStatusNotContaining(
-        idWallet, PaymentInstrumentConstants.STATUS_INACTIVE);
     List<PaymentMethodInfoList> paymentMethodInfoList = new ArrayList<>();
+
+    PaymentMethodInfoList infoList = getPaymentMethodInfoList(
+        userId, idWallet, paymentMethodInfoList);
+
+    List<PaymentInstrument> instrumentList = paymentInstrumentRepository.findByHpanAndStatusNotContaining(
+        infoList.getHpan(), PaymentInstrumentConstants.STATUS_INACTIVE);
 
     for (PaymentInstrument pi : instrumentList) {
       if (!pi.getUserId().equals(userId)) {
@@ -104,9 +108,6 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
         return;
       }
     }
-
-    PaymentMethodInfoList infoList = getPaymentMethodInfoList(
-        userId, idWallet, paymentMethodInfoList);
 
     PaymentInstrument newInstrument = savePaymentInstrument(
         initiativeId, userId, idWallet, channel, infoList);
@@ -154,7 +155,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       long time = Duration.between(start, finish).toMillis();
       log.info("PM's call finished at: " + finish + " The PM service took: " + time + "ms");
     } catch (FeignException e) {
-      throw new PaymentInstrumentException(HttpStatus.INTERNAL_SERVER_ERROR.value(),
+      throw new PaymentInstrumentException(e.status(),
           e.getMessage());
     }
 
@@ -502,7 +503,8 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
         body.getInitiativeId(), body.getUserId(), null, body.getChannel(), infoList);
 
     try {
-      sendToRuleEngine(newInstrument.getUserId(), newInstrument.getInitiativeId(), body.getChannel(),
+      sendToRuleEngine(newInstrument.getUserId(), newInstrument.getInitiativeId(),
+          body.getChannel(),
           List.of(infoList),
           PaymentInstrumentConstants.OPERATION_ADD);
     } catch (Exception e) {
