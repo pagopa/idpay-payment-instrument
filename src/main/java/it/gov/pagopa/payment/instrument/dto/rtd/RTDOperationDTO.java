@@ -9,9 +9,8 @@ import lombok.Getter;
 public class RTDOperationDTO {
 
   private List<RTDHpanListDTO> hpanList;
-
+  private String correlationId;
   private String operationType;
-
   private String application;
 }
 

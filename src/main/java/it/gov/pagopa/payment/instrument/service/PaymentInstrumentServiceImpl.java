@@ -39,6 +39,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -273,31 +274,39 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     }
 
     if (dto instanceof RTDEnrollAckDTO enrollAckDTO) {
-      saveAckFromRTD(enrollAckDTO.getData());
+      saveAckFromRTD(enrollAckDTO);
     }
   }
 
-  private void saveAckFromRTD(RTDMessage rtdMessage) {
+  private void saveAckFromRTD(RTDEnrollAckDTO enrollAckDTO) {
     log.info("[SAVE_ACK_FROM_RTD] Processing new ACK from RTD");
 
-    if (!rtdMessage.getApplication().equals(PaymentInstrumentConstants.ID_PAY)) {
+    if (!enrollAckDTO.getData().getApplication().equals(PaymentInstrumentConstants.ID_PAY)) {
       log.info(
           "[SAVE_ACK_FROM_RTD] This message is for another application. No processing to be done");
       return;
     }
 
-    List<PaymentInstrument> instruments = paymentInstrumentRepository.findByHpanAndStatus(
-        rtdMessage.getHpan(), PaymentInstrumentConstants.STATUS_ACTIVE);
-
-    if (instruments.isEmpty()) {
+    PaymentInstrument instrument = paymentInstrumentRepository.findByInitiativeIdAndHpanAndStatus(enrollAckDTO.getCorrelationId(),enrollAckDTO.getData().getHpan(), PaymentInstrumentConstants.STATUS_PENDING_RTD);
+    if (instrument == null) {
       log.info("[SAVE_ACK_FROM_RTD] No instrument to update");
       return;
     }
 
-    instruments.forEach(instrument ->
-        instrument.setRtdAckDate(LocalDateTime.from(rtdMessage.getTimestamp()))
-    );
-    paymentInstrumentRepository.saveAll(instruments);
+    instrument.setStatus(PaymentInstrumentConstants.STATUS_ACTIVE);
+    instrument.setActivationDate(LocalDateTime.now());
+    paymentInstrumentRepository.save(instrument);
+
+    int nInstr = countByInitiativeIdAndUserIdAndStatusIn(instrument.getInitiativeId(),
+            instrument.getUserId(), List.of(PaymentInstrumentConstants.STATUS_ACTIVE,
+                    PaymentInstrumentConstants.STATUS_PENDING_DEACTIVATION_REQUEST));
+
+    InstrumentAckDTO dto = ackMapper.ackToWalletRTD(enrollAckDTO, instrument.getChannel(),
+            instrument.getMaskedPan(), instrument.getBrandLogo(), nInstr, instrument.getUserId(), instrument.getActivationDate());
+
+    log.info("[PROCESS_ACK_ENROLL] Enrollment OK: updating wallet.");
+
+    walletRestConnector.processAck(dto);
   }
 
   private void deactivateInstrumentFromPM(RTDMessage rtdMessage) {
@@ -599,7 +608,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
             : ruleEngineAckDTO.getRejectedHpanList().get(0);
 
     String status =
-        (!ruleEngineAckDTO.getHpanList().isEmpty()) ? PaymentInstrumentConstants.STATUS_ACTIVE
+        (!ruleEngineAckDTO.getHpanList().isEmpty()) ? PaymentInstrumentConstants.STATUS_PENDING_RTD
             : PaymentInstrumentConstants.STATUS_FAILED_ENROLLMENT_REQUEST;
 
     PaymentInstrument instrument = paymentInstrumentRepository.findByInitiativeIdAndUserIdAndHpanAndStatus(
@@ -616,10 +625,10 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       hpanListDTO.setHpan(hpan);
       hpanListDTO.setConsent(instrument.isConsent());
 
-      log.info("[PROCESS_ACK_ENROLL] Enrollment OK: updating instrument status to {}.",
-          PaymentInstrumentConstants.STATUS_ACTIVE);
+      log.info("[PROCESS_ACK_ENROLL] ACK RULE ENGINE OK: updating instrument status to {}.",
+          PaymentInstrumentConstants.STATUS_PENDING_RTD);
 
-      instrument.setActivationDate(ruleEngineAckDTO.getTimestamp());
+      instrument.setRuleEngineAckDate(ruleEngineAckDTO.getTimestamp());
 
     }
 
@@ -630,18 +639,6 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       log.info("[PROCESS_ACK_ENROLL] Enrollment OK: sending to RTD.");
       sendToRtd(List.of(hpanListDTO), ruleEngineAckDTO.getOperationType());
     }
-
-    int nInstr = countByInitiativeIdAndUserIdAndStatusIn(instrument.getInitiativeId(),
-        instrument.getUserId(), List.of(PaymentInstrumentConstants.STATUS_ACTIVE,
-            PaymentInstrumentConstants.STATUS_PENDING_DEACTIVATION_REQUEST));
-
-    InstrumentAckDTO dto = ackMapper.ackToWallet(ruleEngineAckDTO, instrument.getChannel(),
-        instrument.getMaskedPan(), instrument.getBrandLogo(), nInstr);
-
-    log.info("[PROCESS_ACK_ENROLL] Enrollment OK: updating wallet.");
-
-    walletRestConnector.processAck(dto);
-
   }
 
   @Override

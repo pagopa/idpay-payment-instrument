@@ -4,6 +4,7 @@ public final class PaymentInstrumentConstants {
 
   public static final String STATUS_INACTIVE = "INACTIVE";
   public static final String STATUS_ACTIVE = "ACTIVE";
+  public static final String STATUS_PENDING_RTD = "PENDING_RTD";
   public static final String OPERATION_ADD = "ADD_INSTRUMENT";
   public static final String OPERATION_DELETE = "DELETE_INSTRUMENT";
   public static final String ERROR_MANDATORY_FIELD = "The field is mandatory!";
