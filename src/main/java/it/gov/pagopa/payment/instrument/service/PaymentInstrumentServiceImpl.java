@@ -231,7 +231,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       this.rollbackInstruments(paymentInstrumentList);
       throw new PaymentInstrumentException(HttpStatus.BAD_REQUEST.value(), e.getMessage());
     }
-    sendToRtd(hpanList, PaymentInstrumentConstants.OPERATION_DELETE);
+    sendToRtd(hpanList, PaymentInstrumentConstants.OPERATION_DELETE, initiativeId);
   }
 
   @Override
@@ -389,7 +389,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
           messageMapper.apply(ruleEngineQueueDTO));
       this.sendToQueueError(exception, errorMessage, ruleEngineServer, ruleEngineTopic);
     }
-    sendToRtd(hpanList, PaymentInstrumentConstants.OPERATION_DELETE);
+    sendToRtd(hpanList, PaymentInstrumentConstants.OPERATION_DELETE, instrument.getInitiativeId());
   }
 
   private void sendToRuleEngine(String userId, String initiativeId, String channel,
@@ -415,7 +415,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
         "[PaymentInstrumentService] Sent message to Rule Engine after " + (end - start) + " ms.");
   }
 
-  private void sendToRtd(List<RTDHpanListDTO> hpanList, String operation) {
+  private void sendToRtd(List<RTDHpanListDTO> hpanList, String operation, String initiativeId) {
 
     List<RTDHpanListDTO> toRtd = new ArrayList<>();
 
@@ -433,6 +433,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
           RTDOperationDTO.builder()
               .hpanList(toRtd)
               .operationType(operation)
+              .correlationId(initiativeId)
               .application(PaymentInstrumentConstants.ID_PAY)
               .build();
 
@@ -572,7 +573,8 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       paymentInstrumentRepository.save(instrument);
 
       log.info("[PROCESS_ACK_DEACTIVATE] Deactivation OK: sending to RTD.");
-      sendToRtd(List.of(hpanListDTO), ruleEngineAckDTO.getOperationType());
+      sendToRtd(List.of(hpanListDTO), ruleEngineAckDTO.getOperationType(),
+              instrument.getInitiativeId());
     }
 
     if (!ruleEngineAckDTO.getRejectedHpanList().isEmpty()) {
@@ -636,8 +638,9 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     paymentInstrumentRepository.save(instrument);
 
     if (!ruleEngineAckDTO.getHpanList().isEmpty()) {
-      log.info("[PROCESS_ACK_ENROLL] Enrollment OK: sending to RTD.");
-      sendToRtd(List.of(hpanListDTO), ruleEngineAckDTO.getOperationType());
+      log.info("[PROCESS_ACK_ENROLL] Enrollment rule engine OK: sending to RTD.");
+      sendToRtd(List.of(hpanListDTO), ruleEngineAckDTO.getOperationType(),
+              instrument.getInitiativeId());
     }
   }
 
