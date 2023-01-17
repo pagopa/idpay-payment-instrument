@@ -420,8 +420,8 @@ class PaymentInstrumentServiceTest {
 
     paymentInstrumentService.processAck(dto);
 
-    assertEquals(dto.getTimestamp(), TEST_PENDING_ENROLLMENT_INSTRUMENT.getActivationDate());
-    assertEquals(PaymentInstrumentConstants.STATUS_ACTIVE,
+    assertEquals(dto.getTimestamp(), TEST_PENDING_ENROLLMENT_INSTRUMENT.getRuleEngineAckDate());
+    assertEquals(PaymentInstrumentConstants.STATUS_PENDING_RTD,
         TEST_PENDING_ENROLLMENT_INSTRUMENT.getStatus());
     Mockito.verify(paymentInstrumentRepositoryMock, Mockito.times(1))
         .save(Mockito.any(PaymentInstrument.class));
