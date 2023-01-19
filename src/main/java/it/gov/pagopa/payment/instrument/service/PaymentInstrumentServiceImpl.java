@@ -627,7 +627,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
 
     PaymentInstrument instrument = paymentInstrumentRepository.findByInitiativeIdAndUserIdAndHpanAndStatus(
             ruleEngineAckDTO.getInitiativeId(), ruleEngineAckDTO.getUserId(),
-            hpan, PaymentInstrumentConstants.STATUS_PENDING_ENROLLMENT_REQUEST)
+            hpan, PaymentInstrumentConstants.STATUS_PENDING_RULE_ENGINE)
         .orElse(null);
 
     if (instrument == null) {
