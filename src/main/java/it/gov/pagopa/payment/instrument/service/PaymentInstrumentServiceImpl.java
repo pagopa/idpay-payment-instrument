@@ -549,7 +549,6 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
               || paymentInstruments.getStatus().equals(PaymentInstrumentConstants.STATUS_PENDING_RTD)) {
         hpanDTO.setStatus(PaymentInstrumentConstants.STATUS_PENDING_ENROLLMENT_REQUEST);
       }
-      hpanDTO.setStatus(paymentInstruments.getStatus());
       hpanDTO.setInstrumentId(paymentInstruments.getId());
       hpanDTO.setIdWallet(paymentInstruments.getIdWallet());
       hpanDTOList.add(hpanDTO);
