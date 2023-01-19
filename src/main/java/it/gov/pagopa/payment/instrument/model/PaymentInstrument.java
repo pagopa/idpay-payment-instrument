@@ -25,5 +25,5 @@ public class PaymentInstrument {
   private String deleteChannel;
   private LocalDateTime activationDate;
   private LocalDateTime deactivationDate;
-  private LocalDateTime ruleEngineAckDate;
+  private LocalDateTime rtdAckDate;
 }

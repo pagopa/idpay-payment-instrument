@@ -1,12 +1,5 @@
 package it.gov.pagopa.payment.instrument.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.fail;
-
 import feign.FeignException;
 import feign.Request;
 import feign.RequestTemplate;
@@ -58,6 +51,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith({SpringExtension.class, MockitoExtension.class})
 @ContextConfiguration(classes = PaymentInstrumentServiceImpl.class)
@@ -170,7 +165,7 @@ class PaymentInstrumentServiceTest {
           .deleteChannel(DELETE_CHANNEL)
           .activationDate(TEST_ACTIVATION_DATE)
           .deactivationDate(TEST_DEACTIVATION_DATE)
-          .ruleEngineAckDate(TEST_RULE_ENGINE_ACKDATE)
+          .rtdAckDate(TEST_RULE_ENGINE_ACKDATE)
       .build();
 
   private static final PaymentInstrument TEST_PENDING_ENROLLMENT_INSTRUMENT = PaymentInstrument.builder()
@@ -187,7 +182,7 @@ class PaymentInstrumentServiceTest {
           .deleteChannel(DELETE_CHANNEL)
           .activationDate(TEST_ACTIVATION_DATE)
           .deactivationDate(TEST_DEACTIVATION_DATE)
-          .ruleEngineAckDate(TEST_RULE_ENGINE_ACKDATE)
+          .rtdAckDate(TEST_RULE_ENGINE_ACKDATE)
       .build();
 
   private static final PaymentInstrument TEST_PENDING_DEACTIVATION_INSTRUMENT = PaymentInstrument.builder()
@@ -204,7 +199,7 @@ class PaymentInstrumentServiceTest {
           .deleteChannel(DELETE_CHANNEL)
           .activationDate(TEST_ACTIVATION_DATE)
           .deactivationDate(TEST_DEACTIVATION_DATE)
-          .ruleEngineAckDate(TEST_RULE_ENGINE_ACKDATE)
+          .rtdAckDate(TEST_RULE_ENGINE_ACKDATE)
       .build();
 
   private static final PaymentInstrument TEST_INACTIVE_INSTRUMENT = PaymentInstrument.builder()
@@ -221,8 +216,25 @@ class PaymentInstrumentServiceTest {
           .deleteChannel(DELETE_CHANNEL)
           .activationDate(TEST_ACTIVATION_DATE)
           .deactivationDate(TEST_DEACTIVATION_DATE)
-          .ruleEngineAckDate(TEST_RULE_ENGINE_ACKDATE)
+          .rtdAckDate(TEST_RULE_ENGINE_ACKDATE)
       .build();
+
+  private static final PaymentInstrument TEST_INSTRUMENT_PENDING_RTD = PaymentInstrument.builder()
+          .id(INSTRUMENT_ID)
+          .initiativeId(INITIATIVE_ID)
+          .userId(USER_ID)
+          .idWallet(ID_WALLET)
+          .hpan(HPAN)
+          .maskedPan(MASKED_PAN)
+          .brandLogo(BRAND_LOGO)
+          .consent(CONSENT)
+          .status(PaymentInstrumentConstants.STATUS_PENDING_RTD)
+          .channel(CHANNEL)
+          .deleteChannel(DELETE_CHANNEL)
+          .activationDate(TEST_ACTIVATION_DATE)
+          .deactivationDate(TEST_DEACTIVATION_DATE)
+          .rtdAckDate(TEST_RULE_ENGINE_ACKDATE)
+          .build();
 
   @Test
   void enrollInstrument_ok_empty() {
@@ -413,7 +425,7 @@ class PaymentInstrumentServiceTest {
   }
 
   @Test
-  void enrollInstrument_ko_rule_engine() {
+  void enrollInstrument_ko_RTD() {
     Mockito.when(paymentInstrumentRepositoryMock.findByIdWalletAndStatus(ID_WALLET,
         PaymentInstrumentConstants.STATUS_ACTIVE)).thenReturn(new ArrayList<>());
 
@@ -425,8 +437,10 @@ class PaymentInstrumentServiceTest {
     Mockito.when(
         pmRestClientConnector.getWalletList(USER_ID)).thenReturn(WALLET_V_2_LIST_RESPONSE_CARD);
 
-    Mockito.doThrow(new PaymentInstrumentException(400, "")).when(producer)
-        .sendInstruments(Mockito.any());
+    Mockito.doThrow(new PaymentInstrumentException(400, "")).when(rtdProducer)
+        .sendInstrument(Mockito.any());
+
+    Mockito.doNothing().when(paymentInstrumentRepositoryMock).delete(Mockito.any());
 
     try {
       paymentInstrumentService.enrollInstrument(INITIATIVE_ID, USER_ID, ID_WALLET, CHANNEL
@@ -449,8 +463,8 @@ class PaymentInstrumentServiceTest {
 
     paymentInstrumentService.processAck(dto);
 
-    assertEquals(dto.getTimestamp(), TEST_PENDING_ENROLLMENT_INSTRUMENT.getRuleEngineAckDate());
-    assertEquals(PaymentInstrumentConstants.STATUS_PENDING_RTD,
+    assertEquals(dto.getTimestamp(), TEST_PENDING_ENROLLMENT_INSTRUMENT.getActivationDate());
+    assertEquals(PaymentInstrumentConstants.STATUS_ACTIVE,
         TEST_PENDING_ENROLLMENT_INSTRUMENT.getStatus());
     Mockito.verify(paymentInstrumentRepositoryMock, Mockito.times(1))
         .save(Mockito.any(PaymentInstrument.class));
@@ -1039,7 +1053,7 @@ class PaymentInstrumentServiceTest {
   }
 
   @Test
-  void saveAckFromRTD_() {
+  void saveAckFromRTD_missingActivationDate() {
     final RTDEnrollAckDTO dto = new RTDEnrollAckDTO("EnrollAck", INITIATIVE_ID, RTD_MESSAGE);
 
     Mockito.when(paymentInstrumentRepositoryMock.findByInitiativeIdAndHpanAndStatus(INITIATIVE_ID, HPAN,
@@ -1051,6 +1065,18 @@ class PaymentInstrumentServiceTest {
     paymentInstrumentService.processRtdMessage(dto);
     assertNotNull(TEST_INSTRUMENT.getActivationDate());
 }
+
+  @Test
+  void saveAckFromRTD_ko_sendToRuleEngine() {
+    final RTDEnrollAckDTO dto = new RTDEnrollAckDTO("EnrollAck", INITIATIVE_ID, RTD_MESSAGE);
+
+    Mockito.when(paymentInstrumentRepositoryMock.findByInitiativeIdAndHpanAndStatus(INITIATIVE_ID, HPAN,
+            PaymentInstrumentConstants.STATUS_PENDING_RTD)).thenReturn(TEST_INSTRUMENT_PENDING_RTD);
+
+    Mockito.doThrow(new PaymentInstrumentException(HttpStatus.BAD_REQUEST.value(), "")).when(producer).sendInstruments(Mockito.any());
+    paymentInstrumentService.processRtdMessage(dto);
+    assertEquals(PaymentInstrumentConstants.STATUS_PENDING_RTD, TEST_INSTRUMENT_PENDING_RTD.getStatus());
+  }
 
   @Test
   void getHpanFromIssuer_status_active_ok() {
