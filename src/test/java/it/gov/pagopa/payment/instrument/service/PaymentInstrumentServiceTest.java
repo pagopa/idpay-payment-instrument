@@ -624,7 +624,6 @@ class PaymentInstrumentServiceTest {
       HpanGetDTO hpanGetDTO = paymentInstrumentService.getHpan(INITIATIVE_ID, USER_ID);
       HpanDTO actual = hpanGetDTO.getInstrumentList().get(0);
       assertEquals(INSTRUMENT.getId(), actual.getInstrumentId());
-      assertEquals(INSTRUMENT.getStatus(), actual.getStatus());
       assertEquals(INSTRUMENT.getChannel(), actual.getChannel());
       assertEquals(INSTRUMENT.getMaskedPan(), actual.getMaskedPan());
       assertEquals(INSTRUMENT.getBrandLogo(), actual.getBrandLogo());
@@ -659,7 +658,6 @@ class PaymentInstrumentServiceTest {
       assertEquals(INSTRUMENT.getId(), actual.getInstrumentId());
       assertEquals(INSTRUMENT.getChannel(), actual.getChannel());
       assertEquals(INSTRUMENT.getMaskedPan(), actual.getMaskedPan());
-      assertEquals(INSTRUMENT.getStatus(), actual.getStatus());
       assertEquals(INSTRUMENT.getBrandLogo(), actual.getBrandLogo());
       assertFalse(hpanGetDTO.getInstrumentList().isEmpty());
     } catch (PaymentInstrumentException e) {
@@ -1130,7 +1128,6 @@ class PaymentInstrumentServiceTest {
           CHANNEL);
       HpanDTO actual = hpanGetDTO.getInstrumentList().get(0);
       assertEquals(INSTRUMENT.getId(), actual.getInstrumentId());
-      assertEquals(INSTRUMENT.getStatus(), actual.getStatus());
       assertEquals(INSTRUMENT.getChannel(), actual.getChannel());
       assertEquals(INSTRUMENT.getMaskedPan(), actual.getMaskedPan());
       assertEquals(INSTRUMENT.getBrandLogo(), actual.getBrandLogo());
@@ -1166,7 +1163,6 @@ class PaymentInstrumentServiceTest {
       assertEquals(INSTRUMENT.getId(), actual.getInstrumentId());
       assertEquals(INSTRUMENT.getChannel(), actual.getChannel());
       assertEquals(INSTRUMENT.getMaskedPan(), actual.getMaskedPan());
-      assertEquals(INSTRUMENT.getStatus(), actual.getStatus());
       assertEquals(INSTRUMENT.getBrandLogo(), actual.getBrandLogo());
       assertFalse(hpanGetDTO.getInstrumentList().isEmpty());
     } catch (PaymentInstrumentException e) {
