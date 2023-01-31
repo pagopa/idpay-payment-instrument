@@ -177,7 +177,7 @@ class PaymentInstrumentServiceTest {
       .maskedPan(MASKED_PAN)
       .brandLogo(BRAND_LOGO)
           .consent(CONSENT)
-      .status(PaymentInstrumentConstants.STATUS_PENDING_RULE_ENGINE)
+      .status(PaymentInstrumentConstants.STATUS_PENDING_RE)
       .channel(CHANNEL)
           .deleteChannel(DELETE_CHANNEL)
           .activationDate(TEST_ACTIVATION_DATE)
@@ -458,7 +458,7 @@ class PaymentInstrumentServiceTest {
 
     Mockito.when(
             paymentInstrumentRepositoryMock.findByInitiativeIdAndUserIdAndHpanAndStatus(INITIATIVE_ID,
-                USER_ID, HPAN, PaymentInstrumentConstants.STATUS_PENDING_RULE_ENGINE))
+                USER_ID, HPAN, PaymentInstrumentConstants.STATUS_PENDING_RE))
         .thenReturn(Optional.of(TEST_PENDING_ENROLLMENT_INSTRUMENT));
 
     paymentInstrumentService.processAck(dto);
@@ -494,7 +494,7 @@ class PaymentInstrumentServiceTest {
 
     Mockito.when(
             paymentInstrumentRepositoryMock.findByInitiativeIdAndUserIdAndHpanAndStatus(INITIATIVE_ID,
-                USER_ID, HPAN, PaymentInstrumentConstants.STATUS_PENDING_RULE_ENGINE))
+                USER_ID, HPAN, PaymentInstrumentConstants.STATUS_PENDING_RE))
         .thenReturn(Optional.of(TEST_PENDING_ENROLLMENT_INSTRUMENT));
 
     paymentInstrumentService.processAck(dto);
