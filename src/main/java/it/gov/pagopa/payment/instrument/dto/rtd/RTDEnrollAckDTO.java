@@ -8,7 +8,7 @@ import lombok.Getter;
 public class RTDEnrollAckDTO implements RTDEventsDTO {
 
   String type;
-
+  String correlationId;
   RTDMessage data;
 
 }

@@ -4,13 +4,16 @@ public final class PaymentInstrumentConstants {
 
   public static final String STATUS_INACTIVE = "INACTIVE";
   public static final String STATUS_ACTIVE = "ACTIVE";
+  public static final String REGEX_PENDING_ENROLL = "^PENDING_ENROLL_";
+  public static final String STATUS_PENDING_RTD = "PENDING_ENROLL_RTD";
+  public static final String STATUS_PENDING_RE = "PENDING_ENROLL_RE";
+  public static final String STATUS_ENROLLMENT_FAILED = "ENROLLMENT_FAILED";
   public static final String OPERATION_ADD = "ADD_INSTRUMENT";
   public static final String OPERATION_DELETE = "DELETE_INSTRUMENT";
   public static final String ERROR_MANDATORY_FIELD = "The field is mandatory!";
   public static final String ERROR_PAYMENT_INSTRUMENT_NOT_FOUND = "The selected payment instrument is not active for such user and initiative.";
   public static final String ERROR_PAYMENT_INSTRUMENT_ALREADY_ACTIVE = "Payment instrument already in use by another citizen";
 
-  public static final String ERROR_INITIATIVE_USER = "It doesn't exist payment instrument for such initiative and user";
   public static final String ERROR_MSG_HEADER_SRC_TYPE = "srcType";
   public static final String ERROR_MSG_HEADER_SRC_SERVER = "srcServer";
   public static final String ERROR_MSG_HEADER_SRC_TOPIC = "srcTopic";

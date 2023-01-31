@@ -1,5 +1,6 @@
 api.key.encrypt: ${PDV_ENCRYPT_API_KEY:}
 api.key.decrypt: ${PDV_DECRYPT_API_KEY:}
+retrieve-enroll.schedule: ${SCHEDULE_RETRIEVE_INITIATIVE:0 */5 * ? * *}
 logging:
   level:
     it:
@@ -27,9 +28,14 @@ rest-client:
   decrypt:
     baseUrl: ${PDV_DECRYPT_BASE_URL:}
     cf: ${PDV_DECRYPT_SERVICE_CODE:pdv-ms-tokenizer}
+management.endpoints:
+  web:
+    exposure.include: info, health
 spring:
   application:
-    name: idpay-payment-instrument
+    name: "@project.artifactId@"
+    version: "@project.version@"
+  jmx.enabled: true
   cloud:
     stream:
       binders:
