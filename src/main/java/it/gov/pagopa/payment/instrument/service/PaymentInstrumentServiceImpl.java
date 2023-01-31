@@ -565,6 +565,8 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     List<PaymentInstrument> instrumentList = paymentInstrumentRepository.findByHpanAndStatusNotContaining(
         body.getHpan(), PaymentInstrumentConstants.STATUS_INACTIVE);
 
+
+
     for (PaymentInstrument pi : instrumentList) {
       if (!pi.getUserId().equals(body.getUserId())) {
         log.error(
@@ -586,14 +588,19 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     PaymentInstrument newInstrument = savePaymentInstrument(
         body.getInitiativeId(), body.getUserId(), null, body.getChannel(), infoList);
 
+    RTDHpanListDTO hpanListDTO = new RTDHpanListDTO();
+    hpanListDTO.setHpan(infoList.getHpan());
+    hpanListDTO.setConsent(infoList.isConsent());
+
     try {
-      sendToRuleEngine(newInstrument.getUserId(), newInstrument.getInitiativeId(),
-          body.getChannel(),
-          List.of(infoList),
-          PaymentInstrumentConstants.OPERATION_ADD);
+      sendToRtd(List.of(hpanListDTO), PaymentInstrumentConstants.OPERATION_ADD,
+              newInstrument.getInitiativeId());
+      newInstrument.setStatus(PaymentInstrumentConstants.STATUS_PENDING_RTD);
+      newInstrument.setUpdateDate(LocalDateTime.now());
+      paymentInstrumentRepository.save(newInstrument);
     } catch (Exception e) {
       log.info(
-          "[ENROLL_FROM_ISSUER] Couldn't send to Rule Engine: resetting the Payment Instrument.");
+              "[ENROLL_INSTRUMENT] Couldn't send to RTD: resetting the Payment Instrument.");
       paymentInstrumentRepository.delete(newInstrument);
       throw new PaymentInstrumentException(HttpStatus.BAD_REQUEST.value(), e.getMessage());
     }
