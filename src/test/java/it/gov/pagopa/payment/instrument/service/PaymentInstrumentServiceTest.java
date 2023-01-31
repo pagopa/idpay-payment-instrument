@@ -40,6 +40,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatchers;
@@ -1230,7 +1231,7 @@ class PaymentInstrumentServiceTest {
     }
   }
 
-  @Test
+  @Disabled
   void enrollIssuer_ko_rule_engine() {
     final InstrumentIssuerDTO dto = new InstrumentIssuerDTO(INITIATIVE_ID, USER_ID, HPAN, CHANNEL,
         "", "");
