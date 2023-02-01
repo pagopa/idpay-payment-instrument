@@ -131,6 +131,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       sendToRtd(List.of(hpanListDTO), PaymentInstrumentConstants.OPERATION_ADD, initiativeId);
       newInstrument.setStatus(PaymentInstrumentConstants.STATUS_PENDING_RTD);
       newInstrument.setUpdateDate(LocalDateTime.now());
+      newInstrument.setCreationDate(LocalDateTime.now());
       paymentInstrumentRepository.save(newInstrument);
     } catch (Exception e) {
       log.info(
@@ -695,7 +696,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
 
     String status =
         (!ruleEngineAckDTO.getHpanList().isEmpty()) ? PaymentInstrumentConstants.STATUS_ACTIVE
-            : PaymentInstrumentConstants.STATUS_FAILED_ENROLLMENT_REQUEST;
+            : PaymentInstrumentConstants.STATUS_ENROLLMENT_FAILED;
 
     PaymentInstrument instrument = paymentInstrumentRepository.findByInitiativeIdAndUserIdAndHpanAndStatus(
             ruleEngineAckDTO.getInitiativeId(), ruleEngineAckDTO.getUserId(),
@@ -707,23 +708,33 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       return;
     }
 
-    log.info("[PROCESS_ACK_ENROLL] ACK RULE ENGINE OK: updating instrument status to {}.",
-            PaymentInstrumentConstants.STATUS_ACTIVE);
+    if(status.equals(PaymentInstrumentConstants.STATUS_ENROLLMENT_FAILED)){
+      log.info("[PROCESS_ACK_ENROLL] ACK RULE ENGINE KO: updating instrument status to {}.",
+              PaymentInstrumentConstants.STATUS_ENROLLMENT_FAILED);
+      RTDHpanListDTO rtdHpanListDTO = new RTDHpanListDTO();
+      rtdHpanListDTO.setHpan(instrument.getHpan());
+      rtdHpanListDTO.setConsent(instrument.isConsent());
+      List<RTDHpanListDTO> hpanList = List.of(rtdHpanListDTO);
+      sendToRtd(hpanList, PaymentInstrumentConstants.OPERATION_DELETE, instrument.getInitiativeId());
+    }
+
+    if(status.equals(PaymentInstrumentConstants.STATUS_ACTIVE)) {
+      log.info("[PROCESS_ACK_ENROLL] ACK RULE ENGINE OK: updating instrument status to {}.",
+              PaymentInstrumentConstants.STATUS_ACTIVE);
+      instrument.setActivationDate(ruleEngineAckDTO.getTimestamp());
+      int nInstr = countByInitiativeIdAndUserIdAndStatusIn(instrument.getInitiativeId(),
+              instrument.getUserId(), List.of(PaymentInstrumentConstants.STATUS_ACTIVE,
+                      PaymentInstrumentConstants.STATUS_PENDING_DEACTIVATION_REQUEST));
+      InstrumentAckDTO dto = ackMapper.ackToWallet(ruleEngineAckDTO, instrument.getChannel(),
+              instrument.getMaskedPan(), instrument.getBrandLogo(), nInstr);
+      log.info("[PROCESS_ACK_ENROLL] Enrollment OK: updating wallet.");
+      walletRestConnector.processAck(dto);
+    }
+
     instrument.setStatus(status);
-    instrument.setActivationDate(ruleEngineAckDTO.getTimestamp());
+    instrument.setReAckDate(ruleEngineAckDTO.getTimestamp());
     instrument.setUpdateDate(LocalDateTime.now());
     paymentInstrumentRepository.save(instrument);
-
-    int nInstr = countByInitiativeIdAndUserIdAndStatusIn(instrument.getInitiativeId(),
-            instrument.getUserId(), List.of(PaymentInstrumentConstants.STATUS_ACTIVE,
-                    PaymentInstrumentConstants.STATUS_PENDING_DEACTIVATION_REQUEST));
-
-    InstrumentAckDTO dto = ackMapper.ackToWallet(ruleEngineAckDTO, instrument.getChannel(),
-            instrument.getMaskedPan(), instrument.getBrandLogo(), nInstr);
-
-    log.info("[PROCESS_ACK_ENROLL] Enrollment OK: updating wallet.");
-
-    walletRestConnector.processAck(dto);
   }
 
   @Override
