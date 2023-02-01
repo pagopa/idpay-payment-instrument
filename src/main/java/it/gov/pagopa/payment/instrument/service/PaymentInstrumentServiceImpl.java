@@ -134,7 +134,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       paymentInstrumentRepository.save(newInstrument);
     } catch (Exception e) {
       log.info(
-          "[ENROLL_INSTRUMENT] Couldn't send to RTD: resetting the Payment Instrument.");
+          "[ENROLL_INSTRUMENT] Couldn't send to RTD: resetting the Instrument.");
       paymentInstrumentRepository.delete(newInstrument);
       throw new PaymentInstrumentException(HttpStatus.BAD_REQUEST.value(), e.getMessage());
     }
@@ -367,7 +367,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
           infoList.setConsent(instrument.isConsent());
           List<PaymentMethodInfoList> paymentMethodInfoList = List.of(infoList);
           sendToRuleEngine(instrument.getUserId(), instrument.getInitiativeId(),
-                  null,
+                  instrument.getChannel(),
                   paymentMethodInfoList, PaymentInstrumentConstants.OPERATION_DELETE);
         }
         instrument.setStatus(PaymentInstrumentConstants.STATUS_ENROLLMENT_FAILED);
