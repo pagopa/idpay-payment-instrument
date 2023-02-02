@@ -112,7 +112,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
 
       if (pi.getInitiativeId().equals(initiativeId) && pi.getStatus().equals(PaymentInstrumentConstants.STATUS_ENROLLMENT_FAILED)) {
         log.info(
-                "[ENROLL_INSTRUMENT] Enroll again the instrument with status failed");
+                "[ENROLL_INSTRUMENT] Try enrolling again the instrument with status failed");
         enrollInstrumentFailed(pi, hpanListDTO, channel);
         return;
       }
