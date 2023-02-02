@@ -542,7 +542,7 @@ class PaymentInstrumentServiceTest {
         
         paymentInstrumentService.processAck(dto);
         
-        assertEquals(PaymentInstrumentConstants.STATUS_ENROLLMENT_FAILED,
+        assertEquals(PaymentInstrumentConstants.STATUS_ENROLLMENT_FAILED_KO_RE,
                 TEST_PENDING_ENROLLMENT_INSTRUMENT.getStatus());
         Mockito.verify(paymentInstrumentRepositoryMock, Mockito.times(1))
                 .save(Mockito.any(PaymentInstrument.class));

@@ -117,7 +117,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
         return;
       }
 
-      if (pi.getInitiativeId().equals(initiativeId)) {
+      if (pi.getInitiativeId().equals(initiativeId) && !pi.getStatus().equals(PaymentInstrumentConstants.STATUS_ENROLLMENT_FAILED_KO_RE)) {
         log.info(
             "[ENROLL_INSTRUMENT] The Payment Instrument is already active, or there is a pending request on it.");
         return;
@@ -696,7 +696,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
 
     String status =
         (!ruleEngineAckDTO.getHpanList().isEmpty()) ? PaymentInstrumentConstants.STATUS_ACTIVE
-            : PaymentInstrumentConstants.STATUS_ENROLLMENT_FAILED;
+            : PaymentInstrumentConstants.STATUS_ENROLLMENT_FAILED_KO_RE;
 
     PaymentInstrument instrument = paymentInstrumentRepository.findByInitiativeIdAndUserIdAndHpanAndStatus(
             ruleEngineAckDTO.getInitiativeId(), ruleEngineAckDTO.getUserId(),
@@ -708,7 +708,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       return;
     }
 
-    if(status.equals(PaymentInstrumentConstants.STATUS_ENROLLMENT_FAILED)){
+    if(status.equals(PaymentInstrumentConstants.STATUS_ENROLLMENT_FAILED_KO_RE)){
       log.info("[PROCESS_ACK_ENROLL] ACK RULE ENGINE KO: updating instrument status to {}.",
               PaymentInstrumentConstants.STATUS_ENROLLMENT_FAILED);
       RTDHpanListDTO rtdHpanListDTO = new RTDHpanListDTO();
@@ -725,8 +725,10 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       int nInstr = countByInitiativeIdAndUserIdAndStatusIn(instrument.getInitiativeId(),
               instrument.getUserId(), List.of(PaymentInstrumentConstants.STATUS_ACTIVE,
                       PaymentInstrumentConstants.STATUS_PENDING_DEACTIVATION_REQUEST));
+
       InstrumentAckDTO dto = ackMapper.ackToWallet(ruleEngineAckDTO, instrument.getChannel(),
               instrument.getMaskedPan(), instrument.getBrandLogo(), nInstr);
+
       log.info("[PROCESS_ACK_ENROLL] Enrollment OK: updating wallet.");
       walletRestConnector.processAck(dto);
     }
