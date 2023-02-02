@@ -117,7 +117,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
         return;
       }
 
-      if (pi.getInitiativeId().equals(initiativeId)) {
+      if (pi.getInitiativeId().equals(initiativeId) && !pi.getStatus().equals(PaymentInstrumentConstants.STATUS_ENROLLMENT_FAILED_KO_RE)) {
         log.info(
             "[ENROLL_INSTRUMENT] The Payment Instrument is already active, or there is a pending request on it.");
         return;
