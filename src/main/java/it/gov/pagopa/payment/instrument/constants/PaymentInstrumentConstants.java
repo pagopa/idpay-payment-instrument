@@ -8,6 +8,7 @@ public final class PaymentInstrumentConstants {
   public static final String STATUS_PENDING_RTD = "PENDING_ENROLL_RTD";
   public static final String STATUS_PENDING_RE = "PENDING_ENROLL_RE";
   public static final String STATUS_ENROLLMENT_FAILED = "ENROLLMENT_FAILED";
+  public static final String STATUS_ENROLLMENT_FAILED_KO_RE = "ENROLLMENT_FAILED_KO_RE";
   public static final String OPERATION_ADD = "ADD_INSTRUMENT";
   public static final String OPERATION_DELETE = "DELETE_INSTRUMENT";
   public static final String ERROR_MANDATORY_FIELD = "The field is mandatory!";
