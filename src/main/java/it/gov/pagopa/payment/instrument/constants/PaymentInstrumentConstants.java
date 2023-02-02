@@ -4,8 +4,10 @@ public final class PaymentInstrumentConstants {
 
   public static final String STATUS_INACTIVE = "INACTIVE";
   public static final String STATUS_ACTIVE = "ACTIVE";
-  public static final String STATUS_PENDING_RTD = "PENDING_RTD";
-  public static final String STATUS_PENDING_RULE_ENGINE = "PENDING_RULE_ENGINE";
+  public static final String REGEX_PENDING_ENROLL = "^PENDING_ENROLL_";
+  public static final String STATUS_PENDING_RTD = "PENDING_ENROLL_RTD";
+  public static final String STATUS_PENDING_RE = "PENDING_ENROLL_RE";
+  public static final String STATUS_ENROLLMENT_FAILED = "ENROLLMENT_FAILED";
   public static final String OPERATION_ADD = "ADD_INSTRUMENT";
   public static final String OPERATION_DELETE = "DELETE_INSTRUMENT";
   public static final String ERROR_MANDATORY_FIELD = "The field is mandatory!";
@@ -29,7 +31,6 @@ public final class PaymentInstrumentConstants {
   public static final String BPD = "BPD";
   public static final String STATUS_PENDING_ENROLLMENT_REQUEST = "PENDING_ENROLLMENT_REQUEST";
   public static final String STATUS_PENDING_DEACTIVATION_REQUEST = "PENDING_DEACTIVATION_REQUEST";
-  public static final String STATUS_FAILED_ENROLLMENT_REQUEST = "INACTIVE_FAILED_ENROLLMENT_REQUEST";
   public static final String ID_PAY = "ID_PAY";
 
   private PaymentInstrumentConstants() {

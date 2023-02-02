@@ -34,6 +34,7 @@ import it.gov.pagopa.payment.instrument.event.producer.RuleEngineProducer;
 import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
 import it.gov.pagopa.payment.instrument.model.PaymentInstrument;
 import it.gov.pagopa.payment.instrument.repository.PaymentInstrumentRepository;
+
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -45,6 +46,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -95,6 +97,10 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     List<PaymentInstrument> instrumentList = paymentInstrumentRepository.findByHpanAndStatusNotContaining(
         infoList.getHpan(), PaymentInstrumentConstants.STATUS_INACTIVE);
 
+    RTDHpanListDTO hpanListDTO = new RTDHpanListDTO();
+    hpanListDTO.setHpan(infoList.getHpan());
+    hpanListDTO.setConsent(infoList.isConsent());
+
 
     for (PaymentInstrument pi : instrumentList) {
       if (!pi.getUserId().equals(userId)) {
@@ -102,6 +108,13 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
             "[ENROLL_INSTRUMENT] The Payment Instrument is already in use by another citizen.");
         throw new PaymentInstrumentException(HttpStatus.FORBIDDEN.value(),
             PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_ALREADY_ACTIVE);
+      }
+
+      if (pi.getInitiativeId().equals(initiativeId) && pi.getStatus().equals(PaymentInstrumentConstants.STATUS_ENROLLMENT_FAILED)) {
+        log.info(
+                "[ENROLL_INSTRUMENT] Try enrolling again the instrument with status failed");
+        enrollInstrumentFailed(pi, hpanListDTO, channel);
+        return;
       }
 
       if (pi.getInitiativeId().equals(initiativeId)) {
@@ -114,18 +127,30 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     PaymentInstrument newInstrument = savePaymentInstrument(
         initiativeId, userId, idWallet, channel, infoList);
 
-    RTDHpanListDTO hpanListDTO = new RTDHpanListDTO();
-    hpanListDTO.setHpan(infoList.getHpan());
-    hpanListDTO.setConsent(infoList.isConsent());
-
     try {
       sendToRtd(List.of(hpanListDTO), PaymentInstrumentConstants.OPERATION_ADD, initiativeId);
       newInstrument.setStatus(PaymentInstrumentConstants.STATUS_PENDING_RTD);
+      newInstrument.setUpdateDate(LocalDateTime.now());
+      newInstrument.setCreationDate(LocalDateTime.now());
       paymentInstrumentRepository.save(newInstrument);
     } catch (Exception e) {
       log.info(
-          "[ENROLL_INSTRUMENT] Couldn't send to RTD: resetting the Payment Instrument.");
+          "[ENROLL_INSTRUMENT] Couldn't send to RTD: resetting the Instrument.");
       paymentInstrumentRepository.delete(newInstrument);
+      throw new PaymentInstrumentException(HttpStatus.BAD_REQUEST.value(), e.getMessage());
+    }
+  }
+  private void enrollInstrumentFailed(PaymentInstrument instrument,RTDHpanListDTO hpanListDTO, String channel){
+    try {
+      sendToRtd(List.of(hpanListDTO), PaymentInstrumentConstants.OPERATION_ADD, instrument.getInitiativeId());
+      instrument.setStatus(PaymentInstrumentConstants.STATUS_PENDING_RTD);
+      instrument.setChannel(channel);
+      instrument.setUpdateDate(LocalDateTime.now());
+      paymentInstrumentRepository.save(instrument);
+    } catch (Exception e) {
+      log.info(
+              "[ENROLL_INSTRUMENT] Couldn't send to RTD: resetting the Payment Instrument.");
+      paymentInstrumentRepository.delete(instrument);
       throw new PaymentInstrumentException(HttpStatus.BAD_REQUEST.value(), e.getMessage());
     }
   }
@@ -139,7 +164,6 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
         .hpan(infoList.getHpan())
         .maskedPan(infoList.getMaskedPan())
         .brandLogo(infoList.getBrandLogo())
-        .status(PaymentInstrumentConstants.STATUS_PENDING_ENROLLMENT_REQUEST)
         .channel(channel)
         .consent(infoList.isConsent())
         .build();
@@ -226,9 +250,10 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       rtdHpanListDTO.setHpan(paymentInstrument.getHpan());
       rtdHpanListDTO.setConsent(paymentInstrument.isConsent());
       hpanList.add(rtdHpanListDTO);
-
+      paymentInstrument.setUpdateDate(LocalDateTime.now());
     }
     paymentInstrumentRepository.saveAll(paymentInstrumentList);
+
     try {
       sendToRuleEngine(userId, initiativeId, PaymentInstrumentConstants.IO, paymentMethodInfoList,
           PaymentInstrumentConstants.OPERATION_DELETE);
@@ -254,6 +279,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
 
     if (instrument.getStatus().equals(PaymentInstrumentConstants.STATUS_ACTIVE)) {
       instrument.setStatus(PaymentInstrumentConstants.STATUS_PENDING_DEACTIVATION_REQUEST);
+      instrument.setUpdateDate(LocalDateTime.now());
       instrument.setDeleteChannel(PaymentInstrumentConstants.IO);
       paymentInstrumentRepository.save(instrument);
       PaymentMethodInfoList infoList = new PaymentMethodInfoList(instrument.getHpan(),
@@ -310,10 +336,45 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       sendToRuleEngine(instrument.getUserId(), instrument.getInitiativeId(), instrument.getChannel(),
               paymentMethodInfoList, PaymentInstrumentConstants.OPERATION_ADD);
 
-      instrument.setStatus(PaymentInstrumentConstants.STATUS_PENDING_RULE_ENGINE);
+      instrument.setStatus(PaymentInstrumentConstants.STATUS_PENDING_RE);
+      instrument.setUpdateDate(LocalDateTime.now());
       paymentInstrumentRepository.save(instrument);
     } catch(Exception e) {
       log.info("[ENROLL_INSTRUMENT] Couldn't send to Rule Engine: payment instrument with ID {}", instrument.getId());
+    }
+  }
+
+  @Scheduled(cron = "${retrieve-enroll.schedule}")
+  private void checkPendingTimeLimit() {
+    List<PaymentInstrument> instruments = paymentInstrumentRepository.findByStatusRegex(PaymentInstrumentConstants.REGEX_PENDING_ENROLL);
+    LocalDateTime timeStampNow = LocalDateTime.now();
+    for(PaymentInstrument instrument: instruments){
+      if(timeStampNow.isAfter(instrument.getUpdateDate().plusHours(4))){
+        log.info("[CHECK_PENDING_TIME_LIMIT] Pending time limit expired  for instrument ID {}",instrument.getId());
+        List<PaymentInstrument> activeInstruments = paymentInstrumentRepository.findByHpanAndStatus(instrument.getHpan(),PaymentInstrumentConstants.STATUS_ACTIVE);
+        if (activeInstruments.isEmpty()) {
+          log.info("[CHECK_INSTRUMENT] The instrument ID {} is not currently active on any other initiative",instrument.getId());
+          RTDHpanListDTO rtdHpanListDTO = new RTDHpanListDTO();
+          rtdHpanListDTO.setHpan(instrument.getHpan());
+          rtdHpanListDTO.setConsent(instrument.isConsent());
+          List<RTDHpanListDTO> hpanList = List.of(rtdHpanListDTO);
+          sendToRtd(hpanList, PaymentInstrumentConstants.OPERATION_DELETE, instrument.getInitiativeId());
+        }
+        if(instrument.getStatus().equals(PaymentInstrumentConstants.STATUS_PENDING_RE)){
+          PaymentMethodInfoList infoList = new PaymentMethodInfoList();
+          infoList.setHpan(instrument.getHpan());
+          infoList.setMaskedPan(instrument.getMaskedPan());
+          infoList.setBrandLogo(instrument.getBrandLogo());
+          infoList.setConsent(instrument.isConsent());
+          List<PaymentMethodInfoList> paymentMethodInfoList = List.of(infoList);
+          sendToRuleEngine(instrument.getUserId(), instrument.getInitiativeId(),
+                  instrument.getChannel(),
+                  paymentMethodInfoList, PaymentInstrumentConstants.OPERATION_DELETE);
+        }
+        instrument.setStatus(PaymentInstrumentConstants.STATUS_ENROLLMENT_FAILED);
+        instrument.setUpdateDate(LocalDateTime.now());
+        paymentInstrumentRepository.save(instrument);
+      }
     }
   }
 
@@ -366,6 +427,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
 
     instrument.setStatus(PaymentInstrumentConstants.STATUS_INACTIVE);
     instrument.setDeactivationDate(deactivationDate);
+    instrument.setUpdateDate(LocalDateTime.now());
     instrument.setDeleteChannel(PaymentInstrumentConstants.PM);
     paymentInstrumentRepository.save(instrument);
 
@@ -471,6 +533,8 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     List<PaymentInstrument> paymentInstrument = paymentInstrumentRepository.findByInitiativeIdAndUserIdAndStatusNotContaining(
         initiativeId, userId, PaymentInstrumentConstants.STATUS_INACTIVE);
 
+    checkPendingTimeLimit();
+
     return buildHpanList(paymentInstrument);
   }
 
@@ -502,6 +566,8 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     List<PaymentInstrument> instrumentList = paymentInstrumentRepository.findByHpanAndStatusNotContaining(
         body.getHpan(), PaymentInstrumentConstants.STATUS_INACTIVE);
 
+
+
     for (PaymentInstrument pi : instrumentList) {
       if (!pi.getUserId().equals(body.getUserId())) {
         log.error(
@@ -523,14 +589,19 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     PaymentInstrument newInstrument = savePaymentInstrument(
         body.getInitiativeId(), body.getUserId(), null, body.getChannel(), infoList);
 
+    RTDHpanListDTO hpanListDTO = new RTDHpanListDTO();
+    hpanListDTO.setHpan(infoList.getHpan());
+    hpanListDTO.setConsent(infoList.isConsent());
+
     try {
-      sendToRuleEngine(newInstrument.getUserId(), newInstrument.getInitiativeId(),
-          body.getChannel(),
-          List.of(infoList),
-          PaymentInstrumentConstants.OPERATION_ADD);
+      sendToRtd(List.of(hpanListDTO), PaymentInstrumentConstants.OPERATION_ADD,
+              newInstrument.getInitiativeId());
+      newInstrument.setStatus(PaymentInstrumentConstants.STATUS_PENDING_RTD);
+      newInstrument.setUpdateDate(LocalDateTime.now());
+      paymentInstrumentRepository.save(newInstrument);
     } catch (Exception e) {
       log.info(
-          "[ENROLL_FROM_ISSUER] Couldn't send to Rule Engine: resetting the Payment Instrument.");
+              "[ENROLL_INSTRUMENT] Couldn't send to RTD: resetting the Payment Instrument.");
       paymentInstrumentRepository.delete(newInstrument);
       throw new PaymentInstrumentException(HttpStatus.BAD_REQUEST.value(), e.getMessage());
     }
@@ -546,7 +617,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       hpanDTO.setBrandLogo(paymentInstruments.getBrandLogo());
       hpanDTO.setMaskedPan(paymentInstruments.getMaskedPan());
       hpanDTO.setStatus(paymentInstruments.getStatus());
-      if (paymentInstruments.getStatus().equals(PaymentInstrumentConstants.STATUS_PENDING_RULE_ENGINE)
+      if (paymentInstruments.getStatus().equals(PaymentInstrumentConstants.STATUS_PENDING_RE)
               || paymentInstruments.getStatus().equals(PaymentInstrumentConstants.STATUS_PENDING_RTD)) {
         hpanDTO.setStatus(PaymentInstrumentConstants.STATUS_PENDING_ENROLLMENT_REQUEST);
       }
@@ -585,6 +656,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
 
       instrument.setDeactivationDate(ruleEngineAckDTO.getTimestamp());
       instrument.setStatus(PaymentInstrumentConstants.STATUS_INACTIVE);
+      instrument.setUpdateDate(LocalDateTime.now());
       paymentInstrumentRepository.save(instrument);
 
       log.info("[PROCESS_ACK_DEACTIVATE] Deactivation OK: sending to RTD.");
@@ -624,11 +696,11 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
 
     String status =
         (!ruleEngineAckDTO.getHpanList().isEmpty()) ? PaymentInstrumentConstants.STATUS_ACTIVE
-            : PaymentInstrumentConstants.STATUS_FAILED_ENROLLMENT_REQUEST;
+            : PaymentInstrumentConstants.STATUS_ENROLLMENT_FAILED;
 
     PaymentInstrument instrument = paymentInstrumentRepository.findByInitiativeIdAndUserIdAndHpanAndStatus(
             ruleEngineAckDTO.getInitiativeId(), ruleEngineAckDTO.getUserId(),
-            hpan, PaymentInstrumentConstants.STATUS_PENDING_RULE_ENGINE)
+            hpan, PaymentInstrumentConstants.STATUS_PENDING_RE)
         .orElse(null);
 
     if (instrument == null) {
@@ -636,22 +708,33 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       return;
     }
 
-    log.info("[PROCESS_ACK_ENROLL] ACK RULE ENGINE OK: updating instrument status to {}.",
-            PaymentInstrumentConstants.STATUS_ACTIVE);
+    if(status.equals(PaymentInstrumentConstants.STATUS_ENROLLMENT_FAILED)){
+      log.info("[PROCESS_ACK_ENROLL] ACK RULE ENGINE KO: updating instrument status to {}.",
+              PaymentInstrumentConstants.STATUS_ENROLLMENT_FAILED);
+      RTDHpanListDTO rtdHpanListDTO = new RTDHpanListDTO();
+      rtdHpanListDTO.setHpan(instrument.getHpan());
+      rtdHpanListDTO.setConsent(instrument.isConsent());
+      List<RTDHpanListDTO> hpanList = List.of(rtdHpanListDTO);
+      sendToRtd(hpanList, PaymentInstrumentConstants.OPERATION_DELETE, instrument.getInitiativeId());
+    }
+
+    if(status.equals(PaymentInstrumentConstants.STATUS_ACTIVE)) {
+      log.info("[PROCESS_ACK_ENROLL] ACK RULE ENGINE OK: updating instrument status to {}.",
+              PaymentInstrumentConstants.STATUS_ACTIVE);
+      instrument.setActivationDate(ruleEngineAckDTO.getTimestamp());
+      int nInstr = countByInitiativeIdAndUserIdAndStatusIn(instrument.getInitiativeId(),
+              instrument.getUserId(), List.of(PaymentInstrumentConstants.STATUS_ACTIVE,
+                      PaymentInstrumentConstants.STATUS_PENDING_DEACTIVATION_REQUEST));
+      InstrumentAckDTO dto = ackMapper.ackToWallet(ruleEngineAckDTO, instrument.getChannel(),
+              instrument.getMaskedPan(), instrument.getBrandLogo(), nInstr);
+      log.info("[PROCESS_ACK_ENROLL] Enrollment OK: updating wallet.");
+      walletRestConnector.processAck(dto);
+    }
+
     instrument.setStatus(status);
-    instrument.setActivationDate(ruleEngineAckDTO.getTimestamp());
+    instrument.setReAckDate(ruleEngineAckDTO.getTimestamp());
+    instrument.setUpdateDate(LocalDateTime.now());
     paymentInstrumentRepository.save(instrument);
-
-    int nInstr = countByInitiativeIdAndUserIdAndStatusIn(instrument.getInitiativeId(),
-            instrument.getUserId(), List.of(PaymentInstrumentConstants.STATUS_ACTIVE,
-                    PaymentInstrumentConstants.STATUS_PENDING_DEACTIVATION_REQUEST));
-
-    InstrumentAckDTO dto = ackMapper.ackToWallet(ruleEngineAckDTO, instrument.getChannel(),
-            instrument.getMaskedPan(), instrument.getBrandLogo(), nInstr);
-
-    log.info("[PROCESS_ACK_ENROLL] Enrollment OK: updating wallet.");
-
-    walletRestConnector.processAck(dto);
   }
 
   @Override
@@ -659,6 +742,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     for (PaymentInstrument instrument : paymentInstrumentList) {
       instrument.setStatus(PaymentInstrumentConstants.STATUS_ACTIVE);
       instrument.setDeactivationDate(null);
+      instrument.setUpdateDate(LocalDateTime.now());
     }
     paymentInstrumentRepository.saveAll(paymentInstrumentList);
     log.info("Instrument rollbacked: {}", paymentInstrumentList.size());
