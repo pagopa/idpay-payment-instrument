@@ -86,7 +86,6 @@ microservice-chart:
     PDV_ENCRYPT_API_KEY: pdv-api-key
     PDV_DECRYPT_API_KEY: pdv-api-key
     PM_SERVICE_APIM_KEY: pm-api-key
-#    APPLICATIONINSIGHTS_CONNECTION_STRING: appinsights-instrumentation-key
 
   # nodeSelector: {}
 
