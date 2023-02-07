@@ -722,6 +722,11 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       log.info("[PROCESS_ACK_ENROLL] ACK RULE ENGINE OK: updating instrument status to {}.",
               PaymentInstrumentConstants.STATUS_ACTIVE);
       instrument.setActivationDate(ruleEngineAckDTO.getTimestamp());
+      instrument.setStatus(status);
+      instrument.setReAckDate(ruleEngineAckDTO.getTimestamp());
+      instrument.setUpdateDate(LocalDateTime.now());
+      paymentInstrumentRepository.save(instrument);
+
       int nInstr = countByInitiativeIdAndUserIdAndStatusIn(instrument.getInitiativeId(),
               instrument.getUserId(), List.of(PaymentInstrumentConstants.STATUS_ACTIVE,
                       PaymentInstrumentConstants.STATUS_PENDING_DEACTIVATION_REQUEST));
@@ -731,6 +736,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
 
       log.info("[PROCESS_ACK_ENROLL] Enrollment OK: updating wallet.");
       walletRestConnector.processAck(dto);
+      return;
     }
 
     instrument.setStatus(status);
