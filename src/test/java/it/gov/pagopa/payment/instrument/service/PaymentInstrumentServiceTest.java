@@ -248,6 +248,14 @@ class PaymentInstrumentServiceTest {
             .rtdAckDate(TEST_RULE_ENGINE_ACKDATE)
             .updateDate(TEST_DATE)
             .build();
+
+    private static final InstrumentAckDTO TEST_INSTRUMENT_ACK_DTO = InstrumentAckDTO.builder()
+            .initiativeId(INITIATIVE_ID)
+            .userId(USER_ID)
+            .maskedPan(MASKED_PAN)
+            .brandLogo(BRAND_LOGO)
+            .channel(CHANNEL)
+            .build();
     
     @Test
     void enrollInstrument_ok_empty() {
@@ -499,6 +507,7 @@ class PaymentInstrumentServiceTest {
         final RuleEngineAckDTO dto = new RuleEngineAckDTO(INITIATIVE_ID, USER_ID,
                 PaymentInstrumentConstants.OPERATION_ADD, List.of(HPAN), List.of(), LocalDateTime.now());
         
+        Mockito.when(ackMapper.ackToWallet(Mockito.any(),Mockito.anyString(),Mockito.anyString(),Mockito.anyString(),Mockito.anyInt())).thenReturn(TEST_INSTRUMENT_ACK_DTO);
         Mockito.when(
                         paymentInstrumentRepositoryMock.findByInitiativeIdAndUserIdAndHpanAndStatus(INITIATIVE_ID,
                                 USER_ID, HPAN, PaymentInstrumentConstants.STATUS_PENDING_RE))
@@ -532,9 +541,11 @@ class PaymentInstrumentServiceTest {
     
     @Test
     void processAck_enroll_ko() {
+        Mockito.when(ackMapper.ackToWallet(Mockito.any(),Mockito.anyString(),Mockito.anyString(),Mockito.anyString(),Mockito.anyInt())).thenReturn(TEST_INSTRUMENT_ACK_DTO);
         final RuleEngineAckDTO dto = new RuleEngineAckDTO(INITIATIVE_ID, USER_ID,
                 PaymentInstrumentConstants.OPERATION_ADD, List.of(), List.of(HPAN), LocalDateTime.now());
         
+
         Mockito.when(
                         paymentInstrumentRepositoryMock.findByInitiativeIdAndUserIdAndHpanAndStatus(INITIATIVE_ID,
                                 USER_ID, HPAN, PaymentInstrumentConstants.STATUS_PENDING_RE))
