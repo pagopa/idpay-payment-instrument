@@ -559,7 +559,8 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     List<PaymentInstrument> paymentInstrument = paymentInstrumentRepository.findByInitiativeIdAndUserIdAndStatusIn(
               initiativeId, userId, List.of(PaymentInstrumentConstants.STATUS_ACTIVE,
                       PaymentInstrumentConstants.STATUS_PENDING_RTD,
-                      PaymentInstrumentConstants.STATUS_PENDING_RE));
+                      PaymentInstrumentConstants.STATUS_PENDING_RE,
+                      PaymentInstrumentConstants.STATUS_PENDING_DEACTIVATION_REQUEST));
 
     HpanGetDTO dto = buildHpanList(paymentInstrument);
     performanceLog(startTime, "GET_HPAN");
