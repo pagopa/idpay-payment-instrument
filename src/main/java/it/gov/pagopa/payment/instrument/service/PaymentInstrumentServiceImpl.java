@@ -554,10 +554,13 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
   @Override
   public HpanGetDTO getHpan(String initiativeId, String userId) {
     long startTime = System.currentTimeMillis();
-    List<PaymentInstrument> paymentInstrument = paymentInstrumentRepository.findByInitiativeIdAndUserIdAndStatusNotContaining(
-        initiativeId, userId, PaymentInstrumentConstants.STATUS_INACTIVE);
-
     checkPendingTimeLimit();
+
+    List<PaymentInstrument> paymentInstrument = paymentInstrumentRepository.findByInitiativeIdAndUserIdAndStatusIn(
+              initiativeId, userId, List.of(PaymentInstrumentConstants.STATUS_ACTIVE,
+                      PaymentInstrumentConstants.STATUS_PENDING_RTD,
+                      PaymentInstrumentConstants.STATUS_PENDING_RE));
+
     HpanGetDTO dto = buildHpanList(paymentInstrument);
     performanceLog(startTime, "GET_HPAN");
     return dto;

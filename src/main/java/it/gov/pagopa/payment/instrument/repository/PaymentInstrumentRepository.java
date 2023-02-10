@@ -22,9 +22,9 @@ public interface PaymentInstrumentRepository extends MongoRepository<PaymentInst
 
   List<PaymentInstrument> findByInitiativeIdAndUserIdAndStatusNotContaining(String initiativeId, String userId, String status);
   List<PaymentInstrument> findByInitiativeIdAndUserIdAndChannelAndStatusNotContaining(String initiativeId, String userId, String channel, String status);
-
-  List<PaymentInstrument> findByInitiativeIdAndUserIdAndStatus(String initiativeId, String userId,
-      String status);
+  List<PaymentInstrument> findByInitiativeIdAndUserIdAndStatus(String initiativeId, String userId, String status);
+  List<PaymentInstrument> findByInitiativeIdAndUserIdAndStatusIn(String initiativeId, String userId,
+      List<String> status);
 
   Optional<PaymentInstrument> findByInitiativeIdAndUserIdAndHpanAndStatus(String initiativeId,
       String userId, String hpan, String status);
