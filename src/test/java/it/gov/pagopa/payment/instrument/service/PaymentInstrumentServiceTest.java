@@ -26,6 +26,7 @@ import it.gov.pagopa.payment.instrument.event.producer.RuleEngineProducer;
 import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
 import it.gov.pagopa.payment.instrument.model.PaymentInstrument;
 import it.gov.pagopa.payment.instrument.repository.PaymentInstrumentRepository;
+import it.gov.pagopa.payment.instrument.utils.Utilities;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -76,6 +77,8 @@ class PaymentInstrumentServiceTest {
     MessageMapper messageMapper;
     @MockBean
     AckMapper ackMapper;
+    @MockBean
+    Utilities utilities;
     private static final String USER_ID = "TEST_USER_ID";
     private static final String USER_ID_FAIL = "TEST_USER_ID_FAIL";
     private static final String INITIATIVE_ID = "TEST_INITIATIVE_ID";
