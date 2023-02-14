@@ -50,6 +50,7 @@ microservice-chart:
     APPLICATIONINSIGHTS_ROLE_NAME: "idpaypaymentinstrument"
     APPLICATIONINSIGHTS_INSTRUMENTATION_LOGGING_LEVEL: "OFF"
     APPLICATIONINSIGHTS_INSTRUMENTATION_MICROMETER_ENABLED: "false"
+    APPLICATIONINSIGHTS_PREVIEW_PROFILER_ENABLED: "false"
     PDV_ENCRYPT_SERVICE_CODE: pdv-ms-tokenizer-encrypt
     PDV_DECRYPT_SERVICE_CODE: pdv-ms-tokenizer
 
@@ -86,7 +87,6 @@ microservice-chart:
     PDV_ENCRYPT_API_KEY: pdv-api-key
     PDV_DECRYPT_API_KEY: pdv-api-key
     PM_SERVICE_APIM_KEY: pm-api-key
-#    APPLICATIONINSIGHTS_CONNECTION_STRING: appinsights-instrumentation-key
 
   # nodeSelector: {}
 

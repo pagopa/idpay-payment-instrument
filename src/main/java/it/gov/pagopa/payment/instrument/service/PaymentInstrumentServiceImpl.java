@@ -588,8 +588,12 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
   public HpanGetDTO getHpanFromIssuer(String initiativeId, String userId, String channel) {
     long startTime = System.currentTimeMillis();
 
-    List<PaymentInstrument> paymentInstrument = paymentInstrumentRepository.findByInitiativeIdAndUserIdAndChannelAndStatusNotContaining(
-        initiativeId, userId, channel, PaymentInstrumentConstants.STATUS_INACTIVE);
+    List<PaymentInstrument> paymentInstrument = paymentInstrumentRepository.findByInitiativeIdAndUserIdAndChannelAndStatusIn(
+        initiativeId, userId, channel, List.of(PaymentInstrumentConstants.STATUS_ACTIVE,
+                    PaymentInstrumentConstants.STATUS_PENDING_RTD,
+                    PaymentInstrumentConstants.STATUS_PENDING_RE,
+                    PaymentInstrumentConstants.STATUS_PENDING_DEACTIVATION_REQUEST
+                    ));
 
     HpanGetDTO dto = buildHpanList(paymentInstrument);
     performanceLog(startTime, "GET_HPAN_FROM_ISSUER");
@@ -663,6 +667,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       }
       hpanDTO.setInstrumentId(paymentInstruments.getId());
       hpanDTO.setIdWallet(paymentInstruments.getIdWallet());
+      hpanDTO.setActivationDate(paymentInstruments.getActivationDate());
       hpanDTOList.add(hpanDTO);
     }
     hpanGetDTO.setInstrumentList(hpanDTOList);
