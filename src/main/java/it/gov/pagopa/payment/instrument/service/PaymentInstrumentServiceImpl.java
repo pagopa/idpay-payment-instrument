@@ -190,6 +190,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       log.debug("Calling PM service at: " + start);
       walletV2ListResponse = pmRestClientConnector.getWalletList(decryptedCfDTO.getPii());
       log.info(walletV2ListResponse.toString());
+      log.info(walletV2ListResponse.toString());
       Instant finish = Instant.now();
       long time = Duration.between(start, finish).toMillis();
       log.info("PM's call finished at: " + finish + " The PM service took: " + time + "ms");
@@ -624,8 +625,13 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       }
     }
 
-    PaymentMethodInfoList infoList = new PaymentMethodInfoList(body.getHpan(), body.getMaskedPan(),
-        body.getBrandLogo(), true);
+    List<PaymentMethodInfoList> paymentMethodInfoList = new ArrayList<>();
+    PaymentMethodInfoList infoList = getPaymentMethodInfoList(
+            body.getUserId(), null, paymentMethodInfoList);
+log.info(infoList.toString());
+
+//    PaymentMethodInfoList infoList = new PaymentMethodInfoList(body.getHpan(), body.getMaskedPan(),
+//        body.getBrandLogo(), true);
 
     PaymentInstrument newInstrument = savePaymentInstrument(
         body.getInitiativeId(), body.getUserId(), null, body.getChannel(), infoList);
