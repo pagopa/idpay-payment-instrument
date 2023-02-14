@@ -66,7 +66,7 @@ class UtilitiesTest {
 
     @Test
     void logEnrollInstrumentKO_ok(){
-            utilities.logEnrollInstrumentKO(MSG, ID_WALLET, HPAN, CHANNEL);
+            utilities.logEnrollInstrumentKO(MSG, ID_WALLET, CHANNEL);
         assertThat(memoryAppender.contains(ch.qos.logback.classic.Level.DEBUG,MSG)).isFalse();
     }
 
@@ -78,7 +78,7 @@ class UtilitiesTest {
 
     @Test
     void logEnrollInstrumentComplete_ok(){
-        utilities.logEnrollInstrumentComplete(ID_WALLET, HPAN, CHANNEL);
+        utilities.logEnrollInstrumentComplete(ID_WALLET, CHANNEL);
         assertThat(memoryAppender.contains(ch.qos.logback.classic.Level.DEBUG,MSG)).isFalse();
     }
 
@@ -90,25 +90,25 @@ class UtilitiesTest {
 
     @Test
     void logDeactivationComplete_ok(){
-        utilities.logDeactivationComplete(ID_WALLET, HPAN, CHANNEL, DATE);
+        utilities.logDeactivationComplete(ID_WALLET, CHANNEL, DATE);
         assertThat(memoryAppender.contains(ch.qos.logback.classic.Level.DEBUG,MSG)).isFalse();
     }
 
     @Test
     void logDeactivationKO_ok(){
-        utilities.logDeactivationKO(ID_WALLET, HPAN, CHANNEL, DATE);
+        utilities.logDeactivationKO(ID_WALLET, CHANNEL, DATE);
         assertThat(memoryAppender.contains(ch.qos.logback.classic.Level.DEBUG,MSG)).isFalse();
     }
 
     @Test
     void logAckEnrollComplete_ok(){
-        utilities.logAckEnrollComplete(ID_WALLET, HPAN, CHANNEL, DATE);
+        utilities.logAckEnrollComplete(ID_WALLET, CHANNEL, DATE);
         assertThat(memoryAppender.contains(ch.qos.logback.classic.Level.DEBUG,MSG)).isFalse();
     }
 
     @Test
     void logAckEnrollKO_ok(){
-        utilities.logAckEnrollKO(ID_WALLET, HPAN, CHANNEL, DATE);
+        utilities.logAckEnrollKO(ID_WALLET, CHANNEL, DATE);
         assertThat(memoryAppender.contains(ch.qos.logback.classic.Level.DEBUG,MSG)).isFalse();
     }
 
