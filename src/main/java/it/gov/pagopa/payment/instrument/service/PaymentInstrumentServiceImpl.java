@@ -659,6 +659,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       }
       hpanDTO.setInstrumentId(paymentInstruments.getId());
       hpanDTO.setIdWallet(paymentInstruments.getIdWallet());
+      hpanDTO.setActivationDate(paymentInstruments.getActivationDate());
       hpanDTOList.add(hpanDTO);
     }
     hpanGetDTO.setInstrumentList(hpanDTOList);

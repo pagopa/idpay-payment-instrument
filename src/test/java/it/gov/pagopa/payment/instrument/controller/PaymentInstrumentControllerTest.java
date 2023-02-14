@@ -19,6 +19,7 @@ import it.gov.pagopa.payment.instrument.service.PaymentInstrumentService;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
@@ -64,7 +65,7 @@ class PaymentInstrumentControllerTest {
       "", "");
 
   private static final HpanDTO HPAN_DTO_TEST = new HpanDTO(HPAN, CHANNEL, BRAND_LOGO, ID_WALLET,
-      INSTRUMENT_ID, CHANNEL);
+      INSTRUMENT_ID, CHANNEL, LocalDateTime.now());
 
   private static final HpanGetDTO HPANGETDTO = new HpanGetDTO();
   private static final List<PaymentMethodInfoList> INFO_LIST = new ArrayList<>();
