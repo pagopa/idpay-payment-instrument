@@ -1318,7 +1318,7 @@ class PaymentInstrumentServiceTest {
         }
     }
     
-    @Disabled
+    @Test
     void enrollIssuer_ok_empty() {
         
         final InstrumentIssuerDTO dto = new InstrumentIssuerDTO(INITIATIVE_ID, USER_ID, HPAN, CHANNEL,
@@ -1363,7 +1363,7 @@ class PaymentInstrumentServiceTest {
         assertEquals(HPAN, TEST_INSTRUMENT.getHpan());
     }
     
-    @Disabled
+    @Test
     void enrollIssuer_ok_not_already_active() {
         final InstrumentIssuerDTO dto = new InstrumentIssuerDTO("INITIATIVE_ID", USER_ID, HPAN, CHANNEL, "", "");
         PaymentInstrument paymentInstrument = TEST_INSTRUMENT;
@@ -1392,7 +1392,7 @@ class PaymentInstrumentServiceTest {
         }
     }
     
-    @Disabled
+    @Test
     void enrollIssuer_ko_rule_engine() {
         final InstrumentIssuerDTO dto = new InstrumentIssuerDTO(INITIATIVE_ID, USER_ID, HPAN, CHANNEL,
                 "", "");
