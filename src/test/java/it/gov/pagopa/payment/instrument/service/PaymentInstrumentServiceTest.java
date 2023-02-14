@@ -643,9 +643,12 @@ class PaymentInstrumentServiceTest {
         List<PaymentInstrument> paymentInstruments = List.of(INSTRUMENT);
         
         Mockito.when(
-                        paymentInstrumentRepositoryMock.findByInitiativeIdAndUserIdAndStatusNotContaining(
+                        paymentInstrumentRepositoryMock.findByInitiativeIdAndUserIdAndStatusIn(
                                 INITIATIVE_ID,
-                                USER_ID, PaymentInstrumentConstants.STATUS_INACTIVE))
+                                USER_ID, List.of(PaymentInstrumentConstants.STATUS_ACTIVE,
+                                                PaymentInstrumentConstants.STATUS_PENDING_RTD,
+                                                PaymentInstrumentConstants.STATUS_PENDING_RE,
+                                                PaymentInstrumentConstants.STATUS_PENDING_DEACTIVATION_REQUEST)))
                 .thenReturn(paymentInstruments);
         try {
             HpanGetDTO hpanGetDTO = paymentInstrumentService.getHpan(INITIATIVE_ID, USER_ID);
@@ -670,9 +673,12 @@ class PaymentInstrumentServiceTest {
         List<PaymentInstrument> paymentInstruments = List.of(INSTRUMENT);
         
         Mockito.when(
-                        paymentInstrumentRepositoryMock.findByInitiativeIdAndUserIdAndStatusNotContaining(
+                        paymentInstrumentRepositoryMock.findByInitiativeIdAndUserIdAndStatusIn(
                                 INITIATIVE_ID,
-                                USER_ID, PaymentInstrumentConstants.STATUS_INACTIVE))
+                                USER_ID,  List.of(PaymentInstrumentConstants.STATUS_ACTIVE,
+                                        PaymentInstrumentConstants.STATUS_PENDING_RTD,
+                                        PaymentInstrumentConstants.STATUS_PENDING_RE,
+                                        PaymentInstrumentConstants.STATUS_PENDING_DEACTIVATION_REQUEST)))
                 .thenReturn(paymentInstruments);
         try {
             HpanGetDTO hpanGetDTO = paymentInstrumentService.getHpan(INITIATIVE_ID, USER_ID);
@@ -702,9 +708,12 @@ class PaymentInstrumentServiceTest {
         List<PaymentInstrument> paymentInstruments = List.of(INSTRUMENT);
         
         Mockito.when(
-                        paymentInstrumentRepositoryMock.findByInitiativeIdAndUserIdAndStatusNotContaining(
+                        paymentInstrumentRepositoryMock.findByInitiativeIdAndUserIdAndStatusIn(
                                 INITIATIVE_ID,
-                                USER_ID, PaymentInstrumentConstants.STATUS_INACTIVE))
+                                USER_ID, List.of(PaymentInstrumentConstants.STATUS_ACTIVE,
+                                                PaymentInstrumentConstants.STATUS_PENDING_RTD,
+                                                PaymentInstrumentConstants.STATUS_PENDING_RE,
+                                                PaymentInstrumentConstants.STATUS_PENDING_DEACTIVATION_REQUEST)))
                 .thenReturn(paymentInstruments);
         try {
             HpanGetDTO hpanGetDTO = paymentInstrumentService.getHpan(INITIATIVE_ID, USER_ID);
@@ -1220,9 +1229,12 @@ class PaymentInstrumentServiceTest {
         List<PaymentInstrument> paymentInstruments = List.of(INSTRUMENT);
         
         Mockito.when(
-                        paymentInstrumentRepositoryMock.findByInitiativeIdAndUserIdAndChannelAndStatusNotContaining(
+                        paymentInstrumentRepositoryMock.findByInitiativeIdAndUserIdAndChannelAndStatusIn(
                                 INITIATIVE_ID,
-                                USER_ID, CHANNEL, PaymentInstrumentConstants.STATUS_INACTIVE))
+                                USER_ID, CHANNEL, List.of(PaymentInstrumentConstants.STATUS_ACTIVE,
+                                                PaymentInstrumentConstants.STATUS_PENDING_RTD,
+                                                PaymentInstrumentConstants.STATUS_PENDING_RE,
+                                                PaymentInstrumentConstants.STATUS_PENDING_DEACTIVATION_REQUEST)))
                 .thenReturn(paymentInstruments);
         try {
             HpanGetDTO hpanGetDTO = paymentInstrumentService.getHpanFromIssuer(INITIATIVE_ID, USER_ID,
@@ -1248,9 +1260,12 @@ class PaymentInstrumentServiceTest {
         List<PaymentInstrument> paymentInstruments = List.of(INSTRUMENT);
         
         Mockito.when(
-                        paymentInstrumentRepositoryMock.findByInitiativeIdAndUserIdAndChannelAndStatusNotContaining(
+                        paymentInstrumentRepositoryMock.findByInitiativeIdAndUserIdAndChannelAndStatusIn(
                                 INITIATIVE_ID,
-                                USER_ID, CHANNEL, PaymentInstrumentConstants.STATUS_INACTIVE))
+                                USER_ID, CHANNEL, List.of(PaymentInstrumentConstants.STATUS_ACTIVE,
+                                                PaymentInstrumentConstants.STATUS_PENDING_RTD,
+                                                PaymentInstrumentConstants.STATUS_PENDING_RE,
+                                                PaymentInstrumentConstants.STATUS_PENDING_DEACTIVATION_REQUEST)))
                 .thenReturn(paymentInstruments);
         try {
             HpanGetDTO hpanGetDTO = paymentInstrumentService.getHpanFromIssuer(INITIATIVE_ID, USER_ID,
@@ -1281,9 +1296,12 @@ class PaymentInstrumentServiceTest {
         List<PaymentInstrument> paymentInstruments = List.of(INSTRUMENT);
         
         Mockito.when(
-                        paymentInstrumentRepositoryMock.findByInitiativeIdAndUserIdAndChannelAndStatusNotContaining(
+                        paymentInstrumentRepositoryMock.findByInitiativeIdAndUserIdAndChannelAndStatusIn(
                                 INITIATIVE_ID,
-                                USER_ID, CHANNEL, PaymentInstrumentConstants.STATUS_INACTIVE))
+                                USER_ID, CHANNEL, List.of(PaymentInstrumentConstants.STATUS_ACTIVE,
+                                                PaymentInstrumentConstants.STATUS_PENDING_RTD,
+                                                PaymentInstrumentConstants.STATUS_PENDING_RE,
+                                                PaymentInstrumentConstants.STATUS_PENDING_DEACTIVATION_REQUEST)))
                 .thenReturn(paymentInstruments);
         try {
             HpanGetDTO hpanGetDTO = paymentInstrumentService.getHpanFromIssuer(INITIATIVE_ID, USER_ID,
