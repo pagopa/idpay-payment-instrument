@@ -26,10 +26,10 @@ public class Utilities {
     private static final String CEF = String.format("CEF:0|PagoPa|IDPAY|1.0|7|User interaction|2| event=PaymentInstrument dstip=%s",
             SRCIP);
     private static final String MSG = " msg=";
-    private static final String ID_WALLET = "idWallet=";
-    private static final String HPAN = "hpan=";
-    private static final String DATE = "date=";
-    private static final String CHANNEL = "channel=";
+    private static final String ID_WALLET = "cs1Label=idWallet cs1=";
+    private static final String HPAN = "cs2Label=hpan cs2=";
+    private static final String DATE = "cs3Label=date cs3=";
+    private static final String CHANNEL = "cs4Label=channel cs4=";
     final Logger logger = Logger.getLogger("AUDIT");
 
 
