@@ -215,13 +215,14 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
         switch (v2.getWalletType()) {
           case PaymentInstrumentConstants.SATISPAY -> {
             infoList.setHpan(v2.getInfo().getUuid());
+            infoList.setMaskedPan(PaymentInstrumentConstants.SATISPAY);
             infoList.setBrandLogo(v2.getInfo().getBrandLogo());
             infoList.setConsent(true);
             paymentMethodInfoList.add(infoList);
           }
           case PaymentInstrumentConstants.BPAY -> {
             infoList.setHpan(v2.getInfo().getUidHash());
-            infoList.setMaskedPan(v2.getInfo().getNumberObfuscated());
+            infoList.setMaskedPan(PaymentInstrumentConstants.BPAY);
             infoList.setBrandLogo(v2.getInfo().getBrandLogo());
             infoList.setConsent(true);
             paymentMethodInfoList.add(infoList);
