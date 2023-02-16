@@ -27,8 +27,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 @ExtendWith({SpringExtension.class, MockitoExtension.class})
-@ContextConfiguration(classes = {Utilities.class,InetAddress.class})
-class UtilitiesTest {
+@ContextConfiguration(classes = {AuditUtilities.class,InetAddress.class})
+class AuditUtilitiesTest {
     private static final String SRCIP;
 
     static {
@@ -48,7 +48,7 @@ class UtilitiesTest {
     @MockBean
     Logger logger;
     @Autowired
-    Utilities utilities;
+    AuditUtilities auditUtilities;
     @MockBean
     InetAddress inetAddress;
     MemoryAppender memoryAppender;
@@ -66,49 +66,49 @@ class UtilitiesTest {
 
     @Test
     void logEnrollInstrumentKO_ok(){
-            utilities.logEnrollInstrumentKO(MSG, ID_WALLET, CHANNEL);
+            auditUtilities.logEnrollInstrumentKO(MSG, ID_WALLET, CHANNEL);
         assertThat(memoryAppender.contains(ch.qos.logback.classic.Level.DEBUG,MSG)).isFalse();
     }
 
     @Test
     void logEnrollInstrFromIssuerKO_ok(){
-        utilities.logEnrollInstrFromIssuerKO(MSG, HPAN, CHANNEL);
+        auditUtilities.logEnrollInstrFromIssuerKO(MSG, HPAN, CHANNEL);
         assertThat(memoryAppender.contains(ch.qos.logback.classic.Level.DEBUG,MSG)).isFalse();
     }
 
     @Test
     void logEnrollInstrumentComplete_ok(){
-        utilities.logEnrollInstrumentComplete(ID_WALLET, CHANNEL);
+        auditUtilities.logEnrollInstrumentComplete(ID_WALLET, CHANNEL);
         assertThat(memoryAppender.contains(ch.qos.logback.classic.Level.DEBUG,MSG)).isFalse();
     }
 
     @Test
     void logEnrollInstrFromIssuerComplete_ok(){
-        utilities.logEnrollInstrFromIssuerComplete(HPAN, CHANNEL);
+        auditUtilities.logEnrollInstrFromIssuerComplete(HPAN, CHANNEL);
         assertThat(memoryAppender.contains(ch.qos.logback.classic.Level.DEBUG,MSG)).isFalse();
     }
 
     @Test
     void logDeactivationComplete_ok(){
-        utilities.logDeactivationComplete(ID_WALLET, CHANNEL, DATE);
+        auditUtilities.logDeactivationComplete(ID_WALLET, CHANNEL, DATE);
         assertThat(memoryAppender.contains(ch.qos.logback.classic.Level.DEBUG,MSG)).isFalse();
     }
 
     @Test
     void logDeactivationKO_ok(){
-        utilities.logDeactivationKO(ID_WALLET, CHANNEL, DATE);
+        auditUtilities.logDeactivationKO(ID_WALLET, CHANNEL, DATE);
         assertThat(memoryAppender.contains(ch.qos.logback.classic.Level.DEBUG,MSG)).isFalse();
     }
 
     @Test
     void logAckEnrollComplete_ok(){
-        utilities.logAckEnrollComplete(ID_WALLET, CHANNEL, DATE);
+        auditUtilities.logAckEnrollComplete(ID_WALLET, CHANNEL, DATE);
         assertThat(memoryAppender.contains(ch.qos.logback.classic.Level.DEBUG,MSG)).isFalse();
     }
 
     @Test
     void logAckEnrollKO_ok(){
-        utilities.logAckEnrollKO(ID_WALLET, CHANNEL, DATE);
+        auditUtilities.logAckEnrollKO(ID_WALLET, CHANNEL, DATE);
         assertThat(memoryAppender.contains(ch.qos.logback.classic.Level.DEBUG,MSG)).isFalse();
     }
 
