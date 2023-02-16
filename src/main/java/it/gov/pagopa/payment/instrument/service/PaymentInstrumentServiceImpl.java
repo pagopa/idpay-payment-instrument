@@ -182,6 +182,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
         .hpan(infoList.getHpan())
         .maskedPan(infoList.getMaskedPan())
         .brandLogo(infoList.getBrandLogo())
+        .circuitType(infoList.getCircuitType())
         .channel(channel)
         .consent(infoList.isConsent())
         .build();
@@ -217,6 +218,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
             infoList.setHpan(v2.getInfo().getUuid());
             infoList.setMaskedPan(PaymentInstrumentConstants.SATISPAY);
             infoList.setBrandLogo(v2.getInfo().getBrandLogo());
+            infoList.setCircuitType(PaymentInstrumentConstants.SATISPAY);
             infoList.setConsent(true);
             paymentMethodInfoList.add(infoList);
           }
@@ -224,6 +226,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
             infoList.setHpan(v2.getInfo().getUidHash());
             infoList.setMaskedPan(PaymentInstrumentConstants.BPAY);
             infoList.setBrandLogo(v2.getInfo().getBrandLogo());
+            infoList.setCircuitType(PaymentInstrumentConstants.BPAY);
             infoList.setConsent(true);
             paymentMethodInfoList.add(infoList);
           }
@@ -231,6 +234,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
             infoList.setHpan(v2.getInfo().getHashPan());
             infoList.setMaskedPan(v2.getInfo().getBlurredNumber());
             infoList.setBrandLogo(v2.getInfo().getBrandLogo());
+            infoList.setCircuitType(v2.getInfo().getBrand());
             infoList.setConsent(true);
             paymentMethodInfoList.add(infoList);
           }
@@ -308,7 +312,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       instrument.setDeleteChannel(PaymentInstrumentConstants.IO);
       paymentInstrumentRepository.save(instrument);
       PaymentMethodInfoList infoList = new PaymentMethodInfoList(instrument.getHpan(),
-          instrument.getMaskedPan(), instrument.getBrandLogo(), instrument.isConsent());
+          instrument.getMaskedPan(), instrument.getBrandLogo(), instrument.getCircuitType(), instrument.isConsent());
       try {
         sendToRuleEngine(userId, initiativeId, PaymentInstrumentConstants.IO,
             List.of(infoList),
@@ -357,7 +361,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
 
     List<PaymentMethodInfoList> paymentMethodInfoList = new ArrayList<>();
     PaymentMethodInfoList paymentMethodInfo = new PaymentMethodInfoList(instrument.getHpan(),
-            instrument.getMaskedPan(), instrument.getBrandLogo(), instrument.isConsent());
+            instrument.getMaskedPan(), instrument.getBrandLogo(), instrument.getCircuitType(), instrument.isConsent());
     paymentMethodInfoList.add(paymentMethodInfo);
 
     instrument.setRtdAckDate(enrollAckDTO.getData().getTimestamp().toLocalDateTime());
@@ -643,7 +647,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
 
 
     PaymentMethodInfoList infoList = new PaymentMethodInfoList(body.getHpan(), body.getMaskedPan(),
-        body.getBrandLogo(), true);
+        body.getBrandLogo(), body.getCircuitType(), true);
 
     PaymentInstrument newInstrument = savePaymentInstrument(
         body.getInitiativeId(), body.getUserId(), null, body.getChannel(), infoList);
@@ -747,7 +751,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
             PaymentInstrumentConstants.STATUS_PENDING_DEACTIVATION_REQUEST));
 
     InstrumentAckDTO dto = ackMapper.ackToWallet(ruleEngineAckDTO, instrument.getDeleteChannel(),
-        instrument.getMaskedPan(), instrument.getBrandLogo(), nInstr);
+        instrument.getMaskedPan(), instrument.getBrandLogo(), instrument.getCircuitType(), nInstr);
 
     log.info("[PROCESS_ACK_DEACTIVATE] Deactivation OK: updating wallet.");
 
@@ -804,7 +808,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
                     PaymentInstrumentConstants.STATUS_PENDING_DEACTIVATION_REQUEST));
 
     InstrumentAckDTO dto = ackMapper.ackToWallet(ruleEngineAckDTO, instrument.getChannel(),
-            instrument.getMaskedPan(), instrument.getBrandLogo(), nInstr);
+            instrument.getMaskedPan(), instrument.getBrandLogo(), instrument.getCircuitType(), nInstr);
 
     log.info("[PROCESS_ACK_ENROLL] Updating wallet with status {}.",dto.getOperationType());
     walletRestConnector.processAck(dto);

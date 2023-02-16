@@ -13,13 +13,11 @@ import it.gov.pagopa.payment.instrument.dto.HpanDTO;
 import it.gov.pagopa.payment.instrument.dto.HpanGetDTO;
 import it.gov.pagopa.payment.instrument.dto.InstrumentIssuerDTO;
 import it.gov.pagopa.payment.instrument.dto.UnsubscribeBodyDTO;
-import it.gov.pagopa.payment.instrument.dto.pm.PaymentMethodInfoList;
 import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
 import it.gov.pagopa.payment.instrument.service.PaymentInstrumentService;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
@@ -53,6 +51,7 @@ class PaymentInstrumentControllerTest {
   private static final String CHANNEL = "TEST_CHANNEL";
   private static final String MASKED_PAN = "MASKED_PAN";
   private static final String BRAND_LOGO = "BAND_LOGO";
+  private static final String CIRCUIT_TYPE = "CIRCUIT_TYPE";
 
   private static final String GETHPAN_URL = "/" + INITIATIVE_ID + "/" + USER_ID;
   private static final EnrollmentBodyDTO ENROLLMENT_BODY_DTO = new EnrollmentBodyDTO(USER_ID,
@@ -68,13 +67,10 @@ class PaymentInstrumentControllerTest {
       INSTRUMENT_ID, CHANNEL, LocalDateTime.now());
 
   private static final HpanGetDTO HPANGETDTO = new HpanGetDTO();
-  private static final List<PaymentMethodInfoList> INFO_LIST = new ArrayList<>();
-  private static final PaymentMethodInfoList PAYMENT_METHOD_INFO_LIST = new PaymentMethodInfoList(
-      HPAN, MASKED_PAN, BRAND_LOGO,true);
-  private static final PaymentMethodInfoList PAYMENT_METHOD_INFO_LIST_INDEM = new PaymentMethodInfoList();
+
   private static final String GETHPANISSUER_URL = "/" + INITIATIVE_ID + "/" + USER_ID + "/" + CHANNEL;
-  private static final InstrumentIssuerDTO ENROLLMENT_ISSUER_BODY_DTO = new InstrumentIssuerDTO(INITIATIVE_ID, USER_ID, "HPAN", "ISSUER", "", "");
-  private static final InstrumentIssuerDTO ENROLLMENT_ISSUER_BODY_DTO_EMPTY = new InstrumentIssuerDTO(INITIATIVE_ID, USER_ID, "", "", "", "");
+  private static final InstrumentIssuerDTO ENROLLMENT_ISSUER_BODY_DTO = new InstrumentIssuerDTO(INITIATIVE_ID, USER_ID, "HPAN", "ISSUER", "", "", "");
+  private static final InstrumentIssuerDTO ENROLLMENT_ISSUER_BODY_DTO_EMPTY = new InstrumentIssuerDTO(INITIATIVE_ID, USER_ID, "", "", "", "", "");
 
   @MockBean
   PaymentInstrumentService paymentInstrumentServiceMock;
