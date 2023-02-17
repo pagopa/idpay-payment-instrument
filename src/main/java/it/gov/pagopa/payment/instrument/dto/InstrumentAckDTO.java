@@ -16,6 +16,8 @@ public class InstrumentAckDTO {
 
   String brandLogo;
 
+  String circuitType;
+
   String maskedPan;
 
   String operationType;
