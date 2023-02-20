@@ -588,18 +588,18 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
   @Override
   public void processAck(RuleEngineAckDTO ruleEngineAckDTO) {
     long startTime = System.currentTimeMillis();
-    log.info("[PROCESS_ACK] Processing new message.");
+    log.info("[PROCESS_ACK_FROM_RULE_ENGINE] Processing new message.");
 
     if (ruleEngineAckDTO.getOperationType().equals(PaymentInstrumentConstants.OPERATION_ADD)) {
-      log.info("[PROCESS_ACK] Processing ACK for an enrollment request.");
+      log.info("[PROCESS_ACK_FROM_RULE_ENGINE] Processing ACK for an enrollment request.");
       processAckEnroll(ruleEngineAckDTO);
     }
 
     if (ruleEngineAckDTO.getOperationType().equals(PaymentInstrumentConstants.OPERATION_DELETE)) {
-      log.info("[PROCESS_ACK] Processing ACK for a deactivation request.");
+      log.info("[PROCESS_ACK_FROM_RULE_ENGINE] Processing ACK for a deactivation request.");
       processAckDeactivate(ruleEngineAckDTO);
     }
-    performanceLog(startTime, "PROCESS_ACK");
+    performanceLog(startTime, "PROCESS_ACK_FROM_RULE_ENGINE");
   }
 
   @Override
