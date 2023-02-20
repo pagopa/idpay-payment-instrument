@@ -69,8 +69,8 @@ class PaymentInstrumentControllerTest {
   private static final HpanGetDTO HPANGETDTO = new HpanGetDTO();
 
   private static final String GETHPANISSUER_URL = "/" + INITIATIVE_ID + "/" + USER_ID + "/" + CHANNEL;
-  private static final InstrumentIssuerDTO ENROLLMENT_ISSUER_BODY_DTO = new InstrumentIssuerDTO(INITIATIVE_ID, USER_ID, "HPAN", "ISSUER", "", "", "");
-  private static final InstrumentIssuerDTO ENROLLMENT_ISSUER_BODY_DTO_EMPTY = new InstrumentIssuerDTO(INITIATIVE_ID, USER_ID, "", "", "", "", "");
+  private static final InstrumentIssuerDTO ENROLLMENT_ISSUER_BODY_DTO = new InstrumentIssuerDTO(INITIATIVE_ID, USER_ID, "HPAN", "ISSUER", "", "", "", "");
+  private static final InstrumentIssuerDTO ENROLLMENT_ISSUER_BODY_DTO_EMPTY = new InstrumentIssuerDTO(INITIATIVE_ID, USER_ID, "", "", "", "", "", "");
 
   @MockBean
   PaymentInstrumentService paymentInstrumentServiceMock;

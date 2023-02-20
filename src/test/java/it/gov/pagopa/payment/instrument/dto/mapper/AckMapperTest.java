@@ -39,7 +39,7 @@ class AckMapperTest {
 
   @Test
   void ackToWallet() {
-    InstrumentAckDTO actual = ackMapper.ackToWallet(RULE_ENGINE_ACK_DTO, CHANNEL, MASKED_PAN, BRAND_LOGO, CIRCUIT_TYPE, NINSTR);
+    InstrumentAckDTO actual = ackMapper.ackToWallet(RULE_ENGINE_ACK_DTO, CHANNEL, MASKED_PAN, BRAND_LOGO, BRAND_LOGO, CIRCUIT_TYPE, NINSTR);
 
     assertNotNull(actual);
     assertEquals(INITIATIVE_ID, actual.getInitiativeId());
@@ -54,7 +54,7 @@ class AckMapperTest {
 
   @Test
   void ackToWallet_ko() {
-    InstrumentAckDTO actual = ackMapper.ackToWallet(RULE_ENGINE_ACK_DTO_KO, CHANNEL, MASKED_PAN, BRAND_LOGO, CIRCUIT_TYPE, NINSTR);
+    InstrumentAckDTO actual = ackMapper.ackToWallet(RULE_ENGINE_ACK_DTO_KO, CHANNEL, MASKED_PAN, BRAND_LOGO, BRAND_LOGO, CIRCUIT_TYPE, NINSTR);
 
     assertNotNull(actual);
     assertEquals(INITIATIVE_ID, actual.getInitiativeId());
