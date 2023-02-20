@@ -687,6 +687,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       HpanDTO hpanDTO = new HpanDTO();
       hpanDTO.setChannel(paymentInstruments.getChannel());
       hpanDTO.setBrandLogo(paymentInstruments.getBrandLogo());
+      hpanDTO.setBrand(paymentInstruments.getBrand());
       hpanDTO.setMaskedPan(paymentInstruments.getMaskedPan());
       hpanDTO.setStatus(paymentInstruments.getStatus());
       if (paymentInstruments.getStatus().equals(PaymentInstrumentConstants.STATUS_PENDING_RE)
