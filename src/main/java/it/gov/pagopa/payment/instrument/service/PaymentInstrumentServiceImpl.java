@@ -449,7 +449,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
           .equals(PaymentInstrumentConstants.STATUS_PENDING_DEACTIVATION_REQUEST)) {
         WalletDTO walletDTO = new WalletDTO(instrument.getInitiativeId(), instrument.getUserId(),
             instrument.getHpan(),
-            instrument.getBrandLogo(), instrument.getCircuitType(), instrument.getMaskedPan());
+            instrument.getBrandLogo(), instrument.getBrand(), instrument.getCircuitType(), instrument.getMaskedPan());
         walletDTOS.add(walletDTO);
       }
     }

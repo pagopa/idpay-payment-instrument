@@ -49,7 +49,7 @@ class WalletRestClientTest {
 
   private static final WalletCallDTO WALLET_CALL_DTO = new WalletCallDTO();
   private static final WalletDTO WALLET_DTO = new WalletDTO(INITIATIVE_ID, USER_ID, HPAN,
-      BRAND_LOGO, CIRCUIT_TYPE, MASKED_PAN);
+      BRAND_LOGO, BRAND_LOGO, CIRCUIT_TYPE, MASKED_PAN);
   private static final List<WalletDTO> WALLET_DTO_LIST = new ArrayList<>();
   private static final InstrumentAckDTO INSTRUMENT_ACK_DTO = InstrumentAckDTO.builder()
       .initiativeId(INITIATIVE_ID)

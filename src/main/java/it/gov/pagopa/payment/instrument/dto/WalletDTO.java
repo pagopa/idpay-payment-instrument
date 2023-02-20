@@ -15,6 +15,7 @@ public class WalletDTO {
   private String userId;
   private String hpan;
   private String brandLogo;
+  private String brand;
   private String circuitType;
   private String maskedPan;
 }
