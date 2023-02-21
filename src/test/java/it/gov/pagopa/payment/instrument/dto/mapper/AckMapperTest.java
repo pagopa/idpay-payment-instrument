@@ -25,7 +25,6 @@ class AckMapperTest {
   private static final String CHANNEL = "TEST_CHANNEL";
   private static final String MASKED_PAN = "TEST_MASKED_PAN";
   private static final String BRAND_LOGO = "TEST_BRAND_LOGO";
-  private static final String CIRCUIT_TYPE = "TEST_CIRCUIT_TYPE";
   private static final LocalDateTime DATE = LocalDateTime.now();
   private static final int NINSTR = 1;
   private static final RuleEngineAckDTO RULE_ENGINE_ACK_DTO = new RuleEngineAckDTO(INITIATIVE_ID,
@@ -39,7 +38,7 @@ class AckMapperTest {
 
   @Test
   void ackToWallet() {
-    InstrumentAckDTO actual = ackMapper.ackToWallet(RULE_ENGINE_ACK_DTO, CHANNEL, MASKED_PAN, BRAND_LOGO, CIRCUIT_TYPE, NINSTR);
+    InstrumentAckDTO actual = ackMapper.ackToWallet(RULE_ENGINE_ACK_DTO, CHANNEL, MASKED_PAN, BRAND_LOGO, BRAND_LOGO, NINSTR);
 
     assertNotNull(actual);
     assertEquals(INITIATIVE_ID, actual.getInitiativeId());
@@ -54,7 +53,7 @@ class AckMapperTest {
 
   @Test
   void ackToWallet_ko() {
-    InstrumentAckDTO actual = ackMapper.ackToWallet(RULE_ENGINE_ACK_DTO_KO, CHANNEL, MASKED_PAN, BRAND_LOGO, CIRCUIT_TYPE, NINSTR);
+    InstrumentAckDTO actual = ackMapper.ackToWallet(RULE_ENGINE_ACK_DTO_KO, CHANNEL, MASKED_PAN, BRAND_LOGO, BRAND_LOGO, NINSTR);
 
     assertNotNull(actual);
     assertEquals(INITIATIVE_ID, actual.getInitiativeId());

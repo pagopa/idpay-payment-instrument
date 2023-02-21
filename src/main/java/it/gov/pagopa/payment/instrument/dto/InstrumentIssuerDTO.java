@@ -23,7 +23,7 @@ public class InstrumentIssuerDTO {
 
   String brandLogo;
 
-  String circuitType;
+  String brand;
 
   String maskedPan;
 }
