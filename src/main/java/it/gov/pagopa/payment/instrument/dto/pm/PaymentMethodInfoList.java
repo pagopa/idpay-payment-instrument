@@ -16,6 +16,5 @@ public class PaymentMethodInfoList {
   private String maskedPan;
   private String brandLogo;
   private String brand;
-  private String circuitType;
   private boolean consent;
 }

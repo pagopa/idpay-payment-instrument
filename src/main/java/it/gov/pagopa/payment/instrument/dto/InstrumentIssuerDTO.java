@@ -25,7 +25,5 @@ public class InstrumentIssuerDTO {
 
   String brand;
 
-  String circuitType;
-
   String maskedPan;
 }
