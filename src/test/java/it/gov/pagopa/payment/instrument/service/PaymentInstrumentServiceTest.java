@@ -174,6 +174,7 @@ class PaymentInstrumentServiceTest {
             .hpan(HPAN)
             .maskedPan(MASKED_PAN)
             .brandLogo(BRAND_LOGO)
+            .brand(BRAND_LOGO)
             .circuitType(BRAND)
             .consent(CONSENT)
             .status(PaymentInstrumentConstants.STATUS_PENDING_RE)
@@ -513,7 +514,7 @@ class PaymentInstrumentServiceTest {
         final RuleEngineAckDTO dto = new RuleEngineAckDTO(INITIATIVE_ID, USER_ID,
                 PaymentInstrumentConstants.OPERATION_ADD, List.of(HPAN), List.of(), LocalDateTime.now());
         
-        Mockito.when(ackMapper.ackToWallet(Mockito.any(),Mockito.anyString(),Mockito.anyString(),Mockito.anyString(), Mockito.anyString(), Mockito.anyInt())).thenReturn(TEST_INSTRUMENT_ACK_DTO);
+        Mockito.when(ackMapper.ackToWallet(Mockito.any(),Mockito.anyString(), Mockito.anyString(), Mockito.anyString(),Mockito.anyString(), Mockito.anyString(), Mockito.anyInt())).thenReturn(TEST_INSTRUMENT_ACK_DTO);
         Mockito.when(
                         paymentInstrumentRepositoryMock.findByInitiativeIdAndUserIdAndHpanAndStatus(INITIATIVE_ID,
                                 USER_ID, HPAN, PaymentInstrumentConstants.STATUS_PENDING_RE))
@@ -547,7 +548,7 @@ class PaymentInstrumentServiceTest {
     
     @Test
     void processAck_enroll_ko() {
-        Mockito.when(ackMapper.ackToWallet(Mockito.any(),Mockito.anyString(),Mockito.anyString(),Mockito.anyString(),Mockito.anyString(),Mockito.anyInt())).thenReturn(TEST_INSTRUMENT_ACK_DTO);
+        Mockito.when(ackMapper.ackToWallet(Mockito.any(),Mockito.anyString(),Mockito.anyString(),Mockito.anyString(),Mockito.anyString(),Mockito.anyString(),Mockito.anyInt())).thenReturn(TEST_INSTRUMENT_ACK_DTO);
         final RuleEngineAckDTO dto = new RuleEngineAckDTO(INITIATIVE_ID, USER_ID,
                 PaymentInstrumentConstants.OPERATION_ADD, List.of(), List.of(HPAN), LocalDateTime.now());
         
@@ -1327,7 +1328,7 @@ class PaymentInstrumentServiceTest {
     void enrollIssuer_ok_empty() {
         
         final InstrumentIssuerDTO dto = new InstrumentIssuerDTO(INITIATIVE_ID, USER_ID, HPAN, CHANNEL,
-                "", "", "");
+                "", "", "", "");
         
         Mockito.when(paymentInstrumentRepositoryMock.findByHpanAndStatusNotContaining(HPAN,
                 PaymentInstrumentConstants.STATUS_INACTIVE)).thenReturn(new ArrayList<>());
@@ -1342,7 +1343,7 @@ class PaymentInstrumentServiceTest {
     @Test
     void enrollIssuer_ok_idemp() {
         final InstrumentIssuerDTO dto = new InstrumentIssuerDTO(INITIATIVE_ID, USER_ID, HPAN, CHANNEL,
-                "", "", "");
+                "", "", "","");
         Mockito.when(paymentInstrumentRepositoryMock.findByHpanAndStatusNotContaining(HPAN,
                 PaymentInstrumentConstants.STATUS_INACTIVE)).thenReturn(List.of(TEST_INSTRUMENT));
         
@@ -1356,7 +1357,7 @@ class PaymentInstrumentServiceTest {
     @Test
     void enrollIssuer_ok_other_initiative() {
         final InstrumentIssuerDTO dto = new InstrumentIssuerDTO(INITIATIVE_ID, USER_ID, HPAN, CHANNEL,
-                "", "", "");
+                "", "","", "");
         Mockito.when(paymentInstrumentRepositoryMock.findByHpanAndStatusNotContaining(HPAN,
                 PaymentInstrumentConstants.STATUS_INACTIVE)).thenReturn(List.of(TEST_INSTRUMENT));
         
@@ -1370,7 +1371,7 @@ class PaymentInstrumentServiceTest {
     
     @Test
     void enrollIssuer_ok_not_already_active() {
-        final InstrumentIssuerDTO dto = new InstrumentIssuerDTO("INITIATIVE_ID", USER_ID, HPAN, CHANNEL, "", "", "");
+        final InstrumentIssuerDTO dto = new InstrumentIssuerDTO("INITIATIVE_ID", USER_ID, HPAN, CHANNEL, "", "", "", "");
         PaymentInstrument paymentInstrument = TEST_INSTRUMENT;
         List<PaymentInstrument> paymentInstrumentList = new ArrayList<>();
         paymentInstrumentList.add(paymentInstrument);
@@ -1384,7 +1385,7 @@ class PaymentInstrumentServiceTest {
     
     @Test
     void enrollIssuer_ko_already_active() {
-        final InstrumentIssuerDTO dto = new InstrumentIssuerDTO(INITIATIVE_ID, USER_ID_FAIL, HPAN, CHANNEL, "", "", "");
+        final InstrumentIssuerDTO dto = new InstrumentIssuerDTO(INITIATIVE_ID, USER_ID_FAIL, HPAN, CHANNEL, "", "", "", "");
         Mockito.when(paymentInstrumentRepositoryMock.findByHpanAndStatusNotContaining(HPAN,
                 PaymentInstrumentConstants.STATUS_INACTIVE)).thenReturn(List.of(TEST_INSTRUMENT));
         
@@ -1400,7 +1401,7 @@ class PaymentInstrumentServiceTest {
     @Test
     void enrollIssuer_ko_rule_engine() {
         final InstrumentIssuerDTO dto = new InstrumentIssuerDTO(INITIATIVE_ID, USER_ID, HPAN, CHANNEL,
-                "", "", "");
+                "", "", "", "");
         Mockito.when(paymentInstrumentRepositoryMock.findByHpanAndStatus(HPAN,
                 PaymentInstrumentConstants.STATUS_ACTIVE)).thenReturn(new ArrayList<>());
         

@@ -19,6 +19,7 @@ public class PaymentInstrument {
   private String hpan;
   private String maskedPan;
   private String brandLogo;
+  private String brand;
   private String circuitType;
   private boolean consent;
   private String status;

@@ -63,14 +63,14 @@ class PaymentInstrumentControllerTest {
   private static final DeactivationBodyDTO DEACTIVATION_BODY_DTO_EMPTY = new DeactivationBodyDTO("",
       "", "");
 
-  private static final HpanDTO HPAN_DTO_TEST = new HpanDTO(HPAN, CHANNEL, BRAND_LOGO, ID_WALLET,
+  private static final HpanDTO HPAN_DTO_TEST = new HpanDTO(HPAN, CHANNEL, BRAND_LOGO, BRAND_LOGO, ID_WALLET,
       INSTRUMENT_ID, CHANNEL, LocalDateTime.now());
 
   private static final HpanGetDTO HPANGETDTO = new HpanGetDTO();
 
   private static final String GETHPANISSUER_URL = "/" + INITIATIVE_ID + "/" + USER_ID + "/" + CHANNEL;
-  private static final InstrumentIssuerDTO ENROLLMENT_ISSUER_BODY_DTO = new InstrumentIssuerDTO(INITIATIVE_ID, USER_ID, "HPAN", "ISSUER", "", "", "");
-  private static final InstrumentIssuerDTO ENROLLMENT_ISSUER_BODY_DTO_EMPTY = new InstrumentIssuerDTO(INITIATIVE_ID, USER_ID, "", "", "", "", "");
+  private static final InstrumentIssuerDTO ENROLLMENT_ISSUER_BODY_DTO = new InstrumentIssuerDTO(INITIATIVE_ID, USER_ID, "HPAN", "ISSUER", "", "", "", "");
+  private static final InstrumentIssuerDTO ENROLLMENT_ISSUER_BODY_DTO_EMPTY = new InstrumentIssuerDTO(INITIATIVE_ID, USER_ID, "", "", "", "", "", "");
 
   @MockBean
   PaymentInstrumentService paymentInstrumentServiceMock;
