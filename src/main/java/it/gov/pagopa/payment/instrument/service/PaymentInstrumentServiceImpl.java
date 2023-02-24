@@ -6,17 +6,7 @@ import it.gov.pagopa.payment.instrument.connector.EncryptRestConnector;
 import it.gov.pagopa.payment.instrument.connector.PMRestClientConnector;
 import it.gov.pagopa.payment.instrument.connector.WalletRestConnector;
 import it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants;
-import it.gov.pagopa.payment.instrument.dto.CFDTO;
-import it.gov.pagopa.payment.instrument.dto.DecryptCfDTO;
-import it.gov.pagopa.payment.instrument.dto.EncryptedCfDTO;
-import it.gov.pagopa.payment.instrument.dto.HpanDTO;
-import it.gov.pagopa.payment.instrument.dto.HpanGetDTO;
-import it.gov.pagopa.payment.instrument.dto.InstrumentAckDTO;
-import it.gov.pagopa.payment.instrument.dto.InstrumentIssuerDTO;
-import it.gov.pagopa.payment.instrument.dto.RuleEngineAckDTO;
-import it.gov.pagopa.payment.instrument.dto.RuleEngineQueueDTO;
-import it.gov.pagopa.payment.instrument.dto.WalletCallDTO;
-import it.gov.pagopa.payment.instrument.dto.WalletDTO;
+import it.gov.pagopa.payment.instrument.dto.*;
 import it.gov.pagopa.payment.instrument.dto.mapper.AckMapper;
 import it.gov.pagopa.payment.instrument.dto.mapper.MessageMapper;
 import it.gov.pagopa.payment.instrument.dto.pm.PaymentMethodInfoList;
@@ -886,5 +876,48 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
         "[PERFORMANCE_LOG] [{}] Time occurred to perform business logic: {} ms",
         service,
         System.currentTimeMillis() - startTime);
+  }
+
+  @Override
+  public InstrumentDetailDTO getInstrumentInitiativesDetail(String idWallet, String userId){
+    long startTime = System.currentTimeMillis();
+
+    InstrumentDetailDTO instrumentDetailDTO = new InstrumentDetailDTO();
+
+    log.info("[GET_INSTRUMENT_INITIATIVES_DETAIL] Searching all instrument with idWallet: {}", idWallet);
+    List<PaymentInstrument> instrumentList = paymentInstrumentRepository.findByIdWallet(idWallet);
+
+    if (instrumentList.isEmpty()){
+      log.info("[GET_INSTRUMENT_INITIATIVES_DETAIL] Getting info of payment instrument for user: {}", userId);
+      PaymentMethodInfoList paymentInfo = this.getPaymentMethodInfoList(userId, idWallet, new ArrayList<>());
+      instrumentDetailDTO.setMaskedPan(paymentInfo.getMaskedPan());
+      instrumentDetailDTO.setBrand(paymentInfo.getBrand());
+      instrumentDetailDTO.setInitiativeList(new ArrayList<>());
+      performanceLog(startTime, "GET_INSTRUMENT_INITIATIVES_DETAIL");
+      return instrumentDetailDTO;
+    }
+
+    instrumentDetailDTO.setMaskedPan(instrumentList.get(0).getMaskedPan());
+    instrumentDetailDTO.setBrand(instrumentList.get(0).getBrand());
+
+    List<StatusOnInitiativeDTO> initiativeList = new ArrayList<>();
+    for (PaymentInstrument instr : instrumentList){
+      StatusOnInitiativeDTO statusOnInitiativeDTO = new StatusOnInitiativeDTO();
+      statusOnInitiativeDTO.setIdInstrument(instr.getId());
+      statusOnInitiativeDTO.setInitiativeId(instr.getInitiativeId());
+      statusOnInitiativeDTO.setStatus(instr.getStatus());
+      if (instr.getStatus().equals(PaymentInstrumentConstants.STATUS_PENDING_RE)
+              || instr.getStatus().equals(PaymentInstrumentConstants.STATUS_PENDING_RTD)){
+        statusOnInitiativeDTO.setStatus(PaymentInstrumentConstants.STATUS_PENDING_ENROLLMENT_REQUEST);
+      }
+      if (instr.getStatus().equals(PaymentInstrumentConstants.STATUS_ENROLLMENT_FAILED_KO_RE)){
+        statusOnInitiativeDTO.setStatus(PaymentInstrumentConstants.STATUS_ENROLLMENT_FAILED);
+      }
+      initiativeList.add(statusOnInitiativeDTO);
+    }
+    instrumentDetailDTO.setInitiativeList(initiativeList);
+
+    performanceLog(startTime, "GET_INSTRUMENT_INITIATIVES_DETAIL");
+    return instrumentDetailDTO;
   }
 }
