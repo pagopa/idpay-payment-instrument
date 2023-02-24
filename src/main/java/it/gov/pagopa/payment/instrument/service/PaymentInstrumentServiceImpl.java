@@ -6,17 +6,7 @@ import it.gov.pagopa.payment.instrument.connector.EncryptRestConnector;
 import it.gov.pagopa.payment.instrument.connector.PMRestClientConnector;
 import it.gov.pagopa.payment.instrument.connector.WalletRestConnector;
 import it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants;
-import it.gov.pagopa.payment.instrument.dto.CFDTO;
-import it.gov.pagopa.payment.instrument.dto.DecryptCfDTO;
-import it.gov.pagopa.payment.instrument.dto.EncryptedCfDTO;
-import it.gov.pagopa.payment.instrument.dto.HpanDTO;
-import it.gov.pagopa.payment.instrument.dto.HpanGetDTO;
-import it.gov.pagopa.payment.instrument.dto.InstrumentAckDTO;
-import it.gov.pagopa.payment.instrument.dto.InstrumentIssuerDTO;
-import it.gov.pagopa.payment.instrument.dto.RuleEngineAckDTO;
-import it.gov.pagopa.payment.instrument.dto.RuleEngineQueueDTO;
-import it.gov.pagopa.payment.instrument.dto.WalletCallDTO;
-import it.gov.pagopa.payment.instrument.dto.WalletDTO;
+import it.gov.pagopa.payment.instrument.dto.*;
 import it.gov.pagopa.payment.instrument.dto.mapper.AckMapper;
 import it.gov.pagopa.payment.instrument.dto.mapper.MessageMapper;
 import it.gov.pagopa.payment.instrument.dto.pm.PaymentMethodInfoList;
@@ -886,5 +876,31 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
         "[PERFORMANCE_LOG] [{}] Time occurred to perform business logic: {} ms",
         service,
         System.currentTimeMillis() - startTime);
+  }
+
+  @Override
+  public InstrumentDetailDTO getInstrumentInitiativesDetail(String userId, String idWallet){
+    InstrumentDetailDTO instrumentDetailDTO = new InstrumentDetailDTO();
+
+    List<PaymentInstrument> instrumentList = paymentInstrumentRepository.findByIdWallet(idWallet);
+
+    if (instrumentList.isEmpty()){
+      PaymentMethodInfoList paymentInfo = this.getPaymentMethodInfoList(userId, idWallet, new ArrayList<>());
+      instrumentDetailDTO.setMaskedPan(paymentInfo.getMaskedPan());
+      instrumentDetailDTO.setBrand(paymentInfo.getBrand());
+      instrumentDetailDTO.setInitiativeList(new ArrayList<>());
+      return instrumentDetailDTO;
+    }
+
+    instrumentDetailDTO.setMaskedPan(instrumentList.get(0).getMaskedPan());
+    instrumentDetailDTO.setBrand(instrumentList.get(0).getBrand());
+
+    List<StatusOnInitiativeDTO> initiativeList = new ArrayList<>();
+    for (PaymentInstrument instr : instrumentList){
+      initiativeList.add(new StatusOnInitiativeDTO(instr.getInitiativeId(), instr.getId(), instr.getStatus()));
+    }
+    instrumentDetailDTO.setInitiativeList(initiativeList);
+
+    return instrumentDetailDTO;
   }
 }
