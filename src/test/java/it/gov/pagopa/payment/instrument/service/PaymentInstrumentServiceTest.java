@@ -83,6 +83,7 @@ class PaymentInstrumentServiceTest {
     private static final String USER_ID_FAIL = "TEST_USER_ID_FAIL";
     private static final String INITIATIVE_ID = "TEST_INITIATIVE_ID";
     private static final String INITIATIVE_ID_OTHER = "TEST_INITIATIVE_ID_OTHER";
+    private static final String INITIATIVE_ID_ANOTHER = "TEST_INITIATIVE_ID_ANOTHER";
     private static final String HPAN = "TEST_HPAN";
     private static final Boolean CONSENT = true;
     private static final String CHANNEL = "TEST_CHANNEL";
@@ -103,7 +104,7 @@ class PaymentInstrumentServiceTest {
     private static final String HOLDER = "HOLDER";
     private static final String ISSUER_ABI_CODE = "ISSUER_ABI_CODE";
     private static final String UUID = "UUID";
-    private static final String BRAND_LOGO = "BAND_LOGO";
+    private static final String BRAND_LOGO = "BRAND_LOGO";
     private static final String BPD = "BPD";
     private static final String CREATE_DATE = "LocalDateTime.now()";
     private static final List<String> ENABLEABLE_FUNCTIONS = List.of(BPD);
@@ -157,6 +158,7 @@ class PaymentInstrumentServiceTest {
             .hpan(HPAN)
             .maskedPan(MASKED_PAN)
             .brandLogo(BRAND_LOGO)
+            .brand(BRAND)
             .consent(CONSENT)
             .status(PaymentInstrumentConstants.STATUS_ACTIVE)
             .channel(CHANNEL)
@@ -168,13 +170,13 @@ class PaymentInstrumentServiceTest {
     
     private static final PaymentInstrument TEST_PENDING_ENROLLMENT_INSTRUMENT = PaymentInstrument.builder()
             .id(INSTRUMENT_ID)
-            .initiativeId(INITIATIVE_ID)
+            .initiativeId(INITIATIVE_ID_OTHER)
             .userId(USER_ID)
             .idWallet(ID_WALLET)
             .hpan(HPAN)
             .maskedPan(MASKED_PAN)
             .brandLogo(BRAND_LOGO)
-            .brand(BRAND_LOGO)
+            .brand(BRAND)
             .consent(CONSENT)
             .status(PaymentInstrumentConstants.STATUS_PENDING_RE)
             .channel(CHANNEL)
@@ -203,12 +205,13 @@ class PaymentInstrumentServiceTest {
     
     private static final PaymentInstrument TEST_INACTIVE_INSTRUMENT = PaymentInstrument.builder()
             .id(INSTRUMENT_ID)
-            .initiativeId(INITIATIVE_ID)
+            .initiativeId(INITIATIVE_ID_ANOTHER)
             .userId(USER_ID)
             .idWallet(ID_WALLET)
             .hpan(HPAN)
             .maskedPan(MASKED_PAN)
             .brandLogo(BRAND_LOGO)
+            .brand(BRAND)
             .consent(CONSENT)
             .status(PaymentInstrumentConstants.STATUS_INACTIVE)
             .channel(CHANNEL)
@@ -245,6 +248,23 @@ class PaymentInstrumentServiceTest {
             .brandLogo(BRAND_LOGO)
             .consent(CONSENT)
             .status(PaymentInstrumentConstants.STATUS_ENROLLMENT_FAILED)
+            .channel(CHANNEL)
+            .deleteChannel(DELETE_CHANNEL)
+            .activationDate(TEST_ACTIVATION_DATE)
+            .deactivationDate(TEST_DEACTIVATION_DATE)
+            .rtdAckDate(TEST_RULE_ENGINE_ACKDATE)
+            .updateDate(TEST_DATE)
+            .build();
+    private static final PaymentInstrument TEST_ENROLLMENT_FAILED_KO_RE = PaymentInstrument.builder()
+            .id(INSTRUMENT_ID)
+            .initiativeId(INITIATIVE_ID)
+            .userId(USER_ID)
+            .idWallet(ID_WALLET)
+            .hpan(HPAN)
+            .maskedPan(MASKED_PAN)
+            .brandLogo(BRAND_LOGO)
+            .consent(CONSENT)
+            .status(PaymentInstrumentConstants.STATUS_ENROLLMENT_FAILED_KO_RE)
             .channel(CHANNEL)
             .deleteChannel(DELETE_CHANNEL)
             .activationDate(TEST_ACTIVATION_DATE)
@@ -1419,5 +1439,41 @@ class PaymentInstrumentServiceTest {
             assertEquals(HttpStatus.BAD_REQUEST.value(), e.getCode());
         }
     }
-    
+
+    @Test
+    void getInstrumentInitiativesDetail_ok(){
+        List<PaymentInstrument> instrumentList = new ArrayList<>();
+        instrumentList.add(TEST_INSTRUMENT);
+        instrumentList.add(TEST_PENDING_ENROLLMENT_INSTRUMENT);
+        instrumentList.add(TEST_PENDING_DEACTIVATION_INSTRUMENT);
+        instrumentList.add(TEST_INACTIVE_INSTRUMENT);
+        instrumentList.add(TEST_ENROLLMENT_FAILED_KO_RE);
+        instrumentList.add(TEST_INSTRUMENT_PENDING_RTD);
+
+        Mockito.when(paymentInstrumentRepositoryMock.findByIdWallet(ID_WALLET)).thenReturn(instrumentList);
+
+        InstrumentDetailDTO instrumentDetailDTO = paymentInstrumentService.getInstrumentInitiativesDetail(ID_WALLET, USER_ID);
+        assertEquals(MASKED_PAN, instrumentDetailDTO.getMaskedPan());
+        assertEquals(BRAND, instrumentDetailDTO.getBrand());
+        assertEquals(6, instrumentDetailDTO.getInitiativeList().size());
+        List<String> expectedStatusList = List.of(PaymentInstrumentConstants.STATUS_ACTIVE,
+                PaymentInstrumentConstants.STATUS_INACTIVE,
+                PaymentInstrumentConstants.STATUS_PENDING_ENROLLMENT_REQUEST,
+                PaymentInstrumentConstants.STATUS_PENDING_DEACTIVATION_REQUEST,
+                PaymentInstrumentConstants.STATUS_ENROLLMENT_FAILED);
+        assertTrue(instrumentDetailDTO.getInitiativeList().stream().anyMatch(initiative ->
+                expectedStatusList.contains(initiative.getStatus())));
+    }
+    @Test
+    void getInstrumentInitiativesDetail_noInstrumentFound(){
+        Mockito.when(paymentInstrumentRepositoryMock.findByIdWallet(ID_WALLET)).thenReturn(new ArrayList<>());
+        Mockito.when(decryptRestConnector.getPiiByToken(USER_ID)).thenReturn(DECRYPT_CF_DTO);
+        Mockito.when(pmRestClientConnector.getWalletList(USER_ID)).thenReturn(WALLET_V_2_LIST_RESPONSE_CARD);
+
+        InstrumentDetailDTO instrumentDetailDTO = paymentInstrumentService.getInstrumentInitiativesDetail(ID_WALLET, USER_ID);
+
+        assertEquals(BLURRED_NUMBER, instrumentDetailDTO.getMaskedPan());
+        assertEquals(BRAND, instrumentDetailDTO.getBrand());
+        assertEquals(0, instrumentDetailDTO.getInitiativeList().size());
+    }
 }

@@ -6,13 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants;
-import it.gov.pagopa.payment.instrument.dto.DeactivationBodyDTO;
-import it.gov.pagopa.payment.instrument.dto.EnrollmentBodyDTO;
-import it.gov.pagopa.payment.instrument.dto.ErrorDTO;
-import it.gov.pagopa.payment.instrument.dto.HpanDTO;
-import it.gov.pagopa.payment.instrument.dto.HpanGetDTO;
-import it.gov.pagopa.payment.instrument.dto.InstrumentIssuerDTO;
-import it.gov.pagopa.payment.instrument.dto.UnsubscribeBodyDTO;
+import it.gov.pagopa.payment.instrument.dto.*;
 import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
 import it.gov.pagopa.payment.instrument.service.PaymentInstrumentService;
 import java.time.LocalDateTime;
@@ -49,9 +43,7 @@ class PaymentInstrumentControllerTest {
   private static final String ID_WALLET = "ID_WALLET";
   private static final String INSTRUMENT_ID = "INSTRUMENT_ID";
   private static final String CHANNEL = "TEST_CHANNEL";
-  private static final String MASKED_PAN = "MASKED_PAN";
-  private static final String BRAND_LOGO = "BAND_LOGO";
-  private static final String CIRCUIT_TYPE = "CIRCUIT_TYPE";
+  private static final String BRAND_LOGO = "BRAND_LOGO";
 
   private static final String GETHPAN_URL = "/" + INITIATIVE_ID + "/" + USER_ID;
   private static final EnrollmentBodyDTO ENROLLMENT_BODY_DTO = new EnrollmentBodyDTO(USER_ID,
@@ -71,7 +63,7 @@ class PaymentInstrumentControllerTest {
   private static final String GETHPANISSUER_URL = "/" + INITIATIVE_ID + "/" + USER_ID + "/" + CHANNEL;
   private static final InstrumentIssuerDTO ENROLLMENT_ISSUER_BODY_DTO = new InstrumentIssuerDTO(INITIATIVE_ID, USER_ID, "HPAN", "ISSUER", "", "", "");
   private static final InstrumentIssuerDTO ENROLLMENT_ISSUER_BODY_DTO_EMPTY = new InstrumentIssuerDTO(INITIATIVE_ID, USER_ID, "", "", "", "", "");
-
+  private static final String GET_INSTRUMENT_INITIATIVES_DETAIL = "/initiatives/" + ID_WALLET + "/" + USER_ID + "/detail";
   @MockBean
   PaymentInstrumentService paymentInstrumentServiceMock;
 
@@ -280,5 +272,18 @@ class PaymentInstrumentControllerTest {
     assertEquals(HttpStatus.FORBIDDEN.value(), error.getCode());
     assertEquals(PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_ALREADY_ACTIVE,
         error.getMessage());
+  }
+
+  @Test
+  void get_instrument_initiatives_detail() throws Exception {
+    Mockito.when(paymentInstrumentServiceMock.getInstrumentInitiativesDetail(USER_ID, ID_WALLET))
+            .thenReturn(new InstrumentDetailDTO());
+
+    mvc.perform(
+                    MockMvcRequestBuilders.get(BASE_URL + GET_INSTRUMENT_INITIATIVES_DETAIL)
+                            .contentType(MediaType.APPLICATION_JSON_VALUE)
+                            .accept(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(MockMvcResultMatchers.status().isOk())
+            .andReturn();
   }
 }
