@@ -1,10 +1,7 @@
 package it.gov.pagopa.payment.instrument.controller;
 
-import it.gov.pagopa.payment.instrument.dto.DeactivationBodyDTO;
-import it.gov.pagopa.payment.instrument.dto.EnrollmentBodyDTO;
-import it.gov.pagopa.payment.instrument.dto.HpanGetDTO;
-import it.gov.pagopa.payment.instrument.dto.InstrumentIssuerDTO;
-import it.gov.pagopa.payment.instrument.dto.UnsubscribeBodyDTO;
+import it.gov.pagopa.payment.instrument.dto.*;
+
 import javax.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -42,5 +39,10 @@ public interface PaymentInstrumentController {
 
   @PutMapping("/hb/enroll")
   ResponseEntity<HpanGetDTO> enrollFromIssuer(@Valid @RequestBody InstrumentIssuerDTO body);
+
+  @GetMapping("/initiatives/{idWallet}/{userId}/detail")
+  ResponseEntity<InstrumentDetailDTO> getInstrumentInitiativesDetail(
+          @PathVariable("idWallet") String idWallet,
+          @PathVariable("userId") String userId);
 
 }
