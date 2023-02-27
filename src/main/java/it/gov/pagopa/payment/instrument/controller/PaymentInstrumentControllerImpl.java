@@ -62,7 +62,7 @@ public class PaymentInstrumentControllerImpl implements PaymentInstrumentControl
   }
 
   @Override
-  public ResponseEntity<InstrumentDetailDTO> getInstrumentInitiativesDetail(String userId, String idWallet) {
+  public ResponseEntity<InstrumentDetailDTO> getInstrumentInitiativesDetail(String idWallet, String userId) {
     InstrumentDetailDTO instrumentDetailDTO = paymentInstrumentService.getInstrumentInitiativesDetail(userId, idWallet);
     return new ResponseEntity<>(instrumentDetailDTO, HttpStatus.OK);
   }

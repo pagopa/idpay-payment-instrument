@@ -21,5 +21,5 @@ public interface PaymentInstrumentService {
   void processAck(RuleEngineAckDTO ruleEngineAckDTO);
   HpanGetDTO getHpanFromIssuer(String initiativeId, String userId, String channel);
   void enrollFromIssuer(InstrumentIssuerDTO body);
-  InstrumentDetailDTO getInstrumentInitiativesDetail(String userId, String idWallet);
+  InstrumentDetailDTO getInstrumentInitiativesDetail(String idWallet, String userId);
 }

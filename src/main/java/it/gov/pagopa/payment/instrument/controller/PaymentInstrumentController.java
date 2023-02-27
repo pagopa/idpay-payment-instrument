@@ -42,7 +42,7 @@ public interface PaymentInstrumentController {
 
   @GetMapping("/initiatives/{idWallet}/{userId}/detail")
   ResponseEntity<InstrumentDetailDTO> getInstrumentInitiativesDetail(
-          @PathVariable("userId") String userId,
-          @PathVariable("idWallet") String idWallet);
+          @PathVariable("idWallet") String idWallet,
+          @PathVariable("userId") String userId);
 
 }

@@ -879,16 +879,21 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
   }
 
   @Override
-  public InstrumentDetailDTO getInstrumentInitiativesDetail(String userId, String idWallet){
+  public InstrumentDetailDTO getInstrumentInitiativesDetail(String idWallet, String userId){
+    long startTime = System.currentTimeMillis();
+
     InstrumentDetailDTO instrumentDetailDTO = new InstrumentDetailDTO();
 
+    log.info("[GET_INSTRUMENT_INITIATIVES_DETAIL] Searching all instrument with idWallet: {}", idWallet);
     List<PaymentInstrument> instrumentList = paymentInstrumentRepository.findByIdWallet(idWallet);
 
     if (instrumentList.isEmpty()){
+      log.info("[GET_INSTRUMENT_INITIATIVES_DETAIL] Getting info of payment instrument for user: {}", userId);
       PaymentMethodInfoList paymentInfo = this.getPaymentMethodInfoList(userId, idWallet, new ArrayList<>());
       instrumentDetailDTO.setMaskedPan(paymentInfo.getMaskedPan());
       instrumentDetailDTO.setBrand(paymentInfo.getBrand());
       instrumentDetailDTO.setInitiativeList(new ArrayList<>());
+      performanceLog(startTime, "GET_INSTRUMENT_INITIATIVES_DETAIL");
       return instrumentDetailDTO;
     }
 
@@ -897,10 +902,22 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
 
     List<StatusOnInitiativeDTO> initiativeList = new ArrayList<>();
     for (PaymentInstrument instr : instrumentList){
-      initiativeList.add(new StatusOnInitiativeDTO(instr.getInitiativeId(), instr.getId(), instr.getStatus()));
+      StatusOnInitiativeDTO statusOnInitiativeDTO = new StatusOnInitiativeDTO();
+      statusOnInitiativeDTO.setIdInstrument(instr.getId());
+      statusOnInitiativeDTO.setInitiativeId(instr.getInitiativeId());
+      statusOnInitiativeDTO.setStatus(instr.getStatus());
+      if (instr.getStatus().equals(PaymentInstrumentConstants.STATUS_PENDING_RE)
+              || instr.getStatus().equals(PaymentInstrumentConstants.STATUS_PENDING_RTD)){
+        statusOnInitiativeDTO.setStatus(PaymentInstrumentConstants.STATUS_PENDING_ENROLLMENT_REQUEST);
+      }
+      if (instr.getStatus().equals(PaymentInstrumentConstants.STATUS_ENROLLMENT_FAILED_KO_RE)){
+        statusOnInitiativeDTO.setStatus(PaymentInstrumentConstants.STATUS_ENROLLMENT_FAILED);
+      }
+      initiativeList.add(statusOnInitiativeDTO);
     }
     instrumentDetailDTO.setInitiativeList(initiativeList);
 
+    performanceLog(startTime, "GET_INSTRUMENT_INITIATIVES_DETAIL");
     return instrumentDetailDTO;
   }
 }
