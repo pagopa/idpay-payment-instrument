@@ -1448,13 +1448,14 @@ class PaymentInstrumentServiceTest {
         instrumentList.add(TEST_PENDING_DEACTIVATION_INSTRUMENT);
         instrumentList.add(TEST_INACTIVE_INSTRUMENT);
         instrumentList.add(TEST_ENROLLMENT_FAILED_KO_RE);
+        instrumentList.add(TEST_INSTRUMENT_PENDING_RTD);
 
         Mockito.when(paymentInstrumentRepositoryMock.findByIdWallet(ID_WALLET)).thenReturn(instrumentList);
 
         InstrumentDetailDTO instrumentDetailDTO = paymentInstrumentService.getInstrumentInitiativesDetail(ID_WALLET, USER_ID);
         assertEquals(MASKED_PAN, instrumentDetailDTO.getMaskedPan());
         assertEquals(BRAND, instrumentDetailDTO.getBrand());
-        assertEquals(5, instrumentDetailDTO.getInitiativeList().size());
+        assertEquals(6, instrumentDetailDTO.getInitiativeList().size());
         List<String> expectedStatusList = List.of(PaymentInstrumentConstants.STATUS_ACTIVE,
                 PaymentInstrumentConstants.STATUS_INACTIVE,
                 PaymentInstrumentConstants.STATUS_PENDING_ENROLLMENT_REQUEST,
