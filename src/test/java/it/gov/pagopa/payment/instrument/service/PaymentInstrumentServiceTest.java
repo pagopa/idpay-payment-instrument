@@ -1450,7 +1450,7 @@ class PaymentInstrumentServiceTest {
         instrumentList.add(TEST_ENROLLMENT_FAILED_KO_RE);
         instrumentList.add(TEST_INSTRUMENT_PENDING_RTD);
 
-        Mockito.when(paymentInstrumentRepositoryMock.findByIdWallet(ID_WALLET)).thenReturn(instrumentList);
+        Mockito.when(paymentInstrumentRepositoryMock.findByIdWalletAndUserId(ID_WALLET, USER_ID)).thenReturn(instrumentList);
 
         InstrumentDetailDTO instrumentDetailDTO = paymentInstrumentService.getInstrumentInitiativesDetail(ID_WALLET, USER_ID);
         assertEquals(MASKED_PAN, instrumentDetailDTO.getMaskedPan());
@@ -1466,7 +1466,7 @@ class PaymentInstrumentServiceTest {
     }
     @Test
     void getInstrumentInitiativesDetail_noInstrumentFound(){
-        Mockito.when(paymentInstrumentRepositoryMock.findByIdWallet(ID_WALLET)).thenReturn(new ArrayList<>());
+        Mockito.when(paymentInstrumentRepositoryMock.findByIdWalletAndUserId(ID_WALLET, USER_ID)).thenReturn(new ArrayList<>());
         Mockito.when(decryptRestConnector.getPiiByToken(USER_ID)).thenReturn(DECRYPT_CF_DTO);
         Mockito.when(pmRestClientConnector.getWalletList(USER_ID)).thenReturn(WALLET_V_2_LIST_RESPONSE_CARD);
 

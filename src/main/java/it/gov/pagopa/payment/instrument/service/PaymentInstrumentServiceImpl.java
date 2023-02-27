@@ -885,7 +885,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     InstrumentDetailDTO instrumentDetailDTO = new InstrumentDetailDTO();
 
     log.info("[GET_INSTRUMENT_INITIATIVES_DETAIL] Searching all instrument with idWallet: {}", idWallet);
-    List<PaymentInstrument> instrumentList = paymentInstrumentRepository.findByIdWallet(idWallet);
+    List<PaymentInstrument> instrumentList = paymentInstrumentRepository.findByIdWalletAndUserId(idWallet, userId);
 
     if (instrumentList.isEmpty()){
       log.info("[GET_INSTRUMENT_INITIATIVES_DETAIL] Getting info of payment instrument for user: {}", userId);

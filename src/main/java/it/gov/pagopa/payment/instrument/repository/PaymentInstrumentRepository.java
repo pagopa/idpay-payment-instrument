@@ -10,9 +10,6 @@ import org.springframework.stereotype.Repository;
 public interface PaymentInstrumentRepository extends MongoRepository<PaymentInstrument, String> {
 
   List<PaymentInstrument> findByIdWalletAndStatus(String idWallet, String status);
-
-  List<PaymentInstrument> findByIdWalletAndStatusNotContaining(String idWallet, String status);
-
   Optional<PaymentInstrument> findByInitiativeIdAndUserIdAndId(String initiativeId, String userId,
       String instrumentId);
 
@@ -38,6 +35,6 @@ public interface PaymentInstrumentRepository extends MongoRepository<PaymentInst
   List<PaymentInstrument> findByHpanAndStatusNotContaining(String hpan, String status);
 
   List<PaymentInstrument> findByStatusRegex(String status);
-  List<PaymentInstrument> findByIdWallet(String idWallet);
+  List<PaymentInstrument> findByIdWalletAndUserId(String idWallet, String userId);
 
 }
