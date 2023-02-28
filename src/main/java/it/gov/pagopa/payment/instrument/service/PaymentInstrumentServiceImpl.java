@@ -29,6 +29,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import it.gov.pagopa.payment.instrument.utils.AuditUtilities;
@@ -896,6 +897,8 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       performanceLog(startTime, "GET_INSTRUMENT_INITIATIVES_DETAIL");
       return instrumentDetailDTO;
     }
+
+    instrumentList.sort(Comparator.comparing(PaymentInstrument::getUpdateDate).reversed());
 
     instrumentDetailDTO.setMaskedPan(instrumentList.get(0).getMaskedPan());
     instrumentDetailDTO.setBrand(instrumentList.get(0).getBrand());

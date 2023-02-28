@@ -166,6 +166,7 @@ class PaymentInstrumentServiceTest {
             .activationDate(TEST_ACTIVATION_DATE)
             .deactivationDate(TEST_DEACTIVATION_DATE)
             .rtdAckDate(TEST_RULE_ENGINE_ACKDATE)
+            .updateDate(TEST_DATE)
             .build();
     
     private static final PaymentInstrument TEST_PENDING_ENROLLMENT_INSTRUMENT = PaymentInstrument.builder()
@@ -184,6 +185,7 @@ class PaymentInstrumentServiceTest {
             .activationDate(TEST_ACTIVATION_DATE)
             .deactivationDate(TEST_DEACTIVATION_DATE)
             .rtdAckDate(TEST_RULE_ENGINE_ACKDATE)
+            .updateDate(TEST_DATE)
             .build();
     
     private static final PaymentInstrument TEST_PENDING_DEACTIVATION_INSTRUMENT = PaymentInstrument.builder()
@@ -201,6 +203,7 @@ class PaymentInstrumentServiceTest {
             .activationDate(TEST_ACTIVATION_DATE)
             .deactivationDate(TEST_DEACTIVATION_DATE)
             .rtdAckDate(TEST_RULE_ENGINE_ACKDATE)
+            .updateDate(TEST_DATE)
             .build();
     
     private static final PaymentInstrument TEST_INACTIVE_INSTRUMENT = PaymentInstrument.builder()
@@ -219,6 +222,7 @@ class PaymentInstrumentServiceTest {
             .activationDate(TEST_ACTIVATION_DATE)
             .deactivationDate(TEST_DEACTIVATION_DATE)
             .rtdAckDate(TEST_RULE_ENGINE_ACKDATE)
+            .updateDate(TEST_DATE)
             .build();
     
     private static final PaymentInstrument TEST_INSTRUMENT_PENDING_RTD = PaymentInstrument.builder()
@@ -236,6 +240,7 @@ class PaymentInstrumentServiceTest {
             .activationDate(TEST_ACTIVATION_DATE)
             .deactivationDate(TEST_DEACTIVATION_DATE)
             .rtdAckDate(TEST_RULE_ENGINE_ACKDATE)
+            .updateDate(TEST_DATE)
             .build();
     
     private static final PaymentInstrument TEST_ENROLLMENT_FAILED = PaymentInstrument.builder()
