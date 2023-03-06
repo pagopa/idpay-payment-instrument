@@ -809,7 +809,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     }
 
     if (status.equals(PaymentInstrumentConstants.STATUS_ENROLLMENT_FAILED_KO_RE)) {
-      log.info("[PROCESS_ACK_ENROLL] ACK RULE ENGINE KO: updating instrument status to {}.",
+      log.info("[PROCESS_ACK_ENROLL] [RESULT] ACK RULE ENGINE KO: updating instrument status to {}.",
           PaymentInstrumentConstants.STATUS_ENROLLMENT_FAILED);
       auditUtilities.logAckEnrollKO(instrument.getIdWallet(), instrument.getChannel(),
           ruleEngineAckDTO.getTimestamp());
@@ -823,7 +823,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     }
 
     if (status.equals(PaymentInstrumentConstants.STATUS_ACTIVE)) {
-      log.info("[PROCESS_ACK_ENROLL] ACK RULE ENGINE OK: updating instrument status to {}.",
+      log.info("[PROCESS_ACK_ENROLL] [RESULT] ACK RULE ENGINE OK: updating instrument status to {}.",
           PaymentInstrumentConstants.STATUS_ACTIVE);
       instrument.setActivationDate(ruleEngineAckDTO.getTimestamp());
       auditUtilities.logAckEnrollComplete(instrument.getIdWallet(), instrument.getChannel(),
