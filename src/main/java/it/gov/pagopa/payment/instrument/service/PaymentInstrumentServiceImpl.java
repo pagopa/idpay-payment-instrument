@@ -92,8 +92,8 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     PaymentMethodInfoList infoList = getPaymentMethodInfoList(
         userId, idWallet, paymentMethodInfoList);
 
-    List<PaymentInstrument> instrumentList = paymentInstrumentRepository.findByHpanAndStatusNotContaining(
-        infoList.getHpan(), PaymentInstrumentConstants.STATUS_INACTIVE);
+    List<PaymentInstrument> instrumentList = paymentInstrumentRepository.findByHpan(
+        infoList.getHpan());
 
     RTDHpanListDTO hpanListDTO = new RTDHpanListDTO();
     hpanListDTO.setHpan(infoList.getHpan());
@@ -636,8 +636,8 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
   public void enrollFromIssuer(InstrumentIssuerDTO body) {
     long startTime = System.currentTimeMillis();
 
-    List<PaymentInstrument> instrumentList = paymentInstrumentRepository.findByHpanAndStatusNotContaining(
-        body.getHpan(), PaymentInstrumentConstants.STATUS_INACTIVE);
+    List<PaymentInstrument> instrumentList = paymentInstrumentRepository.findByHpan(
+        body.getHpan());
 
     for (PaymentInstrument pi : instrumentList) {
       if (!pi.getUserId().equals(body.getUserId())) {
