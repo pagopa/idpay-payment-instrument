@@ -92,26 +92,26 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     PaymentMethodInfoList infoList = getPaymentMethodInfoList(
         userId, idWallet, paymentMethodInfoList);
 
-    List<PaymentInstrument> instrumentList = paymentInstrumentRepository.findByHpan(
-        infoList.getHpan());
+    List<PaymentInstrument> instrumentList = paymentInstrumentRepository.findByHpan
+            (infoList.getHpan());
+
+    if (instrumentList.stream().anyMatch(paymentInstrument -> !paymentInstrument.getUserId().equals(userId))){
+      log.error(
+              "[ENROLL_INSTRUMENT] The Payment Instrument is already associated to another citizen.");
+      auditUtilities.logEnrollInstrumentKO(
+              PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_ALREADY_ASSOCIATED, idWallet, channel);
+      performanceLog(startTime, ENROLL_INSTRUMENT);
+      throw new PaymentInstrumentException(HttpStatus.FORBIDDEN.value(),
+              PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_ALREADY_ASSOCIATED);
+    }
 
     RTDHpanListDTO hpanListDTO = new RTDHpanListDTO();
     hpanListDTO.setHpan(infoList.getHpan());
     hpanListDTO.setConsent(infoList.isConsent());
 
     for (PaymentInstrument pi : instrumentList) {
-      if (!pi.getUserId().equals(userId)) {
-        log.error(
-            "[ENROLL_INSTRUMENT] The Payment Instrument is already in use by another citizen.");
-        auditUtilities.logEnrollInstrumentKO(
-            PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_ALREADY_ACTIVE, idWallet, channel);
-        performanceLog(startTime, ENROLL_INSTRUMENT);
-        throw new PaymentInstrumentException(HttpStatus.FORBIDDEN.value(),
-            PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_ALREADY_ACTIVE);
-      }
-
       if (pi.getInitiativeId().equals(initiativeId) && pi.getStatus()
-          .equals(PaymentInstrumentConstants.STATUS_ENROLLMENT_FAILED)) {
+              .equals(PaymentInstrumentConstants.STATUS_ENROLLMENT_FAILED)) {
         log.info(
             "[ENROLL_INSTRUMENT] Try enrolling again the instrument with status failed");
         enrollInstrumentFailed(pi, hpanListDTO, channel);
@@ -120,7 +120,8 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       }
 
       if (pi.getInitiativeId().equals(initiativeId) && !pi.getStatus()
-          .equals(PaymentInstrumentConstants.STATUS_ENROLLMENT_FAILED_KO_RE)) {
+              .equals(PaymentInstrumentConstants.STATUS_ENROLLMENT_FAILED_KO_RE)
+              && !pi.getStatus().equals(PaymentInstrumentConstants.STATUS_INACTIVE)) {
         log.info(
             "[ENROLL_INSTRUMENT] The Payment Instrument is already active, or there is a pending request on it.");
         performanceLog(startTime, ENROLL_INSTRUMENT);
@@ -639,19 +640,20 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     List<PaymentInstrument> instrumentList = paymentInstrumentRepository.findByHpan(
         body.getHpan());
 
-    for (PaymentInstrument pi : instrumentList) {
-      if (!pi.getUserId().equals(body.getUserId())) {
-        log.error(
-            "[ENROLL_FROM_ISSUER] The Payment Instrument is already in use by another citizen.");
-        auditUtilities.logEnrollInstrFromIssuerKO(
-            PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_ALREADY_ACTIVE, body.getHpan(),
-            body.getChannel());
-        performanceLog(startTime, ENROLL_FROM_ISSUER);
-        throw new PaymentInstrumentException(HttpStatus.FORBIDDEN.value(),
-            PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_ALREADY_ACTIVE);
-      }
+    if (instrumentList.stream().anyMatch(paymentInstrument -> !paymentInstrument.getUserId().equals(body.getUserId()))){
+      log.error(
+              "[ENROLL_FROM_ISSUER] The Payment Instrument is already associated to another citizen.");
+      auditUtilities.logEnrollInstrFromIssuerKO(
+              PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_ALREADY_ASSOCIATED, body.getHpan(),
+              body.getChannel());
+      performanceLog(startTime, ENROLL_FROM_ISSUER);
+      throw new PaymentInstrumentException(HttpStatus.FORBIDDEN.value(),
+              PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_ALREADY_ASSOCIATED);
+    }
 
-      if (pi.getInitiativeId().equals(body.getInitiativeId())) {
+    for (PaymentInstrument pi : instrumentList) {
+      if (pi.getInitiativeId().equals(body.getInitiativeId())
+      && !pi.getStatus().equals(PaymentInstrumentConstants.STATUS_INACTIVE)) {
         log.info(
             "[ENROLL_FROM_ISSUER] The Payment Instrument is already active, or there is a pending request on it.");
         auditUtilities.logEnrollInstrFromIssuerKO("already active or in pending", body.getHpan(),

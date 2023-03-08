@@ -302,7 +302,7 @@ class PaymentInstrumentServiceTest {
             fail();
         }
     }
-    
+
     @Test
     void enrollInstrument_ko_consent() {
         Mockito.when(paymentInstrumentRepositoryMock.findByHpan(HPAN)).thenReturn(new ArrayList<>());
@@ -452,8 +452,8 @@ class PaymentInstrumentServiceTest {
     }
     
     @Test
-    void enrollInstrument_ko_already_active() {
-        Mockito.when(paymentInstrumentRepositoryMock.findByHpan(HPAN)).thenReturn(List.of(TEST_INSTRUMENT));
+    void enrollInstrument_ko_already_associated() {
+        Mockito.when(paymentInstrumentRepositoryMock.findByHpan(HPAN)).thenReturn(List.of(TEST_INACTIVE_INSTRUMENT));
         
         Mockito.when(decryptRestConnector.getPiiByToken(USER_ID_FAIL)).thenReturn(DECRYPT_CF_DTO);
         
@@ -466,7 +466,7 @@ class PaymentInstrumentServiceTest {
             );
         } catch (PaymentInstrumentException e) {
             assertEquals(HttpStatus.FORBIDDEN.value(), e.getCode());
-            assertEquals(PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_ALREADY_ACTIVE,
+            assertEquals(PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_ALREADY_ASSOCIATED,
                     e.getMessage());
         }
     }
@@ -1392,7 +1392,7 @@ class PaymentInstrumentServiceTest {
     }
     
     @Test
-    void enrollIssuer_ko_already_active() {
+    void enrollIssuer_ko_already_associated() {
         final InstrumentIssuerDTO dto = new InstrumentIssuerDTO(INITIATIVE_ID, USER_ID_FAIL, HPAN, CHANNEL, "", "", "");
         Mockito.when(paymentInstrumentRepositoryMock.findByHpan(HPAN)).thenReturn(List.of(TEST_INSTRUMENT));
         
@@ -1400,7 +1400,7 @@ class PaymentInstrumentServiceTest {
             paymentInstrumentService.enrollFromIssuer(dto);
         } catch (PaymentInstrumentException e) {
             assertEquals(HttpStatus.FORBIDDEN.value(), e.getCode());
-            assertEquals(PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_ALREADY_ACTIVE,
+            assertEquals(PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_ALREADY_ASSOCIATED,
                     e.getMessage());
         }
     }
