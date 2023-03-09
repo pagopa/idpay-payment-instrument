@@ -118,10 +118,9 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
         performanceLog(startTime, ENROLL_INSTRUMENT);
         return;
       }
-
-      if (pi.getInitiativeId().equals(initiativeId) && !pi.getStatus()
-              .equals(PaymentInstrumentConstants.STATUS_ENROLLMENT_FAILED_KO_RE)
-              && !pi.getStatus().equals(PaymentInstrumentConstants.STATUS_INACTIVE)) {
+      
+      if (pi.getInitiativeId().equals(initiativeId) && !List.of(PaymentInstrumentConstants.STATUS_ENROLLMENT_FAILED_KO_RE,
+              PaymentInstrumentConstants.STATUS_INACTIVE).contains(pi.getStatus())){
         log.info(
             "[ENROLL_INSTRUMENT] The Payment Instrument is already active, or there is a pending request on it.");
         performanceLog(startTime, ENROLL_INSTRUMENT);
@@ -653,7 +652,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
 
     for (PaymentInstrument pi : instrumentList) {
       if (pi.getInitiativeId().equals(body.getInitiativeId())
-      && !pi.getStatus().equals(PaymentInstrumentConstants.STATUS_INACTIVE)) {
+              && !pi.getStatus().equals(PaymentInstrumentConstants.STATUS_INACTIVE)) {
         log.info(
             "[ENROLL_FROM_ISSUER] The Payment Instrument is already active, or there is a pending request on it.");
         auditUtilities.logEnrollInstrFromIssuerKO("already active or in pending", body.getHpan(),
