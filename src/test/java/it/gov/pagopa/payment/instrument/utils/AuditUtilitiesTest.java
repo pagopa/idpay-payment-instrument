@@ -1,43 +1,14 @@
 package it.gov.pagopa.payment.instrument.utils;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-
 import ch.qos.logback.classic.LoggerContext;
-import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.core.read.ListAppender;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
-
-import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.HttpStatus;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-@ExtendWith({SpringExtension.class, MockitoExtension.class})
-@ContextConfiguration(classes = {AuditUtilities.class,InetAddress.class})
+import java.time.LocalDateTime;
+
 class AuditUtilitiesTest {
-    private static final String SRCIP;
-
-    static {
-        try {
-            SRCIP = InetAddress.getLocalHost().getHostAddress();
-        } catch (UnknownHostException e) {
-            throw new PaymentInstrumentException(HttpStatus.BAD_REQUEST.value(), e.getMessage());
-        }
-    }
 
     private static final String MSG = " TEST_MSG";
     private static final String ID_WALLET  = "TEST_ID_WALLET";
@@ -45,13 +16,9 @@ class AuditUtilitiesTest {
     private static final LocalDateTime DATE = LocalDateTime.now();
     private static final String CHANNEL = "CHANNEL";
 
-    @MockBean
-    Logger logger;
-    @Autowired
-    AuditUtilities auditUtilities;
-    @MockBean
-    InetAddress inetAddress;
-    MemoryAppender memoryAppender;
+    private MemoryAppender memoryAppender;
+
+    private final AuditUtilities auditUtilities = new AuditUtilities();
 
     @BeforeEach
     public void setup() {
@@ -63,92 +30,130 @@ class AuditUtilitiesTest {
         memoryAppender.start();
     }
 
-
     @Test
     void logEnrollInstrumentKO_ok(){
-            auditUtilities.logEnrollInstrumentKO(MSG, ID_WALLET, CHANNEL);
-        assertThat(memoryAppender.contains(ch.qos.logback.classic.Level.DEBUG,MSG)).isFalse();
-    }
+        auditUtilities.logEnrollInstrumentKO(MSG, ID_WALLET, CHANNEL);
 
+        Assertions.assertEquals(
+                ("CEF:0|PagoPa|IDPAY|1.0|7|User interaction|2| event=PaymentInstrument dstip=%s msg=Enrollment of the instrument failed:" +
+                        " %s cs1Label=idWallet cs1=%s cs3Label=channel cs3=%s")
+                        .formatted(
+                                AuditUtilities.SRCIP,
+                                MSG,
+                                ID_WALLET,
+                                CHANNEL
+                        ),
+                memoryAppender.getLoggedEvents().get(0).getFormattedMessage()
+        );
+    }
     @Test
     void logEnrollInstrFromIssuerKO_ok(){
         auditUtilities.logEnrollInstrFromIssuerKO(MSG, HPAN, CHANNEL);
-        assertThat(memoryAppender.contains(ch.qos.logback.classic.Level.DEBUG,MSG)).isFalse();
-    }
 
+        Assertions.assertEquals(
+                ("CEF:0|PagoPa|IDPAY|1.0|7|User interaction|2| event=PaymentInstrument dstip=%s msg=Enrollment of the instrument from Issuer failed:" +
+                        " %s cs2Label=hpan cs2=%s cs3Label=channel cs3=%s")
+                        .formatted(
+                                AuditUtilities.SRCIP,
+                                MSG,
+                                HPAN,
+                                CHANNEL
+                        ),
+                memoryAppender.getLoggedEvents().get(0).getFormattedMessage()
+        );
+    }
     @Test
     void logEnrollInstrumentComplete_ok(){
         auditUtilities.logEnrollInstrumentComplete(ID_WALLET, CHANNEL);
-        assertThat(memoryAppender.contains(ch.qos.logback.classic.Level.DEBUG,MSG)).isFalse();
-    }
 
+        Assertions.assertEquals(
+                ("CEF:0|PagoPa|IDPAY|1.0|7|User interaction|2| event=PaymentInstrument dstip=%s msg=Enrollment of the instrument completed." +
+                        " cs1Label=idWallet cs1=%s cs3Label=channel cs3=%s")
+                        .formatted(
+                                AuditUtilities.SRCIP,
+                                ID_WALLET,
+                                CHANNEL
+                        ),
+                memoryAppender.getLoggedEvents().get(0).getFormattedMessage()
+        );
+    }
     @Test
     void logEnrollInstrFromIssuerComplete_ok(){
         auditUtilities.logEnrollInstrFromIssuerComplete(HPAN, CHANNEL);
-        assertThat(memoryAppender.contains(ch.qos.logback.classic.Level.DEBUG,MSG)).isFalse();
-    }
 
+        Assertions.assertEquals(
+                ("CEF:0|PagoPa|IDPAY|1.0|7|User interaction|2| event=PaymentInstrument dstip=%s msg=Enrollment of the instrument from Issuer completed." +
+                        " cs2Label=hpan cs2=%s cs3Label=channel cs3=%s")
+                        .formatted(
+                                AuditUtilities.SRCIP,
+                                HPAN,
+                                CHANNEL
+                        ),
+                memoryAppender.getLoggedEvents().get(0).getFormattedMessage()
+        );
+    }
     @Test
     void logDeactivationComplete_ok(){
         auditUtilities.logDeactivationComplete(ID_WALLET, CHANNEL, DATE);
-        assertThat(memoryAppender.contains(ch.qos.logback.classic.Level.DEBUG,MSG)).isFalse();
-    }
 
+        Assertions.assertEquals(
+                ("CEF:0|PagoPa|IDPAY|1.0|7|User interaction|2| event=PaymentInstrument dstip=%s msg=Deactivation of the instrument completed." +
+                        " cs1Label=idWallet cs1=%s cs3Label=channel cs3=%s cs4Label=date cs4=%s")
+                        .formatted(
+                                AuditUtilities.SRCIP,
+                                ID_WALLET,
+                                CHANNEL,
+                                DATE
+                        ),
+                memoryAppender.getLoggedEvents().get(0).getFormattedMessage()
+        );
+    }
     @Test
     void logDeactivationKO_ok(){
         auditUtilities.logDeactivationKO(ID_WALLET, CHANNEL, DATE);
-        assertThat(memoryAppender.contains(ch.qos.logback.classic.Level.DEBUG,MSG)).isFalse();
-    }
 
+        Assertions.assertEquals(
+                ("CEF:0|PagoPa|IDPAY|1.0|7|User interaction|2| event=PaymentInstrument dstip=%s msg=Deactivation of the instrument failed." +
+                        " cs1Label=idWallet cs1=%s cs3Label=channel cs3=%s cs4Label=date cs4=%s")
+                        .formatted(
+                                AuditUtilities.SRCIP,
+                                ID_WALLET,
+                                CHANNEL,
+                                DATE
+                        ),
+                memoryAppender.getLoggedEvents().get(0).getFormattedMessage()
+        );
+    }
     @Test
     void logAckEnrollComplete_ok(){
         auditUtilities.logAckEnrollComplete(ID_WALLET, CHANNEL, DATE);
-        assertThat(memoryAppender.contains(ch.qos.logback.classic.Level.DEBUG,MSG)).isFalse();
-    }
 
+        Assertions.assertEquals(
+                ("CEF:0|PagoPa|IDPAY|1.0|7|User interaction|2| event=PaymentInstrument dstip=%s msg=Activation of the instrument completed." +
+                        " cs1Label=idWallet cs1=%s cs3Label=channel cs3=%s cs4Label=date cs4=%s")
+                        .formatted(
+                                AuditUtilities.SRCIP,
+                                ID_WALLET,
+                                CHANNEL,
+                                DATE
+                        ),
+                memoryAppender.getLoggedEvents().get(0).getFormattedMessage()
+        );
+    }
     @Test
     void logAckEnrollKO_ok(){
         auditUtilities.logAckEnrollKO(ID_WALLET, CHANNEL, DATE);
-        assertThat(memoryAppender.contains(ch.qos.logback.classic.Level.DEBUG,MSG)).isFalse();
+
+        Assertions.assertEquals(
+                ("CEF:0|PagoPa|IDPAY|1.0|7|User interaction|2| event=PaymentInstrument dstip=%s msg=Activation of the instrument failed." +
+                        " cs1Label=idWallet cs1=%s cs3Label=channel cs3=%s cs4Label=date cs4=%s")
+                        .formatted(
+                                AuditUtilities.SRCIP,
+                                ID_WALLET,
+                                CHANNEL,
+                                DATE
+                        ),
+                memoryAppender.getLoggedEvents().get(0).getFormattedMessage()
+        );
     }
-
-    public static class MemoryAppender extends ListAppender<ILoggingEvent> {
-        public void reset() {
-            this.list.clear();
-        }
-
-        public boolean contains(ch.qos.logback.classic.Level level, String string) {
-            return this.list.stream()
-                    .anyMatch(event -> event.toString().contains(string)
-                            && event.getLevel().equals(level));
-        }
-
-        public int countEventsForLogger(String loggerName) {
-            return (int) this.list.stream()
-                    .filter(event -> event.getLoggerName().contains(loggerName))
-                    .count();
-        }
-
-        public List<ILoggingEvent> search() {
-            return this.list.stream()
-                    .filter(event -> event.toString().contains(MSG))
-                    .collect(Collectors.toList());
-        }
-
-        public List<ILoggingEvent> search(Level level) {
-            return this.list.stream()
-                    .filter(event -> event.toString().contains(MSG)
-                            && event.getLevel().equals(level))
-                    .collect(Collectors.toList());
-        }
-
-        public int getSize() {
-            return this.list.size();
-        }
-
-        public List<ILoggingEvent> getLoggedEvents() {
-            return Collections.unmodifiableList(this.list);
-        }
-    }
-
 }

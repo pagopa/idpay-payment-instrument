@@ -7,6 +7,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 public class PaymentInstrumentControllerImpl implements PaymentInstrumentController {
 
@@ -62,8 +64,8 @@ public class PaymentInstrumentControllerImpl implements PaymentInstrumentControl
   }
 
   @Override
-  public ResponseEntity<InstrumentDetailDTO> getInstrumentInitiativesDetail(String idWallet, String userId) {
-    InstrumentDetailDTO instrumentDetailDTO = paymentInstrumentService.getInstrumentInitiativesDetail(idWallet, userId);
+  public ResponseEntity<InstrumentDetailDTO> getInstrumentInitiativesDetail(String idWallet, String userId, List<String> statusList) {
+    InstrumentDetailDTO instrumentDetailDTO = paymentInstrumentService.getInstrumentInitiativesDetail(idWallet, userId, statusList);
     return new ResponseEntity<>(instrumentDetailDTO, HttpStatus.OK);
   }
 

@@ -28,9 +28,7 @@ import it.gov.pagopa.payment.instrument.repository.PaymentInstrumentRepository;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 import it.gov.pagopa.payment.instrument.utils.AuditUtilities;
 import lombok.extern.slf4j.Slf4j;
@@ -881,7 +879,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
   }
 
   @Override
-  public InstrumentDetailDTO getInstrumentInitiativesDetail(String idWallet, String userId){
+  public InstrumentDetailDTO getInstrumentInitiativesDetail(String idWallet, String userId, List<String> statusList){
     long startTime = System.currentTimeMillis();
 
     InstrumentDetailDTO instrumentDetailDTO = new InstrumentDetailDTO();
@@ -899,7 +897,9 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       return instrumentDetailDTO;
     }
 
-    instrumentList.sort(Comparator.comparing(PaymentInstrument::getUpdateDate).reversed());
+    if (statusList != null){
+      instrumentList = instrumentList.stream().filter(instr -> statusList.contains(instr.getStatus())).toList();
+    }
 
     instrumentDetailDTO.setMaskedPan(instrumentList.get(0).getMaskedPan());
     instrumentDetailDTO.setBrand(instrumentList.get(0).getBrand());
@@ -913,9 +913,6 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       if (instr.getStatus().equals(PaymentInstrumentConstants.STATUS_PENDING_RE)
               || instr.getStatus().equals(PaymentInstrumentConstants.STATUS_PENDING_RTD)){
         statusOnInitiativeDTO.setStatus(PaymentInstrumentConstants.STATUS_PENDING_ENROLLMENT_REQUEST);
-      }
-      if (instr.getStatus().equals(PaymentInstrumentConstants.STATUS_ENROLLMENT_FAILED_KO_RE)){
-        statusOnInitiativeDTO.setStatus(PaymentInstrumentConstants.STATUS_ENROLLMENT_FAILED);
       }
       initiativeList.add(statusOnInitiativeDTO);
     }

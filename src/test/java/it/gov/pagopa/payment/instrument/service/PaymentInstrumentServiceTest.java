@@ -27,7 +27,6 @@ import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
 import it.gov.pagopa.payment.instrument.model.PaymentInstrument;
 import it.gov.pagopa.payment.instrument.repository.PaymentInstrumentRepository;
 import it.gov.pagopa.payment.instrument.utils.AuditUtilities;
-import org.assertj.core.util.Arrays;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -41,7 +40,6 @@ import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import javax.validation.constraints.Max;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -187,7 +185,7 @@ class PaymentInstrumentServiceTest {
             .activationDate(TEST_ACTIVATION_DATE)
             .deactivationDate(TEST_DEACTIVATION_DATE)
             .rtdAckDate(TEST_RULE_ENGINE_ACKDATE)
-            .updateDate(TEST_DATE)
+            .updateDate(TEST_DATE.plusHours(1))
             .build();
     
     private static final PaymentInstrument TEST_PENDING_ENROLLMENT_INSTRUMENT = PaymentInstrument.builder()
@@ -272,6 +270,7 @@ class PaymentInstrumentServiceTest {
             .hpan(HPAN)
             .maskedPan(MASKED_PAN)
             .brandLogo(BRAND_LOGO)
+            .brand(BRAND)
             .consent(CONSENT)
             .status(PaymentInstrumentConstants.STATUS_ENROLLMENT_FAILED)
             .channel(CHANNEL)
@@ -279,7 +278,7 @@ class PaymentInstrumentServiceTest {
             .activationDate(TEST_ACTIVATION_DATE)
             .deactivationDate(TEST_DEACTIVATION_DATE)
             .rtdAckDate(TEST_RULE_ENGINE_ACKDATE)
-            .updateDate(TEST_DATE)
+            .updateDate(TEST_DATE.minusHours(1))
             .build();
     private static final PaymentInstrument TEST_ENROLLMENT_FAILED_KO_RE = PaymentInstrument.builder()
             .id(INSTRUMENT_ID)
@@ -1468,27 +1467,27 @@ class PaymentInstrumentServiceTest {
     }
 
     @Test
-    void getInstrumentInitiativesDetail_ok(){
+    void getInstrumentInitiativesDetail_withFilterStatus(){
         List<PaymentInstrument> instrumentList = new ArrayList<>();
-        instrumentList.add(TEST_INSTRUMENT);
+        instrumentList.add(TEST_INSTRUMENT_ACTIVE);
         instrumentList.add(TEST_PENDING_ENROLLMENT_INSTRUMENT);
         instrumentList.add(TEST_PENDING_DEACTIVATION_INSTRUMENT);
         instrumentList.add(TEST_INACTIVE_INSTRUMENT);
         instrumentList.add(TEST_ENROLLMENT_FAILED_KO_RE);
         instrumentList.add(TEST_INSTRUMENT_PENDING_RTD);
 
+        List<String> statusList = List.of(PaymentInstrumentConstants.STATUS_ACTIVE,
+                PaymentInstrumentConstants.STATUS_PENDING_RE,
+                PaymentInstrumentConstants.STATUS_PENDING_RTD);
+
         Mockito.when(paymentInstrumentRepositoryMock.findByIdWalletAndUserId(ID_WALLET, USER_ID)).thenReturn(instrumentList);
 
-        InstrumentDetailDTO instrumentDetailDTO = paymentInstrumentService.getInstrumentInitiativesDetail(ID_WALLET, USER_ID);
+        InstrumentDetailDTO instrumentDetailDTO = paymentInstrumentService.getInstrumentInitiativesDetail(ID_WALLET, USER_ID, statusList);
         assertEquals(MASKED_PAN, instrumentDetailDTO.getMaskedPan());
         assertEquals(BRAND, instrumentDetailDTO.getBrand());
-        assertEquals(6, instrumentDetailDTO.getInitiativeList().size());
-        List<String> expectedStatusList = List.of(PaymentInstrumentConstants.STATUS_ACTIVE,
-                PaymentInstrumentConstants.STATUS_INACTIVE,
-                PaymentInstrumentConstants.STATUS_PENDING_ENROLLMENT_REQUEST,
-                PaymentInstrumentConstants.STATUS_PENDING_DEACTIVATION_REQUEST,
-                PaymentInstrumentConstants.STATUS_ENROLLMENT_FAILED);
-        assertTrue(instrumentDetailDTO.getInitiativeList().stream().anyMatch(initiative ->
+        assertEquals(3, instrumentDetailDTO.getInitiativeList().size());
+        List<String> expectedStatusList = List.of(PaymentInstrumentConstants.STATUS_ACTIVE, PaymentInstrumentConstants.STATUS_PENDING_ENROLLMENT_REQUEST);
+        assertTrue(instrumentDetailDTO.getInitiativeList().stream().allMatch(initiative ->
                 expectedStatusList.contains(initiative.getStatus())));
     }
     @Test
@@ -1497,10 +1496,27 @@ class PaymentInstrumentServiceTest {
         Mockito.when(decryptRestConnector.getPiiByToken(USER_ID)).thenReturn(DECRYPT_CF_DTO);
         Mockito.when(pmRestClientConnector.getWalletList(USER_ID)).thenReturn(WALLET_V_2_LIST_RESPONSE_CARD);
 
-        InstrumentDetailDTO instrumentDetailDTO = paymentInstrumentService.getInstrumentInitiativesDetail(ID_WALLET, USER_ID);
+        InstrumentDetailDTO instrumentDetailDTO = paymentInstrumentService.getInstrumentInitiativesDetail(ID_WALLET, USER_ID, new ArrayList<>());
 
         assertEquals(BLURRED_NUMBER, instrumentDetailDTO.getMaskedPan());
         assertEquals(BRAND, instrumentDetailDTO.getBrand());
         assertEquals(0, instrumentDetailDTO.getInitiativeList().size());
+    }
+    @Test
+    void getInstrumentInitiativesDetail_noFilterStatus(){
+        List<PaymentInstrument> instrumentList = new ArrayList<>();
+        instrumentList.add(TEST_INSTRUMENT_ACTIVE);
+        instrumentList.add(TEST_ENROLLMENT_FAILED);
+
+        Mockito.when(paymentInstrumentRepositoryMock.findByIdWalletAndUserId(ID_WALLET, USER_ID)).thenReturn(instrumentList);
+        Mockito.when(decryptRestConnector.getPiiByToken(USER_ID)).thenReturn(DECRYPT_CF_DTO);
+        Mockito.when(pmRestClientConnector.getWalletList(USER_ID)).thenReturn(WALLET_V_2_LIST_RESPONSE_CARD);
+
+        InstrumentDetailDTO instrumentDetailDTO = paymentInstrumentService.getInstrumentInitiativesDetail(ID_WALLET, USER_ID, null);
+
+        assertEquals(MASKED_PAN, instrumentDetailDTO.getMaskedPan());
+        assertEquals(BRAND, instrumentDetailDTO.getBrand());
+        assertEquals(2, instrumentDetailDTO.getInitiativeList().size());
+        assertEquals(PaymentInstrumentConstants.STATUS_ACTIVE, instrumentDetailDTO.getInitiativeList().get(0).getStatus());
     }
 }

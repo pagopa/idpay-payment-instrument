@@ -276,7 +276,7 @@ class PaymentInstrumentControllerTest {
 
   @Test
   void get_instrument_initiatives_detail() throws Exception {
-    Mockito.when(paymentInstrumentServiceMock.getInstrumentInitiativesDetail(USER_ID, ID_WALLET))
+    Mockito.when(paymentInstrumentServiceMock.getInstrumentInitiativesDetail(USER_ID, ID_WALLET, new ArrayList<>()))
             .thenReturn(new InstrumentDetailDTO());
 
     mvc.perform(
