@@ -28,9 +28,7 @@ import it.gov.pagopa.payment.instrument.repository.PaymentInstrumentRepository;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 import it.gov.pagopa.payment.instrument.utils.AuditUtilities;
 import lombok.extern.slf4j.Slf4j;
@@ -92,35 +90,35 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     PaymentMethodInfoList infoList = getPaymentMethodInfoList(
         userId, idWallet, paymentMethodInfoList);
 
-    List<PaymentInstrument> instrumentList = paymentInstrumentRepository.findByHpanAndStatusNotContaining(
-        infoList.getHpan(), PaymentInstrumentConstants.STATUS_INACTIVE);
+    List<PaymentInstrument> instrumentList = paymentInstrumentRepository.findByHpan
+            (infoList.getHpan());
+
+    if (instrumentList.stream().anyMatch(paymentInstrument -> !paymentInstrument.getUserId().equals(userId))){
+      log.error(
+              "[ENROLL_INSTRUMENT] The Payment Instrument is already associated to another citizen.");
+      auditUtilities.logEnrollInstrumentKO(
+              PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_ALREADY_ASSOCIATED, idWallet, channel);
+      performanceLog(startTime, ENROLL_INSTRUMENT);
+      throw new PaymentInstrumentException(HttpStatus.FORBIDDEN.value(),
+              PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_ALREADY_ASSOCIATED);
+    }
 
     RTDHpanListDTO hpanListDTO = new RTDHpanListDTO();
     hpanListDTO.setHpan(infoList.getHpan());
     hpanListDTO.setConsent(infoList.isConsent());
 
     for (PaymentInstrument pi : instrumentList) {
-      if (!pi.getUserId().equals(userId)) {
-        log.error(
-            "[ENROLL_INSTRUMENT] The Payment Instrument is already in use by another citizen.");
-        auditUtilities.logEnrollInstrumentKO(
-            PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_ALREADY_ACTIVE, idWallet, channel);
-        performanceLog(startTime, ENROLL_INSTRUMENT);
-        throw new PaymentInstrumentException(HttpStatus.FORBIDDEN.value(),
-            PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_ALREADY_ACTIVE);
-      }
-
       if (pi.getInitiativeId().equals(initiativeId) && pi.getStatus()
-          .equals(PaymentInstrumentConstants.STATUS_ENROLLMENT_FAILED)) {
+              .equals(PaymentInstrumentConstants.STATUS_ENROLLMENT_FAILED)) {
         log.info(
             "[ENROLL_INSTRUMENT] Try enrolling again the instrument with status failed");
         enrollInstrumentFailed(pi, hpanListDTO, channel);
         performanceLog(startTime, ENROLL_INSTRUMENT);
         return;
       }
-
-      if (pi.getInitiativeId().equals(initiativeId) && !pi.getStatus()
-          .equals(PaymentInstrumentConstants.STATUS_ENROLLMENT_FAILED_KO_RE)) {
+      
+      if (pi.getInitiativeId().equals(initiativeId) && !List.of(PaymentInstrumentConstants.STATUS_ENROLLMENT_FAILED_KO_RE,
+              PaymentInstrumentConstants.STATUS_INACTIVE).contains(pi.getStatus())){
         log.info(
             "[ENROLL_INSTRUMENT] The Payment Instrument is already active, or there is a pending request on it.");
         performanceLog(startTime, ENROLL_INSTRUMENT);
@@ -636,22 +634,23 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
   public void enrollFromIssuer(InstrumentIssuerDTO body) {
     long startTime = System.currentTimeMillis();
 
-    List<PaymentInstrument> instrumentList = paymentInstrumentRepository.findByHpanAndStatusNotContaining(
-        body.getHpan(), PaymentInstrumentConstants.STATUS_INACTIVE);
+    List<PaymentInstrument> instrumentList = paymentInstrumentRepository.findByHpan(
+        body.getHpan());
+
+    if (instrumentList.stream().anyMatch(paymentInstrument -> !paymentInstrument.getUserId().equals(body.getUserId()))){
+      log.error(
+              "[ENROLL_FROM_ISSUER] The Payment Instrument is already associated to another citizen.");
+      auditUtilities.logEnrollInstrFromIssuerKO(
+              PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_ALREADY_ASSOCIATED, body.getHpan(),
+              body.getChannel());
+      performanceLog(startTime, ENROLL_FROM_ISSUER);
+      throw new PaymentInstrumentException(HttpStatus.FORBIDDEN.value(),
+              PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_ALREADY_ASSOCIATED);
+    }
 
     for (PaymentInstrument pi : instrumentList) {
-      if (!pi.getUserId().equals(body.getUserId())) {
-        log.error(
-            "[ENROLL_FROM_ISSUER] The Payment Instrument is already in use by another citizen.");
-        auditUtilities.logEnrollInstrFromIssuerKO(
-            PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_ALREADY_ACTIVE, body.getHpan(),
-            body.getChannel());
-        performanceLog(startTime, ENROLL_FROM_ISSUER);
-        throw new PaymentInstrumentException(HttpStatus.FORBIDDEN.value(),
-            PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_ALREADY_ACTIVE);
-      }
-
-      if (pi.getInitiativeId().equals(body.getInitiativeId())) {
+      if (pi.getInitiativeId().equals(body.getInitiativeId())
+              && !pi.getStatus().equals(PaymentInstrumentConstants.STATUS_INACTIVE)) {
         log.info(
             "[ENROLL_FROM_ISSUER] The Payment Instrument is already active, or there is a pending request on it.");
         auditUtilities.logEnrollInstrFromIssuerKO("already active or in pending", body.getHpan(),
@@ -800,7 +799,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     }
 
     if (status.equals(PaymentInstrumentConstants.STATUS_ENROLLMENT_FAILED_KO_RE)) {
-      log.info("[PROCESS_ACK_ENROLL] ACK RULE ENGINE KO: updating instrument status to {}.",
+      log.info("[PROCESS_ACK_ENROLL] [RESULT] ACK RULE ENGINE KO: updating instrument status to {}.",
           PaymentInstrumentConstants.STATUS_ENROLLMENT_FAILED);
       auditUtilities.logAckEnrollKO(instrument.getIdWallet(), instrument.getChannel(),
           ruleEngineAckDTO.getTimestamp());
@@ -814,7 +813,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     }
 
     if (status.equals(PaymentInstrumentConstants.STATUS_ACTIVE)) {
-      log.info("[PROCESS_ACK_ENROLL] ACK RULE ENGINE OK: updating instrument status to {}.",
+      log.info("[PROCESS_ACK_ENROLL] [RESULT] ACK RULE ENGINE OK: updating instrument status to {}.",
           PaymentInstrumentConstants.STATUS_ACTIVE);
       instrument.setActivationDate(ruleEngineAckDTO.getTimestamp());
       auditUtilities.logAckEnrollComplete(instrument.getIdWallet(), instrument.getChannel(),
@@ -880,7 +879,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
   }
 
   @Override
-  public InstrumentDetailDTO getInstrumentInitiativesDetail(String idWallet, String userId){
+  public InstrumentDetailDTO getInstrumentInitiativesDetail(String idWallet, String userId, List<String> statusList){
     long startTime = System.currentTimeMillis();
 
     InstrumentDetailDTO instrumentDetailDTO = new InstrumentDetailDTO();
@@ -898,7 +897,9 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       return instrumentDetailDTO;
     }
 
-    instrumentList.sort(Comparator.comparing(PaymentInstrument::getUpdateDate).reversed());
+    if (statusList != null){
+      instrumentList = instrumentList.stream().filter(instr -> statusList.contains(instr.getStatus())).toList();
+    }
 
     instrumentDetailDTO.setMaskedPan(instrumentList.get(0).getMaskedPan());
     instrumentDetailDTO.setBrand(instrumentList.get(0).getBrand());
@@ -912,9 +913,6 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       if (instr.getStatus().equals(PaymentInstrumentConstants.STATUS_PENDING_RE)
               || instr.getStatus().equals(PaymentInstrumentConstants.STATUS_PENDING_RTD)){
         statusOnInitiativeDTO.setStatus(PaymentInstrumentConstants.STATUS_PENDING_ENROLLMENT_REQUEST);
-      }
-      if (instr.getStatus().equals(PaymentInstrumentConstants.STATUS_ENROLLMENT_FAILED_KO_RE)){
-        statusOnInitiativeDTO.setStatus(PaymentInstrumentConstants.STATUS_ENROLLMENT_FAILED);
       }
       initiativeList.add(statusOnInitiativeDTO);
     }
