@@ -897,12 +897,12 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       return instrumentDetailDTO;
     }
 
+    instrumentDetailDTO.setMaskedPan(instrumentList.get(0).getMaskedPan());
+    instrumentDetailDTO.setBrand(instrumentList.get(0).getBrand());
+
     if (statusList != null){
       instrumentList = instrumentList.stream().filter(instr -> statusList.contains(instr.getStatus())).toList();
     }
-
-    instrumentDetailDTO.setMaskedPan(instrumentList.get(0).getMaskedPan());
-    instrumentDetailDTO.setBrand(instrumentList.get(0).getBrand());
 
     List<StatusOnInitiativeDTO> initiativeList = new ArrayList<>();
     for (PaymentInstrument instr : instrumentList){
