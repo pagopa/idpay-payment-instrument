@@ -8,6 +8,7 @@ import it.gov.pagopa.payment.instrument.connector.WalletRestConnector;
 import it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants;
 import it.gov.pagopa.payment.instrument.dto.*;
 import it.gov.pagopa.payment.instrument.dto.mapper.AckMapper;
+import it.gov.pagopa.payment.instrument.dto.mapper.InstrumentFromDiscountDTO2PaymentInstrumentMapper;
 import it.gov.pagopa.payment.instrument.dto.mapper.MessageMapper;
 import it.gov.pagopa.payment.instrument.dto.pm.PaymentMethodInfoList;
 import it.gov.pagopa.payment.instrument.dto.pm.WalletV2;
@@ -67,6 +68,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
   private AckMapper ackMapper;
   @Autowired
   AuditUtilities auditUtilities;
+
   @Value(
       "${spring.cloud.stream.binders.kafka-rtd.environment.spring.cloud.stream.kafka.binder.brokers}")
   String rtdServer;
@@ -921,4 +923,5 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     performanceLog(startTime, "GET_INSTRUMENT_INITIATIVES_DETAIL");
     return instrumentDetailDTO;
   }
+
 }
