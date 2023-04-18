@@ -1,8 +1,6 @@
 package it.gov.pagopa.payment.instrument.test.fakers;
 
 import it.gov.pagopa.payment.instrument.dto.InstrumentFromDiscountDTO;
-import java.math.BigDecimal;
-import java.util.List;
 
 public class InstrumentFromDiscountDTOFaker {
 

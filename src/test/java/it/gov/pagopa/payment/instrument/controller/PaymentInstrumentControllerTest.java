@@ -15,6 +15,7 @@ import it.gov.pagopa.payment.instrument.dto.InstrumentDetailDTO;
 import it.gov.pagopa.payment.instrument.dto.InstrumentIssuerDTO;
 import it.gov.pagopa.payment.instrument.dto.UnsubscribeBodyDTO;
 import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
+import it.gov.pagopa.payment.instrument.service.PaymentInstrumentDiscountService;
 import it.gov.pagopa.payment.instrument.service.PaymentInstrumentService;
 import it.gov.pagopa.payment.instrument.test.fakers.InstrumentFromDiscountDTOFaker;
 import java.time.LocalDateTime;
@@ -75,6 +76,9 @@ class PaymentInstrumentControllerTest {
   private static final String ENROLL_DISCOUNT_URL = "/discount/enroll";
   @MockBean
   PaymentInstrumentService paymentInstrumentServiceMock;
+
+  @MockBean
+  PaymentInstrumentDiscountService paymentInstrumentDiscountService;
 
   @Autowired
   protected MockMvc mvc;
