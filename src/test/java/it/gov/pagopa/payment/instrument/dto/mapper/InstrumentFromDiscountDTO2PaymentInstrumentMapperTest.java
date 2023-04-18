@@ -30,8 +30,8 @@ class InstrumentFromDiscountDTO2PaymentInstrumentMapperTest {
       Assertions.assertEquals(instrumentFromDiscountDTO.getUserId(), result.getUserId());
       Assertions.assertEquals(PaymentInstrumentConstants.IDPAY_PAYMENT, result.getChannel());
       Assertions.assertEquals(
-          instrumentFromDiscountDTO.getUserId() + "_" + PaymentInstrumentConstants.IDPAY_PAYMENT
-              .toLowerCase() + "_" + instrumentFromDiscountDTO.getInitiativeId(), result.getHpan());
+          PaymentInstrumentConstants.IDPAY_PAYMENT_FAKE_INSTRUMENT_PREFIX.formatted(
+              instrumentFromDiscountDTO.getUserId()), result.getHpan());
     });
 
   }

@@ -35,6 +35,7 @@ public final class PaymentInstrumentConstants {
   public static final String ID_PAY = "ID_PAY";
   public static final String REJECTED = "REJECTED_";
   public static final String IDPAY_PAYMENT = "IDPAY_PAYMENT";
+  public static final String IDPAY_PAYMENT_FAKE_INSTRUMENT_PREFIX = "IDPAY_%s";
 
   private PaymentInstrumentConstants() {
   }
