@@ -42,4 +42,7 @@ public interface PaymentInstrumentController {
           @PathVariable("userId") String userId,
           @RequestParam(required = false) List<String> statusList);
 
+  @PutMapping("/discount/enroll")
+  ResponseEntity<Void> enrollDiscountInitiative(@Valid @RequestBody InstrumentFromDiscountDTO body);
+
 }

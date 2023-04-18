@@ -69,4 +69,10 @@ public class PaymentInstrumentControllerImpl implements PaymentInstrumentControl
     return new ResponseEntity<>(instrumentDetailDTO, HttpStatus.OK);
   }
 
+  @Override
+  public ResponseEntity<Void> enrollDiscountInitiative(InstrumentFromDiscountDTO body) {
+    paymentInstrumentService.enrollDiscountInitiative(body);
+    return new ResponseEntity<>(HttpStatus.OK);
+  }
+
 }
