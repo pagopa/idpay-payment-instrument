@@ -6,9 +6,17 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants;
-import it.gov.pagopa.payment.instrument.dto.*;
+import it.gov.pagopa.payment.instrument.dto.DeactivationBodyDTO;
+import it.gov.pagopa.payment.instrument.dto.EnrollmentBodyDTO;
+import it.gov.pagopa.payment.instrument.dto.ErrorDTO;
+import it.gov.pagopa.payment.instrument.dto.HpanDTO;
+import it.gov.pagopa.payment.instrument.dto.HpanGetDTO;
+import it.gov.pagopa.payment.instrument.dto.InstrumentDetailDTO;
+import it.gov.pagopa.payment.instrument.dto.InstrumentIssuerDTO;
+import it.gov.pagopa.payment.instrument.dto.UnsubscribeBodyDTO;
 import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
 import it.gov.pagopa.payment.instrument.service.PaymentInstrumentService;
+import it.gov.pagopa.payment.instrument.test.fakers.InstrumentFromDiscountDTOFaker;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -64,6 +72,7 @@ class PaymentInstrumentControllerTest {
   private static final InstrumentIssuerDTO ENROLLMENT_ISSUER_BODY_DTO = new InstrumentIssuerDTO(INITIATIVE_ID, USER_ID, "HPAN", "ISSUER", "", "", "");
   private static final InstrumentIssuerDTO ENROLLMENT_ISSUER_BODY_DTO_EMPTY = new InstrumentIssuerDTO(INITIATIVE_ID, USER_ID, "", "", "", "", "");
   private static final String GET_INSTRUMENT_INITIATIVES_DETAIL = "/initiatives/" + ID_WALLET + "/" + USER_ID + "/detail";
+  private static final String ENROLL_DISCOUNT_URL = "/discount/enroll";
   @MockBean
   PaymentInstrumentService paymentInstrumentServiceMock;
 
@@ -285,5 +294,28 @@ class PaymentInstrumentControllerTest {
                             .accept(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(MockMvcResultMatchers.status().isOk())
             .andReturn();
+  }
+
+  @Test
+  void enroll_discount_ok() throws Exception {
+    ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
+
+    mvc.perform(MockMvcRequestBuilders.put(BASE_URL + ENROLL_DISCOUNT_URL)
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .content(objectMapper.writeValueAsString(InstrumentFromDiscountDTOFaker.mockInstance(1)))
+            .accept(MediaType.APPLICATION_JSON_VALUE)).andExpect(MockMvcResultMatchers.status().isOk())
+        .andReturn();
+
+  }
+
+  @Test
+  void enroll_discount_empty_body() throws Exception {
+    ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
+
+    mvc.perform(MockMvcRequestBuilders.put(BASE_URL + ENROLL_DISCOUNT_URL)
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .accept(MediaType.APPLICATION_JSON_VALUE)).andExpect(MockMvcResultMatchers.status().isBadRequest())
+        .andReturn();
+
   }
 }

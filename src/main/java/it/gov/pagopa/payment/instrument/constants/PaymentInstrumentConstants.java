@@ -34,6 +34,7 @@ public final class PaymentInstrumentConstants {
   public static final String STATUS_PENDING_DEACTIVATION_REQUEST = "PENDING_DEACTIVATION_REQUEST";
   public static final String ID_PAY = "ID_PAY";
   public static final String REJECTED = "REJECTED_";
+  public static final String IDPAY_PAYMENT = "IDPAY_PAYMENT";
 
   private PaymentInstrumentConstants() {
   }

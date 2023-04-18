@@ -1,19 +1,30 @@
 package it.gov.pagopa.payment.instrument.controller;
 
-import it.gov.pagopa.payment.instrument.dto.*;
+import it.gov.pagopa.payment.instrument.dto.DeactivationBodyDTO;
+import it.gov.pagopa.payment.instrument.dto.EnrollmentBodyDTO;
+import it.gov.pagopa.payment.instrument.dto.HpanGetDTO;
+import it.gov.pagopa.payment.instrument.dto.InstrumentDetailDTO;
+import it.gov.pagopa.payment.instrument.dto.InstrumentFromDiscountDTO;
+import it.gov.pagopa.payment.instrument.dto.InstrumentIssuerDTO;
+import it.gov.pagopa.payment.instrument.dto.UnsubscribeBodyDTO;
+import it.gov.pagopa.payment.instrument.service.PaymentInstrumentDiscountService;
 import it.gov.pagopa.payment.instrument.service.PaymentInstrumentService;
-import org.springframework.beans.factory.annotation.Autowired;
+import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-
 @RestController
 public class PaymentInstrumentControllerImpl implements PaymentInstrumentController {
 
-  @Autowired
-  PaymentInstrumentService paymentInstrumentService;
+  private final PaymentInstrumentService paymentInstrumentService;
+  private final PaymentInstrumentDiscountService paymentInstrumentDiscountService;
+
+  public PaymentInstrumentControllerImpl(PaymentInstrumentService paymentInstrumentService,
+      PaymentInstrumentDiscountService paymentInstrumentDiscountService) {
+    this.paymentInstrumentService = paymentInstrumentService;
+    this.paymentInstrumentDiscountService = paymentInstrumentDiscountService;
+  }
 
   @Override
   public ResponseEntity<Void> enrollInstrument(EnrollmentBodyDTO body)
@@ -71,7 +82,7 @@ public class PaymentInstrumentControllerImpl implements PaymentInstrumentControl
 
   @Override
   public ResponseEntity<Void> enrollDiscountInitiative(InstrumentFromDiscountDTO body) {
-    paymentInstrumentService.enrollDiscountInitiative(body);
+    paymentInstrumentDiscountService.enrollDiscountInitiative(body);
     return new ResponseEntity<>(HttpStatus.OK);
   }
 

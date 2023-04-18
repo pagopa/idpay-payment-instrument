@@ -15,9 +15,9 @@ public class InstrumentFromDiscountDTO2PaymentInstrumentMapper implements
     return PaymentInstrument.builder()
         .initiativeId(instrumentFromDiscountDTO.getInitiativeId())
         .userId(instrumentFromDiscountDTO.getUserId())
-        .hpan(instrumentFromDiscountDTO.getUserId() + "_" + instrumentFromDiscountDTO.getChannel()
+        .hpan(instrumentFromDiscountDTO.getUserId() + "_" + PaymentInstrumentConstants.IDPAY_PAYMENT
             .toLowerCase() + "_" + instrumentFromDiscountDTO.getInitiativeId())
-        .channel(instrumentFromDiscountDTO.getChannel()).status(
+        .channel(PaymentInstrumentConstants.IDPAY_PAYMENT).status(
             PaymentInstrumentConstants.STATUS_ACTIVE).build();
   }
 }

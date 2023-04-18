@@ -18,6 +18,4 @@ public class InstrumentFromDiscountDTO {
   @NotBlank(message = PaymentInstrumentConstants.ERROR_MANDATORY_FIELD)
   String initiativeId;
 
-  @NotBlank(message = PaymentInstrumentConstants.ERROR_MANDATORY_FIELD)
-  String channel;
 }
