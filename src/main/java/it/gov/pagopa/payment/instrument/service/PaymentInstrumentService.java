@@ -22,4 +22,5 @@ public interface PaymentInstrumentService {
   HpanGetDTO getHpanFromIssuer(String initiativeId, String userId, String channel);
   void enrollFromIssuer(InstrumentIssuerDTO body);
   InstrumentDetailDTO getInstrumentInitiativesDetail(String idWallet, String userId, List<String> statusList);
+
 }
