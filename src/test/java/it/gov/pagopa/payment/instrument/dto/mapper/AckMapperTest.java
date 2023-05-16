@@ -38,7 +38,7 @@ class AckMapperTest {
 
   @Test
   void ackToWallet() {
-    InstrumentAckDTO actual = ackMapper.ackToWallet(RULE_ENGINE_ACK_DTO, CHANNEL, MASKED_PAN, BRAND_LOGO, NINSTR);
+    InstrumentAckDTO actual = ackMapper.ackToWallet(RULE_ENGINE_ACK_DTO, CHANNEL, MASKED_PAN, BRAND_LOGO, BRAND_LOGO, NINSTR);
 
     assertNotNull(actual);
     assertEquals(INITIATIVE_ID, actual.getInitiativeId());
@@ -53,14 +53,14 @@ class AckMapperTest {
 
   @Test
   void ackToWallet_ko() {
-    InstrumentAckDTO actual = ackMapper.ackToWallet(RULE_ENGINE_ACK_DTO_KO, CHANNEL, MASKED_PAN, BRAND_LOGO, NINSTR);
+    InstrumentAckDTO actual = ackMapper.ackToWallet(RULE_ENGINE_ACK_DTO_KO, CHANNEL, MASKED_PAN, BRAND_LOGO, BRAND_LOGO, NINSTR);
 
     assertNotNull(actual);
     assertEquals(INITIATIVE_ID, actual.getInitiativeId());
     assertEquals(USER_ID, actual.getUserId());
     assertEquals(MASKED_PAN, actual.getMaskedPan());
     assertEquals(BRAND_LOGO, actual.getBrandLogo());
-    assertEquals(PaymentInstrumentConstants.OPERATION_ADD.concat("REJECTED_"), actual.getOperationType());
+    assertEquals(PaymentInstrumentConstants.REJECTED.concat(PaymentInstrumentConstants.OPERATION_ADD), actual.getOperationType());
     assertEquals(CHANNEL, actual.getChannel());
     assertEquals(NINSTR, actual.getNinstr());
     assertEquals(DATE, actual.getOperationDate());

@@ -3,27 +3,19 @@ package it.gov.pagopa.payment.instrument.dto;
 import it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants;
 import javax.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@Getter
+@Data
+@Builder
+@NoArgsConstructor
 @AllArgsConstructor
-public class InstrumentIssuerDTO {
-
-  @NotBlank(message = PaymentInstrumentConstants.ERROR_MANDATORY_FIELD)
-  String initiativeId;
-
+public class InstrumentFromDiscountDTO {
   @NotBlank(message = PaymentInstrumentConstants.ERROR_MANDATORY_FIELD)
   String userId;
 
   @NotBlank(message = PaymentInstrumentConstants.ERROR_MANDATORY_FIELD)
-  String hpan;
+  String initiativeId;
 
-  @NotBlank(message = PaymentInstrumentConstants.ERROR_MANDATORY_FIELD)
-  String channel;
-
-  String brandLogo;
-
-  String brand;
-
-  String maskedPan;
 }

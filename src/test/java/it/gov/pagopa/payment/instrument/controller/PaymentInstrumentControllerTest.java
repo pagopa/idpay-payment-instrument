@@ -11,11 +11,13 @@ import it.gov.pagopa.payment.instrument.dto.EnrollmentBodyDTO;
 import it.gov.pagopa.payment.instrument.dto.ErrorDTO;
 import it.gov.pagopa.payment.instrument.dto.HpanDTO;
 import it.gov.pagopa.payment.instrument.dto.HpanGetDTO;
+import it.gov.pagopa.payment.instrument.dto.InstrumentDetailDTO;
 import it.gov.pagopa.payment.instrument.dto.InstrumentIssuerDTO;
 import it.gov.pagopa.payment.instrument.dto.UnsubscribeBodyDTO;
-import it.gov.pagopa.payment.instrument.dto.pm.PaymentMethodInfoList;
 import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
+import it.gov.pagopa.payment.instrument.service.PaymentInstrumentDiscountService;
 import it.gov.pagopa.payment.instrument.service.PaymentInstrumentService;
+import it.gov.pagopa.payment.instrument.test.fakers.InstrumentFromDiscountDTOFaker;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,8 +52,7 @@ class PaymentInstrumentControllerTest {
   private static final String ID_WALLET = "ID_WALLET";
   private static final String INSTRUMENT_ID = "INSTRUMENT_ID";
   private static final String CHANNEL = "TEST_CHANNEL";
-  private static final String MASKED_PAN = "MASKED_PAN";
-  private static final String BRAND_LOGO = "BAND_LOGO";
+  private static final String BRAND_LOGO = "BRAND_LOGO";
 
   private static final String GETHPAN_URL = "/" + INITIATIVE_ID + "/" + USER_ID;
   private static final EnrollmentBodyDTO ENROLLMENT_BODY_DTO = new EnrollmentBodyDTO(USER_ID,
@@ -63,20 +64,21 @@ class PaymentInstrumentControllerTest {
   private static final DeactivationBodyDTO DEACTIVATION_BODY_DTO_EMPTY = new DeactivationBodyDTO("",
       "", "");
 
-  private static final HpanDTO HPAN_DTO_TEST = new HpanDTO(HPAN, CHANNEL, BRAND_LOGO, ID_WALLET,
-      INSTRUMENT_ID, CHANNEL);
+  private static final HpanDTO HPAN_DTO_TEST = new HpanDTO(HPAN, CHANNEL, BRAND_LOGO, BRAND_LOGO, ID_WALLET,
+      INSTRUMENT_ID, CHANNEL, LocalDateTime.now());
 
   private static final HpanGetDTO HPANGETDTO = new HpanGetDTO();
-  private static final List<PaymentMethodInfoList> INFO_LIST = new ArrayList<>();
-  private static final PaymentMethodInfoList PAYMENT_METHOD_INFO_LIST = new PaymentMethodInfoList(
-      HPAN, MASKED_PAN, BRAND_LOGO,true);
-  private static final PaymentMethodInfoList PAYMENT_METHOD_INFO_LIST_INDEM = new PaymentMethodInfoList();
-  private static final String GETHPANISSUER_URL = "/" + INITIATIVE_ID + "/" + USER_ID + "/" + CHANNEL;
-  private static final InstrumentIssuerDTO ENROLLMENT_ISSUER_BODY_DTO = new InstrumentIssuerDTO(INITIATIVE_ID, USER_ID, "HPAN", "ISSUER", "", "");
-  private static final InstrumentIssuerDTO ENROLLMENT_ISSUER_BODY_DTO_EMPTY = new InstrumentIssuerDTO(INITIATIVE_ID, USER_ID, "", "", "", "");
 
+  private static final String GETHPANISSUER_URL = "/" + INITIATIVE_ID + "/" + USER_ID + "/" + CHANNEL;
+  private static final InstrumentIssuerDTO ENROLLMENT_ISSUER_BODY_DTO = new InstrumentIssuerDTO(INITIATIVE_ID, USER_ID, "HPAN", "ISSUER", "", "", "");
+  private static final InstrumentIssuerDTO ENROLLMENT_ISSUER_BODY_DTO_EMPTY = new InstrumentIssuerDTO(INITIATIVE_ID, USER_ID, "", "", "", "", "");
+  private static final String GET_INSTRUMENT_INITIATIVES_DETAIL = "/initiatives/" + ID_WALLET + "/" + USER_ID + "/detail";
+  private static final String ENROLL_DISCOUNT_URL = "/discount/enroll";
   @MockBean
   PaymentInstrumentService paymentInstrumentServiceMock;
+
+  @MockBean
+  PaymentInstrumentDiscountService paymentInstrumentDiscountService;
 
   @Autowired
   protected MockMvc mvc;
@@ -117,7 +119,7 @@ class PaymentInstrumentControllerTest {
     ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
     Mockito.doThrow(new PaymentInstrumentException(HttpStatus.FORBIDDEN.value(),
-            PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_ALREADY_ACTIVE))
+            PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_ALREADY_ASSOCIATED))
         .when(paymentInstrumentServiceMock)
         .enrollInstrument(INITIATIVE_ID, USER_ID, ID_WALLET, CHANNEL);
 
@@ -130,7 +132,7 @@ class PaymentInstrumentControllerTest {
     ErrorDTO error = objectMapper.readValue(res.getResponse().getContentAsString(), ErrorDTO.class);
 
     assertEquals(HttpStatus.FORBIDDEN.value(), error.getCode());
-    assertEquals(PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_ALREADY_ACTIVE,
+    assertEquals(PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_ALREADY_ASSOCIATED,
         error.getMessage());
   }
 
@@ -268,7 +270,7 @@ class PaymentInstrumentControllerTest {
     ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
     Mockito.doThrow(new PaymentInstrumentException(HttpStatus.FORBIDDEN.value(),
-            PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_ALREADY_ACTIVE))
+            PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_ALREADY_ASSOCIATED))
         .when(paymentInstrumentServiceMock)
         .enrollFromIssuer(Mockito.any());
 
@@ -281,7 +283,43 @@ class PaymentInstrumentControllerTest {
     ErrorDTO error = objectMapper.readValue(res.getResponse().getContentAsString(), ErrorDTO.class);
 
     assertEquals(HttpStatus.FORBIDDEN.value(), error.getCode());
-    assertEquals(PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_ALREADY_ACTIVE,
+    assertEquals(PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_ALREADY_ASSOCIATED,
         error.getMessage());
+  }
+
+  @Test
+  void get_instrument_initiatives_detail() throws Exception {
+    Mockito.when(paymentInstrumentServiceMock.getInstrumentInitiativesDetail(USER_ID, ID_WALLET, new ArrayList<>()))
+            .thenReturn(new InstrumentDetailDTO());
+
+    mvc.perform(
+                    MockMvcRequestBuilders.get(BASE_URL + GET_INSTRUMENT_INITIATIVES_DETAIL)
+                            .contentType(MediaType.APPLICATION_JSON_VALUE)
+                            .accept(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(MockMvcResultMatchers.status().isOk())
+            .andReturn();
+  }
+
+  @Test
+  void enroll_discount_ok() throws Exception {
+    ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
+
+    mvc.perform(MockMvcRequestBuilders.put(BASE_URL + ENROLL_DISCOUNT_URL)
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .content(objectMapper.writeValueAsString(InstrumentFromDiscountDTOFaker.mockInstance(1)))
+            .accept(MediaType.APPLICATION_JSON_VALUE)).andExpect(MockMvcResultMatchers.status().isOk())
+        .andReturn();
+
+  }
+
+  @Test
+  void enroll_discount_empty_body() throws Exception {
+    ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
+
+    mvc.perform(MockMvcRequestBuilders.put(BASE_URL + ENROLL_DISCOUNT_URL)
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .accept(MediaType.APPLICATION_JSON_VALUE)).andExpect(MockMvcResultMatchers.status().isBadRequest())
+        .andReturn();
+
   }
 }

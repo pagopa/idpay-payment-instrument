@@ -1,5 +1,6 @@
 package it.gov.pagopa.payment.instrument.dto.mapper;
 
+import it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants;
 import it.gov.pagopa.payment.instrument.dto.InstrumentAckDTO;
 import it.gov.pagopa.payment.instrument.dto.RuleEngineAckDTO;
 import org.springframework.stereotype.Service;
@@ -8,14 +9,15 @@ import org.springframework.stereotype.Service;
 public class AckMapper {
 
   public InstrumentAckDTO ackToWallet(RuleEngineAckDTO dto, String channel, String maskedPan,
-      String brandLogo, int nInstr) {
-    String operationType = (dto.getRejectedHpanList().isEmpty()) ? dto.getOperationType() : dto.getOperationType().concat("REJECTED_");
+      String brandLogo, String brand, int nInstr) {
+    String operationType = (dto.getRejectedHpanList().isEmpty()) ? dto.getOperationType() : PaymentInstrumentConstants.REJECTED.concat(dto.getOperationType());
     return InstrumentAckDTO.builder()
         .initiativeId(dto.getInitiativeId())
         .userId(dto.getUserId())
         .channel(channel)
         .maskedPan(maskedPan)
         .brandLogo(brandLogo)
+        .brand(brand)
         .ninstr(nInstr)
         .operationType(operationType)
         .operationDate(dto.getTimestamp())

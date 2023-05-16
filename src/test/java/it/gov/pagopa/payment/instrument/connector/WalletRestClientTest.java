@@ -45,9 +45,10 @@ class WalletRestClientTest {
   private static final String MASKED_PAN = "MASKED_PAN";
   private static final String USER_ID = "TEST_USER_ID";
   private static final String BRAND_LOGO = "BAND_LOGO";
+
   private static final WalletCallDTO WALLET_CALL_DTO = new WalletCallDTO();
   private static final WalletDTO WALLET_DTO = new WalletDTO(INITIATIVE_ID, USER_ID, HPAN,
-      BRAND_LOGO, MASKED_PAN);
+      BRAND_LOGO, BRAND_LOGO, MASKED_PAN);
   private static final List<WalletDTO> WALLET_DTO_LIST = new ArrayList<>();
   private static final InstrumentAckDTO INSTRUMENT_ACK_DTO = InstrumentAckDTO.builder()
       .initiativeId(INITIATIVE_ID)
