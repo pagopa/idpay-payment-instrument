@@ -497,7 +497,7 @@ class PaymentInstrumentServiceTest {
         Mockito.when(
                         paymentInstrumentRepositoryMock.findByInitiativeIdAndUserIdAndId(INITIATIVE_ID,
                                 USER_ID, INSTRUMENT_ID))
-                .thenReturn(Optional.of(TEST_INSTRUMENT));
+                .thenReturn(Optional.of(TEST_INSTRUMENT_ACTIVE));
         
         Mockito.when(paymentInstrumentRepositoryMock.countByHpanAndStatusIn(HPAN,
                 List.of(PaymentInstrumentConstants.STATUS_ACTIVE,
@@ -507,8 +507,7 @@ class PaymentInstrumentServiceTest {
                 .sendInstruments(Mockito.any());
         
         try {
-            paymentInstrumentService.deactivateInstrument(INITIATIVE_ID, USER_ID, INSTRUMENT_ID
-            );
+            paymentInstrumentService.deactivateInstrument(INITIATIVE_ID, USER_ID, INSTRUMENT_ID);
             Assertions.fail();
         } catch (PaymentInstrumentException e) {
             assertEquals(HttpStatus.BAD_REQUEST.value(), e.getCode());
