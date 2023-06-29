@@ -1,0 +1,27 @@
+package it.gov.pagopa.payment.instrument.connector;
+
+import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+@FeignClient(
+        name = "reward-calculator",
+        url = "${rest-client.reward.baseUrl}")
+public interface RewardCalculatorRestClient {
+    @DeleteMapping(
+            value = "/paymentinstrument/{userId}/{initiativeId}",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    void cancelInstruments(
+            @PathVariable("userId") String userId, @PathVariable("initiativeId") String initiativeId);
+
+    @PostMapping(
+            value = "/paymentinstrument/{userId}/{initiativeId}",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    void rollbackInstruments(
+            @PathVariable("userId") String userId, @PathVariable("initiativeId") String initiativeId);
+}

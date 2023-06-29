@@ -86,4 +86,9 @@ public class PaymentInstrumentControllerImpl implements PaymentInstrumentControl
     return new ResponseEntity<>(HttpStatus.OK);
   }
 
+  @Override
+  public ResponseEntity<Void> rollback(String initiativeId, String userId) {
+    paymentInstrumentService.rollback(initiativeId,userId);
+    return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+  }
 }

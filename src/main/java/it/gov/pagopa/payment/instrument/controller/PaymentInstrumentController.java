@@ -45,4 +45,7 @@ public interface PaymentInstrumentController {
   @PutMapping("/discount/enroll")
   ResponseEntity<Void> enrollDiscountInitiative(@Valid @RequestBody InstrumentFromDiscountDTO body);
 
+  @PutMapping("/rollback/{initiativeId}/{userId}")
+  ResponseEntity<Void> rollback(@PathVariable("initiativeId") String initiativeId, @PathVariable("userId") String userId);
+
 }

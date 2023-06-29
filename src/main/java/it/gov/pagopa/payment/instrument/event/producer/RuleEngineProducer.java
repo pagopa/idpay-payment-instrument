@@ -1,6 +1,6 @@
 package it.gov.pagopa.payment.instrument.event.producer;
 
-import it.gov.pagopa.payment.instrument.dto.RuleEngineQueueDTO;
+import it.gov.pagopa.payment.instrument.dto.RuleEngineRequestDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.stream.function.StreamBridge;
@@ -14,7 +14,7 @@ public class RuleEngineProducer {
   @Autowired
   StreamBridge streamBridge;
 
-  public void sendInstruments(Message<RuleEngineQueueDTO> ruleEngineQueueDTO){
+  public void sendInstruments(Message<RuleEngineRequestDTO> ruleEngineQueueDTO){
     streamBridge.send("paymentInstrumentQueue-out-0", binderInstrument, ruleEngineQueueDTO);
   }
 
