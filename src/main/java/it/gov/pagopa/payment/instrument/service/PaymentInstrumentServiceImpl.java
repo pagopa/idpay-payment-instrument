@@ -268,10 +268,10 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
         hpanList.add(rtdHpanListDTO);
       }
       paymentInstrument.setUpdateDate(LocalDateTime.now());
-      paymentInstrumentRepository.saveAll(paymentInstrumentList);
     }
+    paymentInstrumentRepository.saveAll(paymentInstrumentList);
     try {
-      rewardCalculatorConnector.cancelInstruments(userId,initiativeId);
+      rewardCalculatorConnector.cancelInstruments(userId, initiativeId);
     } catch (Exception e) {
       this.rollback(initiativeId, userId);
       performanceLog(startTime, "DEACTIVATE_ALL_INSTRUMENTS");
