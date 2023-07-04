@@ -278,6 +278,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       throw new PaymentInstrumentException(HttpStatus.BAD_REQUEST.value(), e.getMessage());
     }
     if (!PaymentInstrumentConstants.IDPAY_PAYMENT.equals(paymentInstrumentList.get(0).getChannel())) {
+      log.info("[SEND TO RTD] sending to RTD");
       sendToRtd(hpanList, PaymentInstrumentConstants.OPERATION_DELETE, initiativeId);
       performanceLog(startTime, "DEACTIVATE_ALL_INSTRUMENTS");
     }
