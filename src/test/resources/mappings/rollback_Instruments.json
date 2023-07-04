@@ -1,9 +1,0 @@
-{
-  "request": {
-    "method": "POST",
-    "urlPathPattern": "/paymentinstrument/TEST_USER_ID/INITIATIVE_ID"
-  },
-  "response": {
-    "status": "204"
-  }
-}

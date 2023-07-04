@@ -49,10 +49,10 @@ class RewardCalculatorRestClientTest {
         }
     }
     @Test
-    void rollbackInstruments() {
+    void reactivateInstruments() {
 
         try {
-            rewardCalculatorConnector.rollbackInstruments(USER_ID,INITIATIVE_ID);
+            rewardCalculatorConnector.reactivateInstruments(USER_ID,INITIATIVE_ID);
 
         } catch (Exception e) {
             Assertions.fail();

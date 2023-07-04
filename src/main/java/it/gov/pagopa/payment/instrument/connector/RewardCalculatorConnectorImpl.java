@@ -17,7 +17,7 @@ public class RewardCalculatorConnectorImpl implements RewardCalculatorConnector{
     }
 
     @Override
-    public void rollbackInstruments(String userId, String initiativeId) {
-        rewardCalculatorRestClient.rollbackInstruments(userId,initiativeId);
+    public void reactivateInstruments(String userId, String initiativeId) {
+        rewardCalculatorRestClient.reactivateInstruments(userId,initiativeId);
     }
 }

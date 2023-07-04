@@ -1036,7 +1036,7 @@ class PaymentInstrumentServiceTest {
         paymentInstrumentService.rollback(INITIATIVE_ID,USER_ID);
         assertNull(TEST_INSTRUMENT.getDeactivationDate());
         assertNotEquals(PaymentInstrumentConstants.STATUS_INACTIVE, TEST_INSTRUMENT.getStatus());
-        Mockito.verify(rewardCalculatorConnector, Mockito.times(1)).rollbackInstruments(anyString(),anyString());
+        Mockito.verify(rewardCalculatorConnector, Mockito.times(1)).reactivateInstruments(anyString(),anyString());
     }
     
     @Test

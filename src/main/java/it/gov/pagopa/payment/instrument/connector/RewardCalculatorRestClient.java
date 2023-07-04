@@ -4,7 +4,7 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 @FeignClient(
@@ -18,10 +18,10 @@ public interface RewardCalculatorRestClient {
     void cancelInstruments(
             @PathVariable("userId") String userId, @PathVariable("initiativeId") String initiativeId);
 
-    @PostMapping(
-            value = "/paymentinstrument/{userId}/{initiativeId}",
+    @PutMapping(
+            value = "/paymentinstrument/{userId}/{initiativeId}/reactivate",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    void rollbackInstruments(
+    void reactivateInstruments(
             @PathVariable("userId") String userId, @PathVariable("initiativeId") String initiativeId);
 }
