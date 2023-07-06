@@ -1,0 +1,9 @@
+{
+  "request": {
+    "method": "DELETE",
+    "urlPathPattern": "/paymentinstrument/TEST_USER_ID/INITIATIVE_ID"
+  },
+  "response": {
+    "status": "204"
+  }
+}

@@ -46,6 +46,7 @@ class PaymentInstrumentControllerTest {
   private static final String ENROLL_ISSUER_URL = "/hb/enroll";
   private static final String DEACTIVATE_URL = "/deactivate/";
   private static final String DISABLE_ALL_URL = "/disableall";
+  private static final String ROLLBACK_URL = "/rollback";
   private static final String USER_ID = "TEST_USER_ID";
   private static final String INITIATIVE_ID = "TEST_INITIATIVE_ID";
   private static final String HPAN = "TEST_HPAN";
@@ -321,5 +322,15 @@ class PaymentInstrumentControllerTest {
             .accept(MediaType.APPLICATION_JSON_VALUE)).andExpect(MockMvcResultMatchers.status().isBadRequest())
         .andReturn();
 
+  }
+  @Test
+  void rollback() throws Exception {
+    Mockito.doNothing().when(paymentInstrumentServiceMock).rollback(INITIATIVE_ID, USER_ID);
+    mvc.perform(
+                    MockMvcRequestBuilders.put(BASE_URL + ROLLBACK_URL + "/" + INITIATIVE_ID + "/" + USER_ID)
+                            .contentType(MediaType.APPLICATION_JSON_VALUE)
+                            .accept(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(MockMvcResultMatchers.status().isNoContent())
+            .andReturn();
   }
 }

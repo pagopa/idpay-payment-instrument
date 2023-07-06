@@ -19,6 +19,8 @@ wallet:
   uri: ${WALLET_URI:}
 
 rest-client:
+  reward:
+    baseUrl: ${IDPAY_REWARD_URL:http://idpay-reward-calculator}
   pm:
     serviceCode: ${PM_SERVICE_NAME:idpay-service-pm}
     baseUrl: ${PM_SERVICE_BASE_URL:}

@@ -8,7 +8,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import it.gov.pagopa.payment.instrument.dto.InstrumentFromDiscountDTO;
-import it.gov.pagopa.payment.instrument.dto.RuleEngineQueueDTO;
+import it.gov.pagopa.payment.instrument.dto.RuleEngineRequestDTO;
 import it.gov.pagopa.payment.instrument.dto.mapper.InstrumentFromDiscountDTO2PaymentInstrumentMapper;
 import it.gov.pagopa.payment.instrument.dto.mapper.MessageMapper;
 import it.gov.pagopa.payment.instrument.event.producer.ErrorProducer;
@@ -58,7 +58,7 @@ class PaymentInstrumentDiscountServiceTest {
     when(instrumentFromDiscountDTO2PaymentInstrumentMapper.apply(any())).thenReturn(
         paymentInstrument);
     when(messageMapper.apply(any())).thenReturn(
-        MessageBuilder.withPayload(new RuleEngineQueueDTO(
+        MessageBuilder.withPayload(new RuleEngineRequestDTO(
         )).build());
     doNothing().when(ruleEngineProducer).sendInstruments(any());
 
@@ -79,7 +79,7 @@ class PaymentInstrumentDiscountServiceTest {
     doThrow(new PaymentInstrumentException(HttpStatus.BAD_REQUEST.value(), "")).when(
         ruleEngineProducer).sendInstruments(any());
     when(messageMapper.apply(any())).thenReturn(
-        MessageBuilder.withPayload(new RuleEngineQueueDTO(
+        MessageBuilder.withPayload(new RuleEngineRequestDTO(
         )).build());
 
     paymentInstrumentDiscountService.enrollDiscountInitiative(instrumentFromDiscountDTO);

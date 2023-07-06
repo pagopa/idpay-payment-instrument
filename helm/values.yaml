@@ -58,6 +58,7 @@ microservice-chart:
     idpay-common:
       TZ: TZ
     rest-client:
+      IDPAY_REWARD_URL: idpay-reward-calculator-baseurl
       PM_SERVICE_BASE_URL: pm_service_base_url
       PDV_ENCRYPT_BASE_URL: pdv_decrypt_base_url
       WALLET_URI: idpay_wallet_host

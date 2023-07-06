@@ -1,14 +1,10 @@
 package it.gov.pagopa.payment.instrument.service;
 
 import feign.FeignException;
-import it.gov.pagopa.payment.instrument.connector.DecryptRestConnector;
-import it.gov.pagopa.payment.instrument.connector.EncryptRestConnector;
-import it.gov.pagopa.payment.instrument.connector.PMRestClientConnector;
-import it.gov.pagopa.payment.instrument.connector.WalletRestConnector;
+import it.gov.pagopa.payment.instrument.connector.*;
 import it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants;
 import it.gov.pagopa.payment.instrument.dto.*;
 import it.gov.pagopa.payment.instrument.dto.mapper.AckMapper;
-import it.gov.pagopa.payment.instrument.dto.mapper.InstrumentFromDiscountDTO2PaymentInstrumentMapper;
 import it.gov.pagopa.payment.instrument.dto.mapper.MessageMapper;
 import it.gov.pagopa.payment.instrument.dto.pm.PaymentMethodInfoList;
 import it.gov.pagopa.payment.instrument.dto.pm.WalletV2;
@@ -60,6 +56,8 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
   PMRestClientConnector pmRestClientConnector;
   @Autowired
   DecryptRestConnector decryptRestConnector;
+  @Autowired
+  RewardCalculatorConnector rewardCalculatorConnector;
   @Autowired
   private EncryptRestConnector encryptRestConnector;
   @Autowired
@@ -250,42 +248,44 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
 
   @Override
   public void deactivateAllInstruments(String initiativeId, String userId,
-      String deactivationDate) {
+                                       String deactivationDate) {
     long startTime = System.currentTimeMillis();
 
     List<PaymentInstrument> paymentInstrumentList = paymentInstrumentRepository.findByInitiativeIdAndUserIdAndStatus(
-        initiativeId, userId, PaymentInstrumentConstants.STATUS_ACTIVE);
+            initiativeId, userId, PaymentInstrumentConstants.STATUS_ACTIVE);
 
-    PaymentMethodInfoList infoList = new PaymentMethodInfoList();
-    List<PaymentMethodInfoList> paymentMethodInfoList = new ArrayList<>();
+    if (paymentInstrumentList.isEmpty()) {
+      return;
+    }
+
     List<RTDHpanListDTO> hpanList = new ArrayList<>();
     RTDHpanListDTO rtdHpanListDTO = new RTDHpanListDTO();
 
     for (PaymentInstrument paymentInstrument : paymentInstrumentList) {
+
       paymentInstrument.setDeactivationDate(LocalDateTime.parse(deactivationDate));
       paymentInstrument.setStatus(PaymentInstrumentConstants.STATUS_INACTIVE);
       paymentInstrument.setDeleteChannel(PaymentInstrumentConstants.IO);
-      infoList.setHpan(paymentInstrument.getHpan());
-      infoList.setMaskedPan(paymentInstrument.getMaskedPan());
-      infoList.setBrandLogo(paymentInstrument.getBrandLogo());
-      paymentMethodInfoList.add(infoList);
-      rtdHpanListDTO.setHpan(paymentInstrument.getHpan());
-      rtdHpanListDTO.setConsent(paymentInstrument.isConsent());
-      hpanList.add(rtdHpanListDTO);
+      if (!PaymentInstrumentConstants.IDPAY_PAYMENT.equals(paymentInstrument.getChannel())) {
+        rtdHpanListDTO.setHpan(paymentInstrument.getHpan());
+        rtdHpanListDTO.setConsent(paymentInstrument.isConsent());
+        hpanList.add(rtdHpanListDTO);
+      }
       paymentInstrument.setUpdateDate(LocalDateTime.now());
     }
     paymentInstrumentRepository.saveAll(paymentInstrumentList);
-
     try {
-      sendToRuleEngine(userId, initiativeId, PaymentInstrumentConstants.IO, paymentMethodInfoList,
-          PaymentInstrumentConstants.OPERATION_DELETE);
+      rewardCalculatorConnector.disableUserInitiativeInstruments(userId, initiativeId);
     } catch (Exception e) {
-      this.rollbackInstruments(paymentInstrumentList);
+      this.rollback(initiativeId, userId);
       performanceLog(startTime, "DEACTIVATE_ALL_INSTRUMENTS");
       throw new PaymentInstrumentException(HttpStatus.BAD_REQUEST.value(), e.getMessage());
     }
-    sendToRtd(hpanList, PaymentInstrumentConstants.OPERATION_DELETE, initiativeId);
-    performanceLog(startTime, "DEACTIVATE_ALL_INSTRUMENTS");
+    if (!PaymentInstrumentConstants.IDPAY_PAYMENT.equals(paymentInstrumentList.get(0).getChannel())) {
+      log.info("[SEND TO RTD] sending to RTD");
+      sendToRtd(hpanList, PaymentInstrumentConstants.OPERATION_DELETE, initiativeId);
+      performanceLog(startTime, "DEACTIVATE_ALL_INSTRUMENTS");
+    }
   }
 
   @Override
@@ -500,7 +500,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
           paymentMethodInfoList, PaymentInstrumentConstants.OPERATION_DELETE);
     } catch (Exception exception) {
 
-      RuleEngineQueueDTO ruleEngineQueueDTO = RuleEngineQueueDTO.builder()
+      RuleEngineRequestDTO ruleEngineRequestDTO = RuleEngineRequestDTO.builder()
           .userId(instrument.getUserId())
           .initiativeId(instrument.getInitiativeId())
           .infoList(paymentMethodInfoList)
@@ -510,7 +510,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
           .build();
 
       final MessageBuilder<?> errorMessage = MessageBuilder.withPayload(
-          messageMapper.apply(ruleEngineQueueDTO));
+          messageMapper.apply(ruleEngineRequestDTO));
       this.sendToQueueError(exception, errorMessage, ruleEngineServer, ruleEngineTopic);
     }
     sendToRtd(hpanList, PaymentInstrumentConstants.OPERATION_DELETE, instrument.getInitiativeId());
@@ -520,7 +520,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       List<PaymentMethodInfoList>
           paymentMethodInfoList, String operation) {
 
-    RuleEngineQueueDTO ruleEngineQueueDTO = RuleEngineQueueDTO.builder()
+    RuleEngineRequestDTO ruleEngineRequestDTO = RuleEngineRequestDTO.builder()
         .userId(userId)
         .initiativeId(initiativeId)
         .infoList(paymentMethodInfoList)
@@ -532,7 +532,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     log.info("[PaymentInstrumentService] Sending message to Rule Engine.");
     long start = System.currentTimeMillis();
 
-    ruleEngineProducer.sendInstruments(messageMapper.apply(ruleEngineQueueDTO));
+    ruleEngineProducer.sendInstruments(messageMapper.apply(ruleEngineRequestDTO));
 
     long end = System.currentTimeMillis();
     log.info(
@@ -838,22 +838,6 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     walletRestConnector.processAck(dto);
   }
 
-  @Override
-  public void rollbackInstruments(List<PaymentInstrument> paymentInstrumentList) {
-    long startTime = System.currentTimeMillis();
-
-    for (PaymentInstrument instrument : paymentInstrumentList) {
-      instrument.setStatus(PaymentInstrumentConstants.STATUS_ACTIVE);
-      instrument.setDeactivationDate(null);
-      instrument.setUpdateDate(LocalDateTime.now());
-      auditUtilities.logDeactivationKO(instrument.getIdWallet(), instrument.getChannel(),
-          instrument.getUpdateDate());
-    }
-    paymentInstrumentRepository.saveAll(paymentInstrumentList);
-    log.info("[ROLLBACK_INSTRUMENTS] Instrument rollbacked: {}", paymentInstrumentList.size());
-    performanceLog(startTime, "ROLLBACK_INSTRUMENTS");
-  }
-
   private void sendToQueueError(Exception e, MessageBuilder<?> errorMessage, String server,
       String topic) {
 
@@ -924,4 +908,24 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     return instrumentDetailDTO;
   }
 
+  @Override
+  public void rollback(String initiativeId, String userId) {
+    long startTime = System.currentTimeMillis();
+
+    List<PaymentInstrument> paymentInstrumentList = paymentInstrumentRepository.findByInitiativeIdAndUserIdAndStatus(
+            initiativeId, userId, PaymentInstrumentConstants.STATUS_INACTIVE);
+
+    for (PaymentInstrument instrument : paymentInstrumentList) {
+      instrument.setStatus(PaymentInstrumentConstants.STATUS_ACTIVE);
+      instrument.setDeactivationDate(null);
+      instrument.setUpdateDate(LocalDateTime.now());
+      auditUtilities.logDeactivationKO(instrument.getIdWallet(), instrument.getChannel(),
+              instrument.getUpdateDate());
+    }
+    paymentInstrumentRepository.saveAll(paymentInstrumentList);
+    log.info("[ROLLBACK_INSTRUMENTS] Instrument rollbacked: {}", paymentInstrumentList.size());
+    performanceLog(startTime, "ROLLBACK_INSTRUMENTS");
+
+    rewardCalculatorConnector.enableUserInitiativeInstruments(userId,initiativeId);
+  }
 }
