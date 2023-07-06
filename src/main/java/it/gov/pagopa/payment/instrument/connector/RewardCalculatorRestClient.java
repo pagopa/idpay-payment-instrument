@@ -15,13 +15,13 @@ public interface RewardCalculatorRestClient {
             value = "/paymentinstrument/{userId}/{initiativeId}",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    void cancelInstruments(
+    void disableUserInitiativeInstruments(
             @PathVariable("userId") String userId, @PathVariable("initiativeId") String initiativeId);
 
     @PutMapping(
             value = "/paymentinstrument/{userId}/{initiativeId}/reactivate",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    void reactivateInstruments(
+    void enableUserInitiativeInstruments(
             @PathVariable("userId") String userId, @PathVariable("initiativeId") String initiativeId);
 }

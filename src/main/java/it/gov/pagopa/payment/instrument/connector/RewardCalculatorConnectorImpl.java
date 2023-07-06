@@ -12,12 +12,12 @@ public class RewardCalculatorConnectorImpl implements RewardCalculatorConnector{
     }
 
     @Override
-    public void cancelInstruments(String userId, String initiativeId) {
-        rewardCalculatorRestClient.cancelInstruments(userId,initiativeId);
+    public void disableUserInitiativeInstruments(String userId, String initiativeId) {
+        rewardCalculatorRestClient.disableUserInitiativeInstruments(userId,initiativeId);
     }
 
     @Override
-    public void reactivateInstruments(String userId, String initiativeId) {
-        rewardCalculatorRestClient.reactivateInstruments(userId,initiativeId);
+    public void enableUserInitiativeInstruments(String userId, String initiativeId) {
+        rewardCalculatorRestClient.enableUserInitiativeInstruments(userId,initiativeId);
     }
 }

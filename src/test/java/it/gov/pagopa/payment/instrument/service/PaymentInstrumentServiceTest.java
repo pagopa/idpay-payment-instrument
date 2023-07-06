@@ -799,7 +799,7 @@ class PaymentInstrumentServiceTest {
 
         paymentInstrumentService.deactivateAllInstruments(INITIATIVE_ID, USER_ID,
                 LocalDateTime.now().toString());
-        Mockito.verify(rewardCalculatorConnector,never()).cancelInstruments(Mockito.anyString(),Mockito.anyString());
+        Mockito.verify(rewardCalculatorConnector,never()).disableUserInitiativeInstruments(Mockito.anyString(),Mockito.anyString());
     }
     @Test
     void disableAllPayInstrument_ok_channel_IDPAY_PAYMENT() {
@@ -834,7 +834,7 @@ class PaymentInstrumentServiceTest {
         List<PaymentInstrument> paymentInstruments = new ArrayList<>();
         paymentInstruments.add(TEST_INSTRUMENT);
         
-        Mockito.doThrow(new PaymentInstrumentException(400, "error")).when(rewardCalculatorConnector).cancelInstruments(
+        Mockito.doThrow(new PaymentInstrumentException(400, "error")).when(rewardCalculatorConnector).disableUserInitiativeInstruments(
                 anyString(),anyString());
         
         Mockito.when(
@@ -1045,7 +1045,7 @@ class PaymentInstrumentServiceTest {
         paymentInstrumentService.rollback(INITIATIVE_ID,USER_ID);
         assertNull(TEST_INSTRUMENT.getDeactivationDate());
         assertNotEquals(PaymentInstrumentConstants.STATUS_INACTIVE, TEST_INSTRUMENT.getStatus());
-        Mockito.verify(rewardCalculatorConnector, Mockito.times(1)).reactivateInstruments(anyString(),anyString());
+        Mockito.verify(rewardCalculatorConnector, Mockito.times(1)).enableUserInitiativeInstruments(anyString(),anyString());
     }
     
     @Test

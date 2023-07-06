@@ -275,7 +275,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     }
     paymentInstrumentRepository.saveAll(paymentInstrumentList);
     try {
-      rewardCalculatorConnector.cancelInstruments(userId, initiativeId);
+      rewardCalculatorConnector.disableUserInitiativeInstruments(userId, initiativeId);
     } catch (Exception e) {
       this.rollback(initiativeId, userId);
       performanceLog(startTime, "DEACTIVATE_ALL_INSTRUMENTS");
@@ -926,6 +926,6 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     log.info("[ROLLBACK_INSTRUMENTS] Instrument rollbacked: {}", paymentInstrumentList.size());
     performanceLog(startTime, "ROLLBACK_INSTRUMENTS");
 
-    rewardCalculatorConnector.reactivateInstruments(userId,initiativeId);
+    rewardCalculatorConnector.enableUserInitiativeInstruments(userId,initiativeId);
   }
 }

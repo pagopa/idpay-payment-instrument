@@ -39,20 +39,20 @@ class RewardCalculatorRestClientTest {
     private static final String USER_ID = "TEST_USER_ID";
 
     @Test
-    void cancelInstruments() {
+    void disableUserInitiativeInstruments() {
 
         try {
-            rewardCalculatorConnector.cancelInstruments(USER_ID,INITIATIVE_ID);
+            rewardCalculatorConnector.disableUserInitiativeInstruments(USER_ID,INITIATIVE_ID);
 
         } catch (Exception e) {
             Assertions.fail();
         }
     }
     @Test
-    void reactivateInstruments() {
+    void enableUserInitiativeInstruments() {
 
         try {
-            rewardCalculatorConnector.reactivateInstruments(USER_ID,INITIATIVE_ID);
+            rewardCalculatorConnector.enableUserInitiativeInstruments(USER_ID,INITIATIVE_ID);
 
         } catch (Exception e) {
             Assertions.fail();
