@@ -37,10 +37,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -791,6 +788,18 @@ class PaymentInstrumentServiceTest {
                 LocalDateTime.now().toString());
         assertNotNull(TEST_INSTRUMENT.getDeactivationDate());
         assertEquals(PaymentInstrumentConstants.STATUS_INACTIVE, TEST_INSTRUMENT.getStatus());
+    }
+    @Test
+    void disableAllPayInstrument_emptyList() {
+
+        Mockito.when(
+                        paymentInstrumentRepositoryMock.findByInitiativeIdAndUserIdAndStatus(INITIATIVE_ID, USER_ID,
+                                PaymentInstrumentConstants.STATUS_ACTIVE))
+                .thenReturn(Collections.emptyList());
+
+        paymentInstrumentService.deactivateAllInstruments(INITIATIVE_ID, USER_ID,
+                LocalDateTime.now().toString());
+        Mockito.verify(rewardCalculatorConnector,never()).cancelInstruments(Mockito.anyString(),Mockito.anyString());
     }
     @Test
     void disableAllPayInstrument_ok_channel_IDPAY_PAYMENT() {

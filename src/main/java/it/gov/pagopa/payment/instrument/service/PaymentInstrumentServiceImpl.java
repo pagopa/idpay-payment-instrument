@@ -254,6 +254,10 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     List<PaymentInstrument> paymentInstrumentList = paymentInstrumentRepository.findByInitiativeIdAndUserIdAndStatus(
             initiativeId, userId, PaymentInstrumentConstants.STATUS_ACTIVE);
 
+    if (paymentInstrumentList.isEmpty()) {
+      return;
+    }
+
     List<RTDHpanListDTO> hpanList = new ArrayList<>();
     RTDHpanListDTO rtdHpanListDTO = new RTDHpanListDTO();
 
