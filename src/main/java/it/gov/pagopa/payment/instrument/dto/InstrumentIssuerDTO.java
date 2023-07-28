@@ -1,7 +1,7 @@
 package it.gov.pagopa.payment.instrument.dto;
 
 import it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants;
-import javax.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
