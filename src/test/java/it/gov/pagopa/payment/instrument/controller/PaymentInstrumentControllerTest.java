@@ -169,7 +169,6 @@ class PaymentInstrumentControllerTest {
   @Test
   void deactivate_not_found() throws Exception {
     ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
-    objectMapper.configure(JsonParser.Feature.AUTO_CLOSE_SOURCE, true);
 
     Mockito.doThrow(new PaymentInstrumentException(HttpStatus.NOT_FOUND.value(),
             PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_NOT_FOUND))
