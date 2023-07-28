@@ -45,8 +45,8 @@ class MessageMapperTest {
     Message<RuleEngineRequestDTO> result = messageMapper.apply(ruleEngineRequestDTO);
 
     // Then
-    log.info(Objects.requireNonNull(result.getHeaders().get(KafkaHeaders.MESSAGE_KEY)).toString());
-    Assertions.assertEquals(USER_ID+INITIATIVE_ID, result.getHeaders().get(KafkaHeaders.MESSAGE_KEY));
+    log.info(Objects.requireNonNull(result.getHeaders().get(KafkaHeaders.KEY)).toString());
+    Assertions.assertEquals(USER_ID+INITIATIVE_ID, result.getHeaders().get(KafkaHeaders.KEY));
     Assertions.assertSame(ruleEngineRequestDTO, result.getPayload());
     assertEquals(USER_ID, ruleEngineRequestDTO.getUserId());
     assertEquals(INITIATIVE_ID, ruleEngineRequestDTO.getInitiativeId());

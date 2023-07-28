@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 public class MessageMapper {
   public Message<RuleEngineRequestDTO> apply(RuleEngineRequestDTO ruleEngineRequestDTO) {
     return MessageBuilder.withPayload(ruleEngineRequestDTO)
-        .setHeader(KafkaHeaders.MESSAGE_KEY, ruleEngineRequestDTO.getUserId().concat(ruleEngineRequestDTO.getInitiativeId()))
+        .setHeader(KafkaHeaders.KEY, ruleEngineRequestDTO.getUserId().concat(ruleEngineRequestDTO.getInitiativeId()))
         .build();
   }
 }
