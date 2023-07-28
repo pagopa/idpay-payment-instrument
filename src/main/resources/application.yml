@@ -1,6 +1,8 @@
 api.key.encrypt: ${PDV_ENCRYPT_API_KEY:}
 api.key.decrypt: ${PDV_DECRYPT_API_KEY:}
+
 retrieve-enroll.schedule: ${SCHEDULE_RETRIEVE_INITIATIVE:0 */5 * ? * *}
+
 logging:
   level:
     it:
@@ -12,9 +14,13 @@ logging:
         cloud: ${LOG_LEVEL_SPRING_CLOUD:WARN}
         data: ${LOG_LEVEL_SPRING_DATA:INFO}
     root: ${LOG_LEVEL_ROOT:INFO}
+
 wallet:
   uri: ${WALLET_URI:}
+
 rest-client:
+  reward:
+    baseUrl: ${IDPAY_REWARD_URL:http://idpay-reward-calculator}
   pm:
     serviceCode: ${PM_SERVICE_NAME:idpay-service-pm}
     baseUrl: ${PM_SERVICE_BASE_URL:}
@@ -28,9 +34,11 @@ rest-client:
   decrypt:
     baseUrl: ${PDV_DECRYPT_BASE_URL:}
     cf: ${PDV_DECRYPT_SERVICE_CODE:pdv-ms-tokenizer}
+
 management.endpoints:
   web:
     exposure.include: info, health
+
 spring:
   application:
     name: "@project.artifactId@"
@@ -202,8 +210,8 @@ spring:
       on-profile: default
   data:
     mongodb:
-      database: ${MONGODB_DBNAME}
-      uri: ${MONGODB_URI}
+      uri: ${MONGODB_URI:mongodb://localhost:27017}
+      database: ${MONGODB_DBNAME:idpay}
       # custom configured properties
       config:
         connectionPool:

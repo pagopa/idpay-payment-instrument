@@ -2,7 +2,7 @@ package it.gov.pagopa.payment.instrument.controller;
 
 import it.gov.pagopa.payment.instrument.dto.*;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -44,5 +44,8 @@ public interface PaymentInstrumentController {
 
   @PutMapping("/discount/enroll")
   ResponseEntity<Void> enrollDiscountInitiative(@Valid @RequestBody InstrumentFromDiscountDTO body);
+
+  @PutMapping("/rollback/{initiativeId}/{userId}")
+  ResponseEntity<Void> rollback(@PathVariable("initiativeId") String initiativeId, @PathVariable("userId") String userId);
 
 }

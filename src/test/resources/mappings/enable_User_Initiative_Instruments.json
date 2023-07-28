@@ -1,0 +1,9 @@
+{
+  "request": {
+    "method": "PUT",
+    "urlPathPattern": "/paymentinstrument/TEST_USER_ID/INITIATIVE_ID/reactivate"
+  },
+  "response": {
+    "status": "204"
+  }
+}

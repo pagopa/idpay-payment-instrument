@@ -3,6 +3,7 @@ package it.gov.pagopa.payment.instrument.controller;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants;
@@ -42,10 +43,11 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 class PaymentInstrumentControllerTest {
 
   private static final String BASE_URL = "http://localhost:8080/idpay/instrument";
-  private static final String ENROLL_URL = "/enroll/";
+  private static final String ENROLL_URL = "/enroll";
   private static final String ENROLL_ISSUER_URL = "/hb/enroll";
-  private static final String DEACTIVATE_URL = "/deactivate/";
+  private static final String DEACTIVATE_URL = "/deactivate";
   private static final String DISABLE_ALL_URL = "/disableall";
+  private static final String ROLLBACK_URL = "/rollback";
   private static final String USER_ID = "TEST_USER_ID";
   private static final String INITIATIVE_ID = "TEST_INITIATIVE_ID";
   private static final String HPAN = "TEST_HPAN";
@@ -321,5 +323,15 @@ class PaymentInstrumentControllerTest {
             .accept(MediaType.APPLICATION_JSON_VALUE)).andExpect(MockMvcResultMatchers.status().isBadRequest())
         .andReturn();
 
+  }
+  @Test
+  void rollback() throws Exception {
+    Mockito.doNothing().when(paymentInstrumentServiceMock).rollback(INITIATIVE_ID, USER_ID);
+    mvc.perform(
+                    MockMvcRequestBuilders.put(BASE_URL + ROLLBACK_URL + "/" + INITIATIVE_ID + "/" + USER_ID)
+                            .contentType(MediaType.APPLICATION_JSON_VALUE)
+                            .accept(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(MockMvcResultMatchers.status().isNoContent())
+            .andReturn();
   }
 }

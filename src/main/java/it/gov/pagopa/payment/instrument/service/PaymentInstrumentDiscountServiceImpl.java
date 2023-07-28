@@ -2,7 +2,7 @@ package it.gov.pagopa.payment.instrument.service;
 
 import it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants;
 import it.gov.pagopa.payment.instrument.dto.InstrumentFromDiscountDTO;
-import it.gov.pagopa.payment.instrument.dto.RuleEngineQueueDTO;
+import it.gov.pagopa.payment.instrument.dto.RuleEngineRequestDTO;
 import it.gov.pagopa.payment.instrument.dto.mapper.InstrumentFromDiscountDTO2PaymentInstrumentMapper;
 import it.gov.pagopa.payment.instrument.dto.mapper.MessageMapper;
 import it.gov.pagopa.payment.instrument.dto.pm.PaymentMethodInfoList;
@@ -82,7 +82,7 @@ public class PaymentInstrumentDiscountServiceImpl implements
       List<PaymentMethodInfoList>
           paymentMethodInfoList) {
 
-    RuleEngineQueueDTO ruleEngineQueueDTO = RuleEngineQueueDTO.builder()
+    RuleEngineRequestDTO ruleEngineRequestDTO = RuleEngineRequestDTO.builder()
         .userId(userId)
         .initiativeId(initiativeId)
         .infoList(paymentMethodInfoList)
@@ -94,10 +94,10 @@ public class PaymentInstrumentDiscountServiceImpl implements
     log.info("[PaymentInstrumentDiscountService] Sending message to Rule Engine.");
 
     try {
-      ruleEngineProducer.sendInstruments(messageMapper.apply(ruleEngineQueueDTO));
+      ruleEngineProducer.sendInstruments(messageMapper.apply(ruleEngineRequestDTO));
     } catch (Exception e) {
       final MessageBuilder<?> errorMessage = MessageBuilder.withPayload(
-          messageMapper.apply(ruleEngineQueueDTO));
+          messageMapper.apply(ruleEngineRequestDTO));
       sendToErrorQueue(e, errorMessage, ruleEngineServer, ruleEngineTopic);
     }
   }
