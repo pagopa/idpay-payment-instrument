@@ -26,6 +26,9 @@ import it.gov.pagopa.payment.instrument.utils.AuditUtilities;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +41,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.*;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -78,6 +82,7 @@ class PaymentInstrumentServiceTest {
     private static final String INITIATIVE_ID = "TEST_INITIATIVE_ID";
     private static final String INITIATIVE_ID_OTHER = "TEST_INITIATIVE_ID_OTHER";
     private static final String INITIATIVE_ID_ANOTHER = "TEST_INITIATIVE_ID_ANOTHER";
+    private static final String OPERATION_TYPE_DELETE_INITIATIVE = "DELETE_INITIATIVE";
     private static final String HPAN = "TEST_HPAN";
     private static final Boolean CONSENT = true;
     private static final String CHANNEL = "TEST_CHANNEL";
@@ -1532,5 +1537,29 @@ class PaymentInstrumentServiceTest {
         assertEquals(BRAND, instrumentDetailDTO.getBrand());
         assertEquals(2, instrumentDetailDTO.getInitiativeList().size());
         assertEquals(PaymentInstrumentConstants.STATUS_ACTIVE, instrumentDetailDTO.getInitiativeList().get(0).getStatus());
+    }
+    @ParameterizedTest
+    @MethodSource("operationTypeAndInvocationTimes")
+    void processOperation_deleteOperation(String operationType, int times) {
+        QueueCommandOperationDTO queueCommandOperationDTO = QueueCommandOperationDTO.builder()
+                .operationId(INITIATIVE_ID)
+                .operationType(operationType)
+                .build();
+
+        List<PaymentInstrument> deletedOperation = List.of(TEST_INSTRUMENT);
+
+        Mockito.when(paymentInstrumentRepositoryMock.deleteByInitiativeId(queueCommandOperationDTO.getOperationId()))
+                .thenReturn(deletedOperation);
+
+        paymentInstrumentService.processOperation(queueCommandOperationDTO);
+
+        Mockito.verify(paymentInstrumentRepositoryMock, Mockito.times(times)).deleteByInitiativeId(queueCommandOperationDTO.getOperationId());
+    }
+
+    private static Stream<Arguments> operationTypeAndInvocationTimes() {
+        return Stream.of(
+                Arguments.of(OPERATION_TYPE_DELETE_INITIATIVE, 1),
+                Arguments.of("OPERATION_TYPE_TEST", 0)
+        );
     }
 }

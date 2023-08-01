@@ -1,9 +1,6 @@
 package it.gov.pagopa.payment.instrument.service;
 
-import it.gov.pagopa.payment.instrument.dto.HpanGetDTO;
-import it.gov.pagopa.payment.instrument.dto.InstrumentDetailDTO;
-import it.gov.pagopa.payment.instrument.dto.InstrumentIssuerDTO;
-import it.gov.pagopa.payment.instrument.dto.RuleEngineAckDTO;
+import it.gov.pagopa.payment.instrument.dto.*;
 import it.gov.pagopa.payment.instrument.dto.rtd.RTDEventsDTO;
 
 import java.util.List;
@@ -22,5 +19,6 @@ public interface PaymentInstrumentService {
   void enrollFromIssuer(InstrumentIssuerDTO body);
   InstrumentDetailDTO getInstrumentInitiativesDetail(String idWallet, String userId, List<String> statusList);
   void rollback(String initiativeId, String userId);
+  void processOperation(QueueCommandOperationDTO queueCommandOperationDTO);
 
 }
