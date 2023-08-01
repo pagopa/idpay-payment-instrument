@@ -1,7 +1,7 @@
 api.key.encrypt: ${PDV_ENCRYPT_API_KEY:}
 api.key.decrypt: ${PDV_DECRYPT_API_KEY:}
 
-retrieve-enroll.schedule: ${SCHEDULE_RETRIEVE_INITIATIVE:0 */5 * ? * *}
+retrieve-enroll.schedule: ${SCHEDULE_RETRIEVE_INITIATIVE:0 0 */4 ? * *}
 
 logging:
   level:
