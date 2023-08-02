@@ -45,6 +45,8 @@ spring:
     version: "@project.version@"
   jmx.enabled: true
   cloud:
+    function:
+      definition: paymentInstrumentQueue;consumerRtd;ackConsumer;consumerCommands
     stream:
       binders:
         kafka-re:
@@ -159,8 +161,6 @@ spring:
           content-type: ${KAFKA_CONTENT_TYPE:application/json}
           destination: ${KAFKA_TOPIC_COMMANDS:idpay-commands}
           group: ${KAFKA_COMMANDS_GROUP_IN:idpay-commands-paymentInstrument-consumer-group}
-      function:
-        definition: paymentInstrumentQueue;consumerRtd;ackConsumer;consumerCommands
       kafka:
         binder:
           auto-create-topics: false
