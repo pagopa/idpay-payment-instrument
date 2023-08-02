@@ -1542,18 +1542,18 @@ class PaymentInstrumentServiceTest {
     @MethodSource("operationTypeAndInvocationTimes")
     void processOperation_deleteOperation(String operationType, int times) {
         QueueCommandOperationDTO queueCommandOperationDTO = QueueCommandOperationDTO.builder()
-                .operationId(INITIATIVE_ID)
+                .entityId(INITIATIVE_ID)
                 .operationType(operationType)
                 .build();
 
         List<PaymentInstrument> deletedOperation = List.of(TEST_INSTRUMENT);
 
-        Mockito.when(paymentInstrumentRepositoryMock.deleteByInitiativeId(queueCommandOperationDTO.getOperationId()))
+        Mockito.when(paymentInstrumentRepositoryMock.deleteByInitiativeId(queueCommandOperationDTO.getEntityId()))
                 .thenReturn(deletedOperation);
 
         paymentInstrumentService.processOperation(queueCommandOperationDTO);
 
-        Mockito.verify(paymentInstrumentRepositoryMock, Mockito.times(times)).deleteByInitiativeId(queueCommandOperationDTO.getOperationId());
+        Mockito.verify(paymentInstrumentRepositoryMock, Mockito.times(times)).deleteByInitiativeId(queueCommandOperationDTO.getEntityId());
     }
 
     private static Stream<Arguments> operationTypeAndInvocationTimes() {
