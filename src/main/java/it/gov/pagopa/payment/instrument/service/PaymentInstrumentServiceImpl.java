@@ -928,4 +928,21 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
 
     rewardCalculatorConnector.enableUserInitiativeInstruments(userId,initiativeId);
   }
+
+  @Override
+  public void processOperation(QueueCommandOperationDTO queueCommandOperationDTO) {
+    long startTime = System.currentTimeMillis();
+
+    if (PaymentInstrumentConstants.OPERATION_TYPE_DELETE_INITIATIVE.equals(queueCommandOperationDTO.getOperationType())) {
+
+      List<PaymentInstrument> deletedInstrument = paymentInstrumentRepository.deleteByInitiativeId(queueCommandOperationDTO.getEntityId());
+      List<String> usersId = deletedInstrument.stream().map(PaymentInstrument::getUserId).distinct().toList();
+
+      log.info("[DELETE_INSTRUMENT] Deleted {} instrument/s for user {} on initiative {}", deletedInstrument.size(),
+              usersId, queueCommandOperationDTO.getEntityId());
+
+      usersId.forEach(userId -> auditUtilities.logDeleteInstrument(userId, queueCommandOperationDTO.getEntityId()));
+    }
+    performanceLog(startTime, "DELETE_INSTRUMENT");
+  }
 }
