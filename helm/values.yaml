@@ -69,12 +69,14 @@ microservice-chart:
     idpay-eventhub-01:
       KAFKA_BINDER_BROKER_ENDPOINT_LIST: kafka_broker
       KAFKA_BINDER_BROKER_ENDPOINT_ERRORS: kafka_broker
+      KAFKA_BINDER_BROKER_ENDPOINT_LIST_01: kafka_broker
       KAFKA_PAYMENT_INSTRUMENT_MECHANISM: kafka_sasl_mechanism
       KAFKA_PAYMENT_INSTRUMENT_SECURITY_PROTOCOL: kafka_security_protocol
       KAFKA_TOPIC_RULE_ENGINE: idpay_hpan_update_topic
       KAFKA_TOPIC_RE_ACK: idpay_hpan_update_outcome_topic
       KAFKA_TOPIC_ERRORS: idpay_error_topic
       KAFKA_RE_ACK_GROUP_IN: idpay_hpan_update_outcome_consumer_group
+      #KAFKA_TOPIC_COMMANDS: idpay-commands
     rtd-eventhub:
       KAFKA_BINDER_BROKER_ENDPOINT_RTD: kafka_broker_rtd_pi
       KAFKA_TOPIC_RTD_OUT: rtd_pi_from_app_topic
@@ -88,6 +90,7 @@ microservice-chart:
     KAFKA_RTD_OUT_SASL_JAAS_CONFIG: evh-rtd-pi-from-app-rtd-pi-from-app-producer-policy-rtd
     KAFKA_RTD_IN_SASL_JAAS_CONFIG: evh-rtd-pi-to-app-rtd-pi-to-app-consumer-policy-rtd
     KAFKA_ERRORS_SASL_JAAS_CONFIG: evh-idpay-errors-idpay-errors-producer-jaas-config-idpay-01
+    KAFKA_COMMANDS_IN_SASL_JAAS_CONFIG: evh-idpay-commands-idpay-commands-consumer-jaas-config-idpay-01
     PDV_ENCRYPT_API_KEY: pdv-api-key
     PDV_DECRYPT_API_KEY: pdv-api-key
     PM_SERVICE_APIM_KEY: pm-api-key

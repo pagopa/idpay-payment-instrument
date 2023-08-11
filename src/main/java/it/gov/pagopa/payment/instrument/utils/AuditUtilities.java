@@ -30,6 +30,8 @@ public class AuditUtilities {
     private static final String CEF_WALLET_PATTERN = CEF + " msg={} cs1Label=idWallet cs1={} cs3Label=channel cs3={}";
     private static final String CEF_HPAN_PATTERN = CEF + " msg={} cs2Label=hpan cs2={} cs3Label=channel cs3={}";
     private static final String CEF_WALLET_PATTERN_DATE = CEF_WALLET_PATTERN + " cs4Label=date cs4={}";
+    private static final String CEF_BASE_PATTERN = CEF + " msg={} suser={} cs1Label=initiativeId cs1={}";
+
 
     private void logAuditString(String pattern, String... parameters) {
         log.info(pattern, (Object[]) parameters);
@@ -89,5 +91,11 @@ public class AuditUtilities {
                 CEF_WALLET_PATTERN_DATE,
                 "Activation of the instrument failed.", idWallet, channel, date.toString()
         );
+    }
+
+    public void logDeleteInstrument(String userId, String initiativeId) {
+        logAuditString(
+                CEF_BASE_PATTERN,
+                "Payment instruments deleted", userId, initiativeId);
     }
 }
