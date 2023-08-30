@@ -320,7 +320,7 @@ class PaymentInstrumentControllerTest {
 
     mvc.perform(MockMvcRequestBuilders.put(BASE_URL + ENROLL_DISCOUNT_URL)
             .contentType(MediaType.APPLICATION_JSON_VALUE)
-            .accept(MediaType.APPLICATION_JSON_VALUE)).andExpect(MockMvcResultMatchers.status().isBadRequest())
+            .accept(MediaType.APPLICATION_JSON_VALUE)).andExpect(MockMvcResultMatchers.status().isInternalServerError())
         .andReturn();
 
   }
