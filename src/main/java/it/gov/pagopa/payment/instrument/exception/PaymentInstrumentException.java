@@ -1,14 +1,13 @@
 package it.gov.pagopa.payment.instrument.exception;
 
-import lombok.AllArgsConstructor;
+import it.gov.pagopa.common.web.exception.ClientExceptionWithBody;
 import lombok.Getter;
+import org.springframework.http.HttpStatus;
 
-@AllArgsConstructor
 @Getter
-public class PaymentInstrumentException extends RuntimeException {
-
-  private final int code;
-
-  private final String message;
-
+@SuppressWarnings("squid:S110")
+public class PaymentInstrumentException extends ClientExceptionWithBody {
+  public PaymentInstrumentException(int code, String message) {
+    super(HttpStatus.valueOf(code), code, message);
+  }
 }
