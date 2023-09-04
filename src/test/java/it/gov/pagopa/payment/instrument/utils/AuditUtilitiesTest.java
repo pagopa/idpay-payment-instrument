@@ -15,6 +15,8 @@ class AuditUtilitiesTest {
     private static final String HPAN = "TEST_HPAN";
     private static final LocalDateTime DATE = LocalDateTime.now();
     private static final String CHANNEL = "CHANNEL";
+    private static final String USER_ID = "TEST_USER_ID";
+    private static final String INITIATIVE_ID = "TEST_INITIATIVE_ID";
 
     private MemoryAppender memoryAppender;
 
@@ -152,6 +154,21 @@ class AuditUtilitiesTest {
                                 ID_WALLET,
                                 CHANNEL,
                                 DATE
+                        ),
+                memoryAppender.getLoggedEvents().get(0).getFormattedMessage()
+        );
+    }
+    @Test
+    void logDeleteInstrument_ok(){
+        auditUtilities.logDeleteInstrument(USER_ID, INITIATIVE_ID);
+
+        Assertions.assertEquals(
+                ("CEF:0|PagoPa|IDPAY|1.0|7|User interaction|2| event=PaymentInstrument dstip=%s msg=Payment instruments deleted" +
+                        " suser=%s cs1Label=initiativeId cs1=%s")
+                        .formatted(
+                                AuditUtilities.SRCIP,
+                                USER_ID,
+                                INITIATIVE_ID
                         ),
                 memoryAppender.getLoggedEvents().get(0).getFormattedMessage()
         );
