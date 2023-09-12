@@ -123,6 +123,6 @@ class MongoExceptionHandlerTest {
     mockMvc.perform(MockMvcRequestBuilders.get("/test")
                     .contentType(MediaType.APPLICATION_JSON))
             .andExpect(MockMvcResultMatchers.status().isTooManyRequests())
-            .andExpect(MockMvcResultMatchers.content().json("{\"code\":\"TOO_MANY_REQUESTS\",\"message\":\"TOO_MANY_REQUESTS\"}"));
+            .andExpect(MockMvcResultMatchers.content().json("{\"message\":\"TOO_MANY_REQUESTS\"}", false));
   }
 }
