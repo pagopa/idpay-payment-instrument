@@ -4,7 +4,7 @@ import ch.qos.logback.classic.LoggerContext;
 import com.mongodb.MongoQueryException;
 import com.mongodb.ServerAddress;
 import it.gov.pagopa.common.mongo.retry.exception.MongoRequestRateTooLargeRetryExpiredException;
-import it.gov.pagopa.payment.instrument.utils.MemoryAppender;
+import it.gov.pagopa.common.utils.MemoryAppender;
 import org.bson.BsonDocument;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Assertions;
@@ -26,7 +26,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {MongoRequestRateTooLargeRetryableAspect.class,
-        MongoRequestRateTooLargeRetryerTest.TestService.class})
+    MongoRequestRateTooLargeRetryerTest.TestService.class})
 public class MongoRequestRateTooLargeRetryerTest {
 
   public static final int REQUEST_RATE_TOO_LARGE_MAX_RETRY = 3;
@@ -42,7 +42,7 @@ public class MongoRequestRateTooLargeRetryerTest {
   @BeforeEach
   public void setup() {
     ch.qos.logback.classic.Logger logger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(
-            MongoRequestRateTooLargeRetryer.class.getName());
+        MongoRequestRateTooLargeRetryer.class.getName());
     memoryAppender = new MemoryAppender();
     memoryAppender.setContext((LoggerContext) LoggerFactory.getILoggerFactory());
     logger.setLevel(ch.qos.logback.classic.Level.INFO);
@@ -103,7 +103,7 @@ public class MongoRequestRateTooLargeRetryerTest {
     when(dummyServiceMock.get()).thenAnswer(invocation -> {
       counter[0]++;
       if ((System.currentTimeMillis() - startTime) + 40
-              < REQUEST_RATE_TOO_LARGE_MAX_MILLIS_ELAPSED) {
+          < REQUEST_RATE_TOO_LARGE_MAX_MILLIS_ELAPSED) {
         throw mongoDbException;
       }
       return "ok2";
@@ -117,9 +117,9 @@ public class MongoRequestRateTooLargeRetryerTest {
     assertEquals("ok2", result);
     verify(dummyServiceMock, times(counter[0])).get();
     assertTrue(elapsedTime >= (REQUEST_RATE_TOO_LARGE_MAX_MILLIS_ELAPSED - 50) && elapsedTime <= (
-                    REQUEST_RATE_TOO_LARGE_MAX_MILLIS_ELAPSED + 50),
-            "Obtained elapsed time: " + elapsedTime + "; Minimum expected: "
-                    + REQUEST_RATE_TOO_LARGE_MAX_MILLIS_ELAPSED);
+            REQUEST_RATE_TOO_LARGE_MAX_MILLIS_ELAPSED + 50),
+        "Obtained elapsed time: " + elapsedTime + "; Minimum expected: "
+            + REQUEST_RATE_TOO_LARGE_MAX_MILLIS_ELAPSED);
 
     String message = "\\[REQUEST_RATE_TOO_LARGE_RETRY] Retrying after 34 ms due to RequestRateTooLargeException: attempt %d of \\d+ after \\d+ ms of max %d ms";
     assertLogMessage(message, REQUEST_RATE_TOO_LARGE_MAX_MILLIS_ELAPSED);
@@ -149,14 +149,14 @@ public class MongoRequestRateTooLargeRetryerTest {
     when(dummyServiceMock.get()).thenThrow(mongoDbException);
 
     assertThrows(MongoRequestRateTooLargeRetryExpiredException.class, () ->
-            testService.annotatedMethodWithMaxMillisElapsed()
+        testService.annotatedMethodWithMaxMillisElapsed()
     );
   }
 
   @Test
   void uncategorizedMongoDbExceptionNotRequestRateTooLarge() {
     final UncategorizedMongoDbException expectedException = new UncategorizedMongoDbException(
-            "not Request Rate Too Large Exception", new Throwable());
+        "not Request Rate Too Large Exception", new Throwable());
     when(dummyServiceMock.get()).thenThrow(expectedException);
     try {
       testService.annotatedMethodWithMaxRetry();
@@ -171,7 +171,7 @@ public class MongoRequestRateTooLargeRetryerTest {
     //Given
     long[] counter = {0};
     UncategorizedMongoDbException mongoDbException = new UncategorizedMongoDbException(
-            "TooManyRequests", new Throwable());
+        "TooManyRequests", new Throwable());
 
     Mockito.doAnswer(invocationOnMock -> {
       if (counter[0] < REQUEST_RATE_TOO_LARGE_MAX_RETRY) {
@@ -212,8 +212,8 @@ public class MongoRequestRateTooLargeRetryerTest {
 
       String logMessage = memoryAppender.getLoggedEvents().get(i).getFormattedMessage();
       Assertions.assertTrue(
-              logMessage.matches(expectedMessage.formatted(i + 1, maxRetryOrMaxMillisElapsed)),
-              logMessage
+          logMessage.matches(expectedMessage.formatted(i + 1, maxRetryOrMaxMillisElapsed)),
+          logMessage
       );
     }
   }
@@ -228,7 +228,7 @@ public class MongoRequestRateTooLargeRetryerTest {
         """;
 
     MongoQueryException mongoQueryException = new MongoQueryException(
-            BsonDocument.parse(mongoFullErrorResponse), new ServerAddress());
+        BsonDocument.parse(mongoFullErrorResponse), new ServerAddress());
     return new UncategorizedMongoDbException(mongoQueryException.getMessage(), mongoQueryException);
   }
 }
