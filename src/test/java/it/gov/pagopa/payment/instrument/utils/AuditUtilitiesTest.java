@@ -1,6 +1,7 @@
 package it.gov.pagopa.payment.instrument.utils;
 
 import ch.qos.logback.classic.LoggerContext;
+import it.gov.pagopa.common.utils.MemoryAppender;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
