@@ -1,4 +1,4 @@
-package it.gov.pagopa.payment.instrument.utils;
+package it.gov.pagopa.common.utils;
 
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;

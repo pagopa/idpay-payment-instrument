@@ -37,7 +37,7 @@ class MongoRequestRateTooLargeAutomaticRetryAspectTest {
         configureExecutionContext(true);
     }
 
-    //region test batch
+//region test batch
     @Test
     void testBatchEnabled() throws Throwable {
         configureExecutionContext(true);
@@ -63,7 +63,7 @@ class MongoRequestRateTooLargeAutomaticRetryAspectTest {
 
 //endregion
 
-    //region test Api
+//region test Api
     @Test
     void testApiEnabled() throws Throwable {
         configureExecutionContext(false);
