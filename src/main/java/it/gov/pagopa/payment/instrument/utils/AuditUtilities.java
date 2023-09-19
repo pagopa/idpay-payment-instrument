@@ -31,6 +31,7 @@ public class AuditUtilities {
     private static final String CEF_HPAN_PATTERN = CEF + " msg={} cs2Label=hpan cs2={} cs3Label=channel cs3={}";
     private static final String CEF_WALLET_PATTERN_DATE = CEF_WALLET_PATTERN + " cs4Label=date cs4={}";
     private static final String CEF_BASE_PATTERN = CEF + " msg={} suser={} cs1Label=initiativeId cs1={}";
+    private static final String CEF_INSTRUMENT_CODE_PATTERN = CEF + " msg={} suser={} cs1Label=channel cs1={} cs3Label=instrumentType cs3={}";
 
 
     private void logAuditString(String pattern, String... parameters) {
@@ -97,5 +98,12 @@ public class AuditUtilities {
         logAuditString(
                 CEF_BASE_PATTERN,
                 "Payment instruments deleted", userId, initiativeId);
+    }
+
+    public void logEnrollInstrumentCodeComplete(String userId, String channel,String instrumentType) {
+        logAuditString(
+                CEF_INSTRUMENT_CODE_PATTERN,
+                "Enrollment of the instrument completed.", userId, channel, instrumentType
+        );
     }
 }

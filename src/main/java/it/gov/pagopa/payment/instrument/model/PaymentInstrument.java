@@ -23,6 +23,7 @@ public class PaymentInstrument {
   private boolean consent;
   private String status;
   private String channel;
+  private String intrumentType;
   private String deleteChannel;
   private LocalDateTime activationDate;
   private LocalDateTime deactivationDate;

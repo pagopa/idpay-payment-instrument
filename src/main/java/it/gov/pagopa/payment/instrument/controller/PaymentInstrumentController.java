@@ -48,4 +48,6 @@ public interface PaymentInstrumentController {
   @PutMapping("/rollback/{initiativeId}/{userId}")
   ResponseEntity<Void> rollback(@PathVariable("initiativeId") String initiativeId, @PathVariable("userId") String userId);
 
+  @PutMapping("/code/enroll")
+  ResponseEntity<HpanGetDTO> enrollInstrumentCode(@Valid @RequestBody BaseEnrollmentBodyDTO body);
 }

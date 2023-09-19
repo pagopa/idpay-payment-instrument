@@ -8,13 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import it.gov.pagopa.common.web.dto.ErrorDTO;
 import it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants;
-import it.gov.pagopa.payment.instrument.dto.DeactivationBodyDTO;
-import it.gov.pagopa.payment.instrument.dto.EnrollmentBodyDTO;
-import it.gov.pagopa.payment.instrument.dto.HpanDTO;
-import it.gov.pagopa.payment.instrument.dto.HpanGetDTO;
-import it.gov.pagopa.payment.instrument.dto.InstrumentDetailDTO;
-import it.gov.pagopa.payment.instrument.dto.InstrumentIssuerDTO;
-import it.gov.pagopa.payment.instrument.dto.UnsubscribeBodyDTO;
+import it.gov.pagopa.payment.instrument.dto.*;
 import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
 import it.gov.pagopa.payment.instrument.service.PaymentInstrumentDiscountService;
 import it.gov.pagopa.payment.instrument.service.PaymentInstrumentService;
@@ -44,6 +38,7 @@ class PaymentInstrumentControllerTest {
 
   private static final String BASE_URL = "http://localhost:8080/idpay/instrument";
   private static final String ENROLL_URL = "/enroll";
+  private static final String CODE_ENROLL_URL = "/code/enroll";
   private static final String ENROLL_ISSUER_URL = "/hb/enroll";
   private static final String DEACTIVATE_URL = "/deactivate";
   private static final String DISABLE_ALL_URL = "/disableall";
@@ -55,14 +50,21 @@ class PaymentInstrumentControllerTest {
   private static final String INSTRUMENT_ID = "INSTRUMENT_ID";
   private static final String CHANNEL = "TEST_CHANNEL";
   private static final String BRAND_LOGO = "BRAND_LOGO";
+  private static final String CARD = "CARD";
+  private static final String INSTRUMENT_TYPE = "TEST_INSTRUMENT_TYPE";
 
   private static final String GETHPAN_URL = "/" + INITIATIVE_ID + "/" + USER_ID;
   private static final EnrollmentBodyDTO ENROLLMENT_BODY_DTO = new EnrollmentBodyDTO(USER_ID,
-      INITIATIVE_ID, ID_WALLET, CHANNEL);
+      INITIATIVE_ID, ID_WALLET, CHANNEL, CARD);
   private static final EnrollmentBodyDTO ENROLLMENT_BODY_DTO_EMPTY = new EnrollmentBodyDTO("", "",
-      "", "");
+      "", "", "");
   private static final DeactivationBodyDTO DEACTIVATION_BODY_DTO = new DeactivationBodyDTO(USER_ID,
       INITIATIVE_ID, INSTRUMENT_ID);
+
+  private static final BaseEnrollmentBodyDTO BASE_ENROLLMENT_BODY_DTO = new BaseEnrollmentBodyDTO(USER_ID,
+          INITIATIVE_ID, CHANNEL, INSTRUMENT_TYPE);
+  private static final BaseEnrollmentBodyDTO BASE_ENROLLMENT_BODY_DTO_EMPTY = new BaseEnrollmentBodyDTO("",
+          "", "", "");
   private static final DeactivationBodyDTO DEACTIVATION_BODY_DTO_EMPTY = new DeactivationBodyDTO("",
       "", "");
 
@@ -333,5 +335,36 @@ class PaymentInstrumentControllerTest {
                             .accept(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(MockMvcResultMatchers.status().isNoContent())
             .andReturn();
+  }
+
+  @Test
+  void enroll_code_ok() throws Exception {
+    ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
+
+    mvc.perform(MockMvcRequestBuilders.put(BASE_URL + CODE_ENROLL_URL)
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .content(objectMapper.writeValueAsString(BASE_ENROLLMENT_BODY_DTO))
+                    .accept(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(MockMvcResultMatchers.status().isOk())
+            .andReturn();
+
+  }
+
+  @Test
+  void enroll_code_ko() throws Exception {
+    ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
+
+    MvcResult result = mvc.perform(MockMvcRequestBuilders.put(BASE_URL + CODE_ENROLL_URL)
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .content(objectMapper.writeValueAsString(BASE_ENROLLMENT_BODY_DTO_EMPTY))
+                    .accept(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(MockMvcResultMatchers.status().isBadRequest())
+            .andReturn();
+
+    ErrorDTO error = objectMapper.readValue(result.getResponse().getContentAsString(), ErrorDTO.class);
+
+    assertEquals(HttpStatus.BAD_REQUEST.value(), error.getCode());
+    assertTrue(error.getMessage().contains(PaymentInstrumentConstants.ERROR_MANDATORY_FIELD));
+
   }
 }

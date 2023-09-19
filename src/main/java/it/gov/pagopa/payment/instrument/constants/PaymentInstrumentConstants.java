@@ -36,7 +36,14 @@ public final class PaymentInstrumentConstants {
   public static final String REJECTED = "REJECTED_";
   public static final String IDPAY_PAYMENT = "IDPAY_PAYMENT";
   public static final String IDPAY_PAYMENT_FAKE_INSTRUMENT_PREFIX = "IDPAY_%s";
+  public static final String IDPAY_CODE_FAKE_INSTRUMENT_PREFIX = "IDPAYCODE_%s";
   public static final String OPERATION_TYPE_DELETE_INITIATIVE = "DELETE_INITIATIVE";
+
+  //region instrument type
+  public static final String INSTRUMENT_TYPE_CARD = "CARD";
+  public static final String INSTRUMENT_TYPE_QRCODE = "QRCODE";
+  public static final String INSTRUMENT_TYPE_IDPAYCODE = "IDPAYCODE";
+  //endregion
 
   private PaymentInstrumentConstants() {
   }
