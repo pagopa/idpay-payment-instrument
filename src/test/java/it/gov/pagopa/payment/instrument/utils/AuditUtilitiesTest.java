@@ -16,6 +16,7 @@ class AuditUtilitiesTest {
     private static final String HPAN = "TEST_HPAN";
     private static final LocalDateTime DATE = LocalDateTime.now();
     private static final String CHANNEL = "CHANNEL";
+    private static final String INSTRUMENT_TYPE = "TEST_INSTRUMENT_TYPE";
     private static final String USER_ID = "TEST_USER_ID";
     private static final String INITIATIVE_ID = "TEST_INITIATIVE_ID";
 
@@ -170,6 +171,25 @@ class AuditUtilitiesTest {
                                 AuditUtilities.SRCIP,
                                 USER_ID,
                                 INITIATIVE_ID
+                        ),
+                memoryAppender.getLoggedEvents().get(0).getFormattedMessage()
+        );
+    }
+
+    @Test
+    void logEnrollInstrumentCodeComplete(){
+        auditUtilities.logEnrollInstrumentCodeComplete(USER_ID, CHANNEL, INSTRUMENT_TYPE);
+
+        Assertions.assertEquals(
+                ("CEF:0|PagoPa|IDPAY|1.0|7|User interaction|2| event=PaymentInstrument dstip=%s msg=%s" +
+                        " suser=%s cs1Label=channel cs1=%s cs3Label=instrumentType cs3=%s")
+                        .formatted(
+                                AuditUtilities.SRCIP,
+                                "Enrollment of the instrument completed.",
+                                USER_ID,
+                                CHANNEL,
+                                INSTRUMENT_TYPE
+
                         ),
                 memoryAppender.getLoggedEvents().get(0).getFormattedMessage()
         );
