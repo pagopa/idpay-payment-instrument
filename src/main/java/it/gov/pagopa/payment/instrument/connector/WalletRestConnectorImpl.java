@@ -23,4 +23,9 @@ public class WalletRestConnectorImpl implements WalletRestConnector {
     walletRestClient.processAck(body);
   }
 
+  @Override
+  public void enrollInstrumentCode(String initiativeId, String userId) {
+    walletRestClient.enrollInstrumentCode(initiativeId, userId);
+  }
+
 }

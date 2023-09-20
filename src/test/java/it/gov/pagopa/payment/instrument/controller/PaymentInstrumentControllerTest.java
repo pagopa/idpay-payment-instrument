@@ -3,7 +3,6 @@ package it.gov.pagopa.payment.instrument.controller;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import it.gov.pagopa.common.web.dto.ErrorDTO;
@@ -16,8 +15,10 @@ import it.gov.pagopa.payment.instrument.dto.InstrumentDetailDTO;
 import it.gov.pagopa.payment.instrument.dto.InstrumentIssuerDTO;
 import it.gov.pagopa.payment.instrument.dto.UnsubscribeBodyDTO;
 import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
+import it.gov.pagopa.payment.instrument.service.PaymentInstrumentCodeService;
 import it.gov.pagopa.payment.instrument.service.PaymentInstrumentDiscountService;
 import it.gov.pagopa.payment.instrument.service.PaymentInstrumentService;
+import it.gov.pagopa.payment.instrument.test.fakers.GenerateCodeDTOFaker;
 import it.gov.pagopa.payment.instrument.test.fakers.InstrumentFromDiscountDTOFaker;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -76,11 +77,15 @@ class PaymentInstrumentControllerTest {
   private static final InstrumentIssuerDTO ENROLLMENT_ISSUER_BODY_DTO_EMPTY = new InstrumentIssuerDTO(INITIATIVE_ID, USER_ID, "", "", "", "", "");
   private static final String GET_INSTRUMENT_INITIATIVES_DETAIL = "/initiatives/" + ID_WALLET + "/" + USER_ID + "/detail";
   private static final String ENROLL_DISCOUNT_URL = "/discount/enroll";
+  private static final String ENROLL_CODE_URL = "/generate-code/" + USER_ID;
   @MockBean
   PaymentInstrumentService paymentInstrumentServiceMock;
 
   @MockBean
   PaymentInstrumentDiscountService paymentInstrumentDiscountService;
+
+  @MockBean
+  PaymentInstrumentCodeService paymentInstrumentCodeService;
 
   @Autowired
   protected MockMvc mvc;
@@ -316,7 +321,6 @@ class PaymentInstrumentControllerTest {
 
   @Test
   void enroll_discount_empty_body() throws Exception {
-    ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
     mvc.perform(MockMvcRequestBuilders.put(BASE_URL + ENROLL_DISCOUNT_URL)
             .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -333,5 +337,27 @@ class PaymentInstrumentControllerTest {
                             .accept(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(MockMvcResultMatchers.status().isNoContent())
             .andReturn();
+  }
+
+  @Test
+  void enroll_code_ok() throws Exception {
+    ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
+
+    mvc.perform(MockMvcRequestBuilders.post(BASE_URL + ENROLL_CODE_URL)
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .content(objectMapper.writeValueAsString(GenerateCodeDTOFaker.mockInstance(1, true)))
+            .accept(MediaType.APPLICATION_JSON_VALUE))
+        .andExpect(MockMvcResultMatchers.status().isOk())
+        .andReturn();
+  }
+
+  @Test
+  void enroll_code_empty_body() throws Exception {
+
+    mvc.perform(MockMvcRequestBuilders.post(BASE_URL + ENROLL_CODE_URL)
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .accept(MediaType.APPLICATION_JSON_VALUE))
+        .andExpect(MockMvcResultMatchers.status().isInternalServerError())
+        .andReturn();
   }
 }

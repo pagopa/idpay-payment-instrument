@@ -4,6 +4,7 @@ import it.gov.pagopa.payment.instrument.dto.InstrumentAckDTO;
 import it.gov.pagopa.payment.instrument.dto.WalletCallDTO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -26,4 +27,12 @@ public interface WalletRestClient {
   @ResponseBody
   void processAck(
       @RequestBody InstrumentAckDTO body);
+
+  @PutMapping(
+      value = "/idpay/wallet/{initiativeId}/{userId}/code/instruments",
+      produces = MediaType.APPLICATION_JSON_VALUE)
+  @ResponseBody
+  void enrollInstrumentCode(
+      @PathVariable("initiativeId") String initiativeId,
+      @PathVariable("userId") String userId);
 }

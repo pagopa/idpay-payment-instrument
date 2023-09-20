@@ -48,4 +48,7 @@ public interface PaymentInstrumentController {
   @PutMapping("/rollback/{initiativeId}/{userId}")
   ResponseEntity<Void> rollback(@PathVariable("initiativeId") String initiativeId, @PathVariable("userId") String userId);
 
+  @PostMapping("/generate-code/{userId}")
+  ResponseEntity<GeneratedCodeDTO> generateCode(@PathVariable("userId") String userId, @RequestBody GenerateCodeDTO body);
+
 }

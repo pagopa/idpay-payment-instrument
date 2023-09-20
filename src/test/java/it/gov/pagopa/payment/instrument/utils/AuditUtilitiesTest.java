@@ -174,4 +174,37 @@ class AuditUtilitiesTest {
                 memoryAppender.getLoggedEvents().get(0).getFormattedMessage()
         );
     }
+
+    @Test
+    void logGeneratedCode(){
+        auditUtilities.logGeneratedCode(USER_ID, DATE);
+
+        Assertions.assertEquals(
+            ("CEF:0|PagoPa|IDPAY|1.0|7|User interaction|2| event=PaymentInstrument dstip=%s msg=Code generated successfully" +
+                " suser=%s cs4Label=date cs4=%s")
+                .formatted(
+                    AuditUtilities.SRCIP,
+                    USER_ID,
+                    DATE
+                ),
+            memoryAppender.getLoggedEvents().get(0).getFormattedMessage()
+        );
+    }
+
+    @Test
+    void logEnrollCodeAfterGeneratedCode(){
+        auditUtilities.logEnrollCodeAfterGeneratedCode(USER_ID, INITIATIVE_ID, DATE);
+
+        Assertions.assertEquals(
+            ("CEF:0|PagoPa|IDPAY|1.0|7|User interaction|2| event=PaymentInstrument dstip=%s msg=Code generated successfully and enrollment completed" +
+                " suser=%s cs1Label=initiativeId cs1=%s cs4Label=date cs4=%s")
+                .formatted(
+                    AuditUtilities.SRCIP,
+                    USER_ID,
+                    INITIATIVE_ID,
+                    DATE
+                ),
+            memoryAppender.getLoggedEvents().get(0).getFormattedMessage()
+        );
+    }
 }

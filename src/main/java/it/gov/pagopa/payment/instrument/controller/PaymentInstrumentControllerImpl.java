@@ -2,11 +2,14 @@ package it.gov.pagopa.payment.instrument.controller;
 
 import it.gov.pagopa.payment.instrument.dto.DeactivationBodyDTO;
 import it.gov.pagopa.payment.instrument.dto.EnrollmentBodyDTO;
+import it.gov.pagopa.payment.instrument.dto.GenerateCodeDTO;
+import it.gov.pagopa.payment.instrument.dto.GeneratedCodeDTO;
 import it.gov.pagopa.payment.instrument.dto.HpanGetDTO;
 import it.gov.pagopa.payment.instrument.dto.InstrumentDetailDTO;
 import it.gov.pagopa.payment.instrument.dto.InstrumentFromDiscountDTO;
 import it.gov.pagopa.payment.instrument.dto.InstrumentIssuerDTO;
 import it.gov.pagopa.payment.instrument.dto.UnsubscribeBodyDTO;
+import it.gov.pagopa.payment.instrument.service.PaymentInstrumentCodeService;
 import it.gov.pagopa.payment.instrument.service.PaymentInstrumentDiscountService;
 import it.gov.pagopa.payment.instrument.service.PaymentInstrumentService;
 import java.util.List;
@@ -19,11 +22,14 @@ public class PaymentInstrumentControllerImpl implements PaymentInstrumentControl
 
   private final PaymentInstrumentService paymentInstrumentService;
   private final PaymentInstrumentDiscountService paymentInstrumentDiscountService;
+  private final PaymentInstrumentCodeService paymentInstrumentCodeService;
 
   public PaymentInstrumentControllerImpl(PaymentInstrumentService paymentInstrumentService,
-      PaymentInstrumentDiscountService paymentInstrumentDiscountService) {
+      PaymentInstrumentDiscountService paymentInstrumentDiscountService,
+      PaymentInstrumentCodeService paymentInstrumentCodeService) {
     this.paymentInstrumentService = paymentInstrumentService;
     this.paymentInstrumentDiscountService = paymentInstrumentDiscountService;
+    this.paymentInstrumentCodeService = paymentInstrumentCodeService;
   }
 
   @Override
@@ -90,5 +96,11 @@ public class PaymentInstrumentControllerImpl implements PaymentInstrumentControl
   public ResponseEntity<Void> rollback(String initiativeId, String userId) {
     paymentInstrumentService.rollback(initiativeId,userId);
     return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+  }
+
+  @Override
+  public ResponseEntity<GeneratedCodeDTO> generateCode(String userId, GenerateCodeDTO body) {
+    GeneratedCodeDTO generatedCodeDTO = paymentInstrumentCodeService.generateCode(userId, body);
+    return new ResponseEntity<>(generatedCodeDTO, HttpStatus.OK);
   }
 }
