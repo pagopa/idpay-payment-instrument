@@ -27,7 +27,8 @@ public class PaymentInstrumentControllerImpl implements PaymentInstrumentControl
         body.getInitiativeId(),
         body.getUserId(),
         body.getIdWallet(),
-        body.getChannel()
+        body.getChannel(),
+        body.getInstrumentType()
     );
 
     return new ResponseEntity<>(HttpStatus.OK);

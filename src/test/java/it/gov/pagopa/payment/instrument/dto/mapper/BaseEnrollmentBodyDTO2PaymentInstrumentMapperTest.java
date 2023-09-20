@@ -2,10 +2,8 @@ package it.gov.pagopa.payment.instrument.dto.mapper;
 
 import it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants;
 import it.gov.pagopa.payment.instrument.dto.BaseEnrollmentBodyDTO;
-import it.gov.pagopa.payment.instrument.dto.InstrumentFromDiscountDTO;
 import it.gov.pagopa.payment.instrument.model.PaymentInstrument;
 import it.gov.pagopa.payment.instrument.test.fakers.BaseEnrollmentDTOFaker;
-import it.gov.pagopa.payment.instrument.test.fakers.InstrumentFromDiscountDTOFaker;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,8 +30,8 @@ class BaseEnrollmentBodyDTO2PaymentInstrumentMapperTest {
       Assertions.assertEquals(baseEnrollmentDTO.getUserId(), result.getUserId());
       Assertions.assertEquals(baseEnrollmentDTO.getChannel(), result.getChannel());
       Assertions.assertEquals(testHpan, result.getHpan());
-      Assertions.assertEquals(baseEnrollmentDTO.getInstrumentType(), result.getIntrumentType());
-      Assertions.assertEquals(PaymentInstrumentConstants.STATUS_ACTIVE, result.getStatus());
+      Assertions.assertEquals(baseEnrollmentDTO.getInstrumentType(), result.getInstrumentType());
+      Assertions.assertEquals(PaymentInstrumentConstants.STATUS_PENDING_RE, result.getStatus());
     });
 
   }

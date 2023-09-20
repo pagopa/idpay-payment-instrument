@@ -81,7 +81,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
 
   @Override
   public void enrollInstrument(String initiativeId, String userId, String idWallet,
-      String channel) {
+      String channel, String instrumentType) {
 
     long startTime = System.currentTimeMillis();
 
@@ -112,7 +112,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
               .equals(PaymentInstrumentConstants.STATUS_ENROLLMENT_FAILED)) {
         log.info(
             "[ENROLL_INSTRUMENT] Try enrolling again the instrument with status failed");
-        enrollInstrumentFailed(pi, hpanListDTO, channel);
+        enrollInstrumentFailed(pi, hpanListDTO, channel, instrumentType);
         performanceLog(startTime, ENROLL_INSTRUMENT);
         return;
       }
@@ -128,7 +128,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     }
 
     PaymentInstrument newInstrument = savePaymentInstrument(
-        initiativeId, userId, idWallet, channel, infoList);
+        initiativeId, userId, idWallet, channel, infoList, instrumentType);
 
     try {
       sendToRtd(List.of(hpanListDTO), PaymentInstrumentConstants.OPERATION_ADD, initiativeId);
@@ -150,12 +150,13 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
   }
 
   private void enrollInstrumentFailed(PaymentInstrument instrument, RTDHpanListDTO hpanListDTO,
-      String channel) {
+      String channel, String instrumentType) {
     try {
       sendToRtd(List.of(hpanListDTO), PaymentInstrumentConstants.OPERATION_ADD,
           instrument.getInitiativeId());
       instrument.setStatus(PaymentInstrumentConstants.STATUS_PENDING_RTD);
       instrument.setChannel(channel);
+      instrument.setInstrumentType(instrumentType);
       instrument.setUpdateDate(LocalDateTime.now());
       paymentInstrumentRepository.save(instrument);
     } catch (Exception e) {
@@ -169,7 +170,9 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
   }
 
   private PaymentInstrument savePaymentInstrument(String initiativeId, String userId,
-      String idWallet, String channel, PaymentMethodInfoList infoList) {
+                                                  String idWallet, String channel,
+                                                  PaymentMethodInfoList infoList,
+                                                  String instrumentType) {
     PaymentInstrument newInstrument = PaymentInstrument.builder()
         .initiativeId(initiativeId)
         .userId(userId)
@@ -179,6 +182,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
         .brandLogo(infoList.getBrandLogo())
         .brand(infoList.getBrand())
         .channel(channel)
+        .instrumentType(instrumentType)
         .consent(infoList.isConsent())
         .build();
     paymentInstrumentRepository.save(newInstrument);
@@ -666,7 +670,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
         body.getBrandLogo(), body.getBrand(), true);
 
     PaymentInstrument newInstrument = savePaymentInstrument(
-        body.getInitiativeId(), body.getUserId(), null, body.getChannel(), infoList);
+        body.getInitiativeId(), body.getUserId(), null, body.getChannel(), infoList, body.getInstrumentType() );
 
     RTDHpanListDTO hpanListDTO = new RTDHpanListDTO();
     hpanListDTO.setHpan(infoList.getHpan());

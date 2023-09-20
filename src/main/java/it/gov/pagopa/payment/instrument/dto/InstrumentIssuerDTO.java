@@ -21,9 +21,13 @@ public class InstrumentIssuerDTO {
   @NotBlank(message = PaymentInstrumentConstants.ERROR_MANDATORY_FIELD)
   String channel;
 
+  @NotBlank(message = PaymentInstrumentConstants.ERROR_MANDATORY_FIELD)
+  String instrumentType;
+
   String brandLogo;
 
   String brand;
 
   String maskedPan;
+
 }

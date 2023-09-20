@@ -18,8 +18,8 @@ public class BaseEnrollmentBodyDTO2PaymentInstrument implements
             .userId(baseEnrollmentBodyDTO.getUserId())
             .hpan(hpan)
             .channel(baseEnrollmentBodyDTO.getChannel())
-            .intrumentType(baseEnrollmentBodyDTO.getInstrumentType())
-            .status(PaymentInstrumentConstants.STATUS_ACTIVE)
+            .instrumentType(baseEnrollmentBodyDTO.getInstrumentType())
+            .status(PaymentInstrumentConstants.STATUS_PENDING_RE)
             .build();
   }
 }

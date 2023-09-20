@@ -50,12 +50,11 @@ class PaymentInstrumentControllerTest {
   private static final String INSTRUMENT_ID = "INSTRUMENT_ID";
   private static final String CHANNEL = "TEST_CHANNEL";
   private static final String BRAND_LOGO = "BRAND_LOGO";
-  private static final String CARD = "CARD";
   private static final String INSTRUMENT_TYPE = "TEST_INSTRUMENT_TYPE";
 
   private static final String GETHPAN_URL = "/" + INITIATIVE_ID + "/" + USER_ID;
   private static final EnrollmentBodyDTO ENROLLMENT_BODY_DTO = new EnrollmentBodyDTO(USER_ID,
-      INITIATIVE_ID, ID_WALLET, CHANNEL, CARD);
+      INITIATIVE_ID, ID_WALLET, CHANNEL, INSTRUMENT_TYPE);
   private static final EnrollmentBodyDTO ENROLLMENT_BODY_DTO_EMPTY = new EnrollmentBodyDTO("", "",
       "", "", "");
   private static final DeactivationBodyDTO DEACTIVATION_BODY_DTO = new DeactivationBodyDTO(USER_ID,
@@ -74,8 +73,8 @@ class PaymentInstrumentControllerTest {
   private static final HpanGetDTO HPANGETDTO = new HpanGetDTO();
 
   private static final String GETHPANISSUER_URL = "/" + INITIATIVE_ID + "/" + USER_ID + "/" + CHANNEL;
-  private static final InstrumentIssuerDTO ENROLLMENT_ISSUER_BODY_DTO = new InstrumentIssuerDTO(INITIATIVE_ID, USER_ID, "HPAN", "ISSUER", "", "", "");
-  private static final InstrumentIssuerDTO ENROLLMENT_ISSUER_BODY_DTO_EMPTY = new InstrumentIssuerDTO(INITIATIVE_ID, USER_ID, "", "", "", "", "");
+  private static final InstrumentIssuerDTO ENROLLMENT_ISSUER_BODY_DTO = new InstrumentIssuerDTO(INITIATIVE_ID, USER_ID, "HPAN", "ISSUER", PaymentInstrumentConstants.INSTRUMENT_TYPE_CARD,"", "", "");
+  private static final InstrumentIssuerDTO ENROLLMENT_ISSUER_BODY_DTO_EMPTY = new InstrumentIssuerDTO(INITIATIVE_ID, USER_ID, "", "", "","", "", "");
   private static final String GET_INSTRUMENT_INITIATIVES_DETAIL = "/initiatives/" + ID_WALLET + "/" + USER_ID + "/detail";
   private static final String ENROLL_DISCOUNT_URL = "/discount/enroll";
   @MockBean
@@ -125,7 +124,7 @@ class PaymentInstrumentControllerTest {
     Mockito.doThrow(new PaymentInstrumentException(HttpStatus.FORBIDDEN.value(),
             PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_ALREADY_ASSOCIATED))
         .when(paymentInstrumentServiceMock)
-        .enrollInstrument(INITIATIVE_ID, USER_ID, ID_WALLET, CHANNEL);
+        .enrollInstrument(INITIATIVE_ID, USER_ID, ID_WALLET, CHANNEL, INSTRUMENT_TYPE);
 
     MvcResult res = mvc.perform(MockMvcRequestBuilders.put(BASE_URL + ENROLL_URL)
             .contentType(MediaType.APPLICATION_JSON_VALUE)
