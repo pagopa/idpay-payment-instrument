@@ -26,6 +26,9 @@ import org.springframework.stereotype.Service;
 public class PaymentInstrumentDiscountServiceImpl implements
     PaymentInstrumentDiscountService {
 
+  private static final String FLOW_ENROLL_FROM_DISCOUNT_INITIATIVE = "ENROLL_FROM_DISCOUNT_INITIATIVE";
+  private static final String FLOW_ENROLL_INSTRUMENT_CODE = "ENROLL_INSTRUMENT_CODE";
+
   private final InstrumentFromDiscountDTO2PaymentInstrumentMapper instrumentFromDiscountDTO2PaymentInstrumentMapper;
   private final BaseEnrollmentBodyDTO2PaymentInstrument baseEnrollmentBodyDTO2PaymentInstrument;
   private final PaymentInstrumentRepository paymentInstrumentRepository;
@@ -64,28 +67,29 @@ public class PaymentInstrumentDiscountServiceImpl implements
     PaymentInstrument paymentInstrument = instrumentFromDiscountDTO2PaymentInstrumentMapper.apply(
         body);
 
-    notifyRuleEngineAndSavePaymentInstrument(paymentInstrument);
-    performanceLog(startTime, "ENROLL_FROM_DISCOUNT_INITIATIVE");
+    notifyRuleEngineAndSavePaymentInstrument(paymentInstrument, FLOW_ENROLL_FROM_DISCOUNT_INITIATIVE);
+    performanceLog(startTime, FLOW_ENROLL_FROM_DISCOUNT_INITIATIVE);
   }
 
   @Override
   public void enrollInstrumentCode(BaseEnrollmentBodyDTO bodyInstrumentCode) {
     long startTime = System.currentTimeMillis();
+    log.info("[ENROLL_INSTRUMENT_CODE] Processing IDPayCode enrollment request of the user {} for the initiative {}", bodyInstrumentCode.getUserId(), bodyInstrumentCode.getInitiativeId());
 
     PaymentInstrument paymentInstrument = baseEnrollmentBodyDTO2PaymentInstrument.apply(bodyInstrumentCode,
             PaymentInstrumentConstants.IDPAY_CODE_FAKE_INSTRUMENT_PREFIX.formatted(bodyInstrumentCode.getUserId()));
 
-    notifyRuleEngineAndSavePaymentInstrument(paymentInstrument);
-    auditUtilities.logEnrollInstrumentCodeComplete(bodyInstrumentCode.getUserId(), bodyInstrumentCode.getChannel(), bodyInstrumentCode.getInstrumentType());
-    performanceLog(startTime, "ENROLL_INSTRUMENT_CODE");
+    notifyRuleEngineAndSavePaymentInstrument(paymentInstrument, FLOW_ENROLL_INSTRUMENT_CODE);
+    auditUtilities.logEnrollInstrumentCodeComplete(bodyInstrumentCode.getUserId(), bodyInstrumentCode.getInitiativeId(), bodyInstrumentCode.getChannel(), bodyInstrumentCode.getInstrumentType());
+    performanceLog(startTime, FLOW_ENROLL_INSTRUMENT_CODE);
 
   }
 
-  private void notifyRuleEngineAndSavePaymentInstrument(PaymentInstrument paymentInstrument) {
+  private void notifyRuleEngineAndSavePaymentInstrument(PaymentInstrument paymentInstrument, String flowName) {
     PaymentMethodInfoList info = new PaymentMethodInfoList();
     info.setHpan(paymentInstrument.getHpan());
 
-    sendToRuleEngine(paymentInstrument.getUserId(), paymentInstrument.getInitiativeId(), List.of(info), paymentInstrument.getChannel());
+    sendToRuleEngine(paymentInstrument.getUserId(), paymentInstrument.getInitiativeId(), List.of(info), paymentInstrument.getChannel(), flowName);
 
     paymentInstrumentRepository.save(paymentInstrument);
   }
@@ -112,7 +116,8 @@ public class PaymentInstrumentDiscountServiceImpl implements
   private void sendToRuleEngine(String userId,
                                 String initiativeId,
                                 List<PaymentMethodInfoList> paymentMethodInfoList,
-                                String channel) {
+                                String channel,
+                                String flowName) {
 
     RuleEngineRequestDTO ruleEngineRequestDTO = RuleEngineRequestDTO.builder()
         .userId(userId)
@@ -123,7 +128,7 @@ public class PaymentInstrumentDiscountServiceImpl implements
         .operationDate(LocalDateTime.now())
         .build();
 
-    log.info("[PaymentInstrumentDiscountService] Sending message to Rule Engine.");
+    log.info("[{}] Sending message to Rule Engine.", flowName);
 
     try {
       ruleEngineProducer.sendInstruments(messageMapper.apply(ruleEngineRequestDTO));

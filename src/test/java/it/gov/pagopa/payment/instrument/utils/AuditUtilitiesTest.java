@@ -178,15 +178,16 @@ class AuditUtilitiesTest {
 
     @Test
     void logEnrollInstrumentCodeComplete(){
-        auditUtilities.logEnrollInstrumentCodeComplete(USER_ID, CHANNEL, INSTRUMENT_TYPE);
+        auditUtilities.logEnrollInstrumentCodeComplete(USER_ID, INITIATIVE_ID, CHANNEL, INSTRUMENT_TYPE);
 
         Assertions.assertEquals(
                 ("CEF:0|PagoPa|IDPAY|1.0|7|User interaction|2| event=PaymentInstrument dstip=%s msg=%s" +
-                        " suser=%s cs1Label=channel cs1=%s cs3Label=instrumentType cs3=%s")
+                        " suser=%s cs1Label=initiativeId cs1=%s cs2Label=channel cs2=%s cs3Label=instrumentType cs3=%s")
                         .formatted(
                                 AuditUtilities.SRCIP,
                                 "Enrollment of the instrument completed.",
                                 USER_ID,
+                                INITIATIVE_ID,
                                 CHANNEL,
                                 INSTRUMENT_TYPE
 
