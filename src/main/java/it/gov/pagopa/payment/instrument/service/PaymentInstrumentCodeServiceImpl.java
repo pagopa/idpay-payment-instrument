@@ -7,8 +7,8 @@ import it.gov.pagopa.payment.instrument.dto.GeneratedCodeDTO;
 import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
 import it.gov.pagopa.payment.instrument.repository.PaymentInstrumentCodeRepository;
 import it.gov.pagopa.payment.instrument.utils.AuditUtilities;
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
-import java.util.Random;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
@@ -21,7 +21,7 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
   public static final String ENROLL_CODE_AFTER_CODE_GENERATED = "ENROLL_CODE_AFTER_CODE_GENERATED";
   private final PaymentInstrumentCodeRepository paymentInstrumentCodeRepository;
   private final WalletRestConnector walletRestConnector;
-  private final Random random = new Random();
+  private final SecureRandom random;
   private final AuditUtilities auditUtilities;
 
   public PaymentInstrumentCodeServiceImpl(
@@ -30,6 +30,7 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
     this.paymentInstrumentCodeRepository = paymentInstrumentCodeRepository;
     this.walletRestConnector = walletRestConnector;
     this.auditUtilities = auditUtilities;
+    this.random = new SecureRandom();
   }
 
   @Override
