@@ -21,7 +21,7 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
   public static final String ENROLL_CODE_AFTER_CODE_GENERATED = "ENROLL_CODE_AFTER_CODE_GENERATED";
   private final PaymentInstrumentCodeRepository paymentInstrumentCodeRepository;
   private final WalletRestConnector walletRestConnector;
-  private final Random random;
+  private final Random random = new Random();
   private final AuditUtilities auditUtilities;
 
   public PaymentInstrumentCodeServiceImpl(
@@ -30,7 +30,6 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
     this.paymentInstrumentCodeRepository = paymentInstrumentCodeRepository;
     this.walletRestConnector = walletRestConnector;
     this.auditUtilities = auditUtilities;
-    this.random = new Random();
   }
 
   @Override
