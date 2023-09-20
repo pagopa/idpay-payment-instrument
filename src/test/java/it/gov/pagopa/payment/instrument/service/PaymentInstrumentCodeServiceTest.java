@@ -51,10 +51,7 @@ class PaymentInstrumentCodeServiceTest {
         GeneratedCodeDTO generatedCodeDTO =
         paymentInstrumentCodeService.generateCode("USERID", GenerateCodeDTOFaker.mockInstance(1, true));
 
-    verify(paymentInstrumentCodeRepository, Mockito.times(1))
-        .updateCode(anyString(), anyString(), any());
-    assertNotNull(generatedCodeDTO);
-    assertEquals(5, generatedCodeDTO.getIdpayCode().length());
+    assertions(generatedCodeDTO);
   }
 
   @Test
@@ -64,10 +61,7 @@ class PaymentInstrumentCodeServiceTest {
 
     verify(walletRestConnector, never()).enrollInstrumentCode(any(), any());
 
-    verify(paymentInstrumentCodeRepository, Mockito.times(1))
-        .updateCode(anyString(), anyString(), any());
-    assertNotNull(generatedCodeDTO);
-    assertEquals(5, generatedCodeDTO.getIdpayCode().length());
+    assertions(generatedCodeDTO);
   }
 
   @Test
@@ -86,6 +80,13 @@ class PaymentInstrumentCodeServiceTest {
 
     verify(paymentInstrumentCodeRepository, Mockito.times(1))
         .updateCode(anyString(), anyString(), any());
+  }
+
+  private void assertions(GeneratedCodeDTO generatedCodeDTO) {
+    verify(paymentInstrumentCodeRepository, Mockito.times(1))
+        .updateCode(anyString(), anyString(), any());
+    assertNotNull(generatedCodeDTO);
+    assertEquals(5, generatedCodeDTO.getIdpayCode().length());
   }
 
 }

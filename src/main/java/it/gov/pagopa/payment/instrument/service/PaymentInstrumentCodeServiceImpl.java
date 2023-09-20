@@ -50,6 +50,7 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
       try {
         walletRestConnector.enrollInstrumentCode(body.getInitiativeId(), userId);
         auditUtilities.logEnrollCodeAfterGeneratedCode(userId, body.getInitiativeId(), LocalDateTime.now());
+        performanceLog(startTime, ENROLL_CODE_AFTER_CODE_GENERATED, userId, body.getInitiativeId());
       } catch (FeignException e) {
         log.info("[{}] Code enrollment on userId: {} and initiativeId: {} failed",
             ENROLL_CODE_AFTER_CODE_GENERATED, userId, body.getInitiativeId());
@@ -57,7 +58,6 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
       }
     }
 
-    performanceLog(startTime, ENROLL_CODE_AFTER_CODE_GENERATED, userId, body.getInitiativeId());
     return new GeneratedCodeDTO(code.toString());
   }
 
