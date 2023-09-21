@@ -1,8 +1,7 @@
-package it.gov.pagopa.payment.instrument.service;
+package it.gov.pagopa.payment.instrument.service.idpaycode;
 
 import feign.FeignException;
 import it.gov.pagopa.payment.instrument.connector.WalletRestConnector;
-import it.gov.pagopa.payment.instrument.dto.GenerateCodeReqDTO;
 import it.gov.pagopa.payment.instrument.dto.GenerateCodeRespDTO;
 import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
 import it.gov.pagopa.payment.instrument.repository.PaymentInstrumentCodeRepository;
@@ -25,34 +24,41 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
   private final WalletRestConnector walletRestConnector;
   private final SecureRandom random;
   private final AuditUtilities auditUtilities;
+  private final EncryptCodeService encryptCodeService;
 
   public PaymentInstrumentCodeServiceImpl(
       PaymentInstrumentCodeRepository paymentInstrumentCodeRepository,
-      WalletRestConnector walletRestConnector, AuditUtilities auditUtilities) {
+      WalletRestConnector walletRestConnector, AuditUtilities auditUtilities,
+      EncryptCodeService encryptCodeService) {
     this.paymentInstrumentCodeRepository = paymentInstrumentCodeRepository;
     this.walletRestConnector = walletRestConnector;
     this.auditUtilities = auditUtilities;
+    this.encryptCodeService = encryptCodeService;
     this.random = new SecureRandom();
   }
 
   @Override
-  public GenerateCodeRespDTO generateCode(String userId, GenerateCodeReqDTO body) {
+  public GenerateCodeRespDTO generateCode(String userId, String initiativeId) {
     long startTime = System.currentTimeMillis();
 
+    // generate clear code
     String clearCode = buildCode();
-    String idpayCode = encryptIdpayCode(clearCode);
+
+    // encrypt clear code
+    String idpayCode = encryptCodeService.encryptIdpayCode(clearCode);
     log.info("[{}] Code generated successfully on userId: {}", GENERATED_CODE, userId);
 
-    if (StringUtils.isNotBlank(body.getInitiativeId())) {
+    // enroll code if an initiativeId was provided
+    if (StringUtils.isNotBlank(initiativeId)) {
       log.info("[{}] Code generated successfully, starting code enrollment on userId: {} and initiativeId: {}",
-          ENROLL_CODE_AFTER_CODE_GENERATED, userId, body.getInitiativeId());
+          ENROLL_CODE_AFTER_CODE_GENERATED, userId, initiativeId);
       try {
-        walletRestConnector.enrollInstrumentCode(body.getInitiativeId(), userId);
-        auditUtilities.logEnrollCodeAfterGeneratedCode(userId, body.getInitiativeId(), LocalDateTime.now());
-        performanceLog(startTime, ENROLL_CODE_AFTER_CODE_GENERATED, userId, body.getInitiativeId());
+        walletRestConnector.enrollInstrumentCode(initiativeId, userId);
+        auditUtilities.logEnrollCodeAfterGeneratedCode(userId, initiativeId, LocalDateTime.now());
+        performanceLog(startTime, ENROLL_CODE_AFTER_CODE_GENERATED, userId, initiativeId);
       } catch (FeignException e) {
         log.info("[{}] Code enrollment on userId: {} and initiativeId: {} failed",
-            ENROLL_CODE_AFTER_CODE_GENERATED, userId, body.getInitiativeId());
+            ENROLL_CODE_AFTER_CODE_GENERATED, userId, initiativeId);
         switch (e.status()) {
           case 429 -> throw new PaymentInstrumentException(HttpStatus.TOO_MANY_REQUESTS.value(), "Too many request on the ms wallet");
           case 404 -> throw new PaymentInstrumentException(HttpStatus.NOT_FOUND.value(), "Resource not found while enrolling idpayCode on ms wallet");
@@ -62,7 +68,7 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
     }
 
     paymentInstrumentCodeRepository.updateCode(userId, idpayCode, LocalDateTime.now());
-    performanceLog(startTime, GENERATED_CODE, userId, body.getInitiativeId());
+    performanceLog(startTime, GENERATED_CODE, userId, initiativeId);
     auditUtilities.logGeneratedCode(userId, LocalDateTime.now());
 
     return new GenerateCodeRespDTO(idpayCode);
@@ -91,10 +97,6 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
       }
     }
     return code.toString();
-  }
-
-  private String encryptIdpayCode(String code){
-    return code;
   }
 
   private void performanceLog(long startTime, String service, String userId, String initiativeId){

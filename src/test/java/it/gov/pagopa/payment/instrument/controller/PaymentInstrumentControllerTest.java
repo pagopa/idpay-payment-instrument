@@ -16,7 +16,7 @@ import it.gov.pagopa.payment.instrument.dto.InstrumentDetailDTO;
 import it.gov.pagopa.payment.instrument.dto.InstrumentIssuerDTO;
 import it.gov.pagopa.payment.instrument.dto.UnsubscribeBodyDTO;
 import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
-import it.gov.pagopa.payment.instrument.service.PaymentInstrumentCodeService;
+import it.gov.pagopa.payment.instrument.service.idpaycode.PaymentInstrumentCodeService;
 import it.gov.pagopa.payment.instrument.service.PaymentInstrumentDiscountService;
 import it.gov.pagopa.payment.instrument.service.PaymentInstrumentService;
 import it.gov.pagopa.payment.instrument.test.fakers.GenerateCodeReqDTO;
