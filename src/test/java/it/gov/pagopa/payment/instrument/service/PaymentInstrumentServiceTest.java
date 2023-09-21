@@ -1545,33 +1545,6 @@ class PaymentInstrumentServiceTest {
         assertEquals(2, instrumentDetailDTO.getInitiativeList().size());
         assertEquals(PaymentInstrumentConstants.STATUS_ACTIVE, instrumentDetailDTO.getInitiativeList().get(0).getStatus());
     }
-    /*
-    @ParameterizedTest
-    @MethodSource("operationTypeAndInvocationTimes")
-    void processOperation_deleteOperation(String operationType, int times) {
-        QueueCommandOperationDTO queueCommandOperationDTO = QueueCommandOperationDTO.builder()
-                .entityId(INITIATIVE_ID)
-                .operationType(operationType)
-                .build();
-
-        List<PaymentInstrument> deletedOperation = List.of(TEST_INSTRUMENT);
-
-        Mockito.when(paymentInstrumentRepositoryMock.deleteByInitiativeId(queueCommandOperationDTO.getEntityId()))
-                .thenReturn(deletedOperation);
-
-        paymentInstrumentService.processOperation(queueCommandOperationDTO);
-
-        Mockito.verify(paymentInstrumentRepositoryMock, Mockito.times(times)).deleteByInitiativeId(queueCommandOperationDTO.getEntityId());
-    }
-
-    private static Stream<Arguments> operationTypeAndInvocationTimes() {
-        return Stream.of(
-                Arguments.of(OPERATION_TYPE_DELETE_INITIATIVE, 1),
-                Arguments.of("OPERATION_TYPE_TEST", 0)
-        );
-    }
-
-     */
 
     @ParameterizedTest
     @MethodSource("operationTypeAndInvocationTimes")
