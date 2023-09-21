@@ -47,7 +47,7 @@ public class PaymentInstrumentRepositoryExtendedImplTest {
         // When
         List<PaymentInstrument> result = paymentInstrumentRepositoryExtended.deletePaged(initiativeId, pageSize);
 
-        // Then
+
         Assertions.assertEquals(1, result.size());
         verify(mongoTemplate, times(1)).findAllAndRemove(
                 Query.query(Criteria.where(Fields.initiativeId).is(initiativeId)).with(pageable),
