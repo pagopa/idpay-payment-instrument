@@ -22,7 +22,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith({SpringExtension.class, MockitoExtension.class})
 @ContextConfiguration(classes = PaymentInstrumentRepositoryExtendedImpl.class)
-public class PaymentInstrumentRepositoryExtendedImplTest {
+class PaymentInstrumentRepositoryExtendedImplTest {
 
     @Autowired
     PaymentInstrumentRepositoryExtended paymentInstrumentRepositoryExtended;
