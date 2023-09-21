@@ -1575,13 +1575,11 @@ class PaymentInstrumentServiceTest {
                     .thenReturn(deletedPage);
         }
 
-
         // When
         if(times == 1){
             Thread.currentThread().interrupt();
         }
         paymentInstrumentService.processOperation(queueCommandOperationDTO);
-
 
         // Then
         Mockito.verify(paymentInstrumentRepositoryExtended, Mockito.times(times)).deletePaged(queueCommandOperationDTO.getEntityId(), Integer.parseInt(queueCommandOperationDTO.getAdditionalParams().get(PAGINATION_KEY)));
