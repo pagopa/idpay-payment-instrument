@@ -107,6 +107,11 @@ class PaymentInstrumentCodeServiceTest {
     }
   }
 
+//  @Test
+//  void codeStatus_true(){
+//    Mockito.when(paymentInstrumentCodeRepository.findByUserId())
+//  }
+
   private void assertions(GenerateCodeRespDTO generateCodeRespDTO) {
     verify(paymentInstrumentCodeRepository, Mockito.times(1))
         .updateCode(anyString(), anyString(), any());

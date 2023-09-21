@@ -53,4 +53,7 @@ public interface PaymentInstrumentController {
 
   @PutMapping("/code/enroll")
   ResponseEntity<HpanGetDTO> enrollInstrumentCode(@Valid @RequestBody BaseEnrollmentBodyDTO body);
+
+  @GetMapping("/code/status/{userId}")
+  ResponseEntity<CheckEnrollmentDTO> codeStatus(@PathVariable("userId") String userId);
 }

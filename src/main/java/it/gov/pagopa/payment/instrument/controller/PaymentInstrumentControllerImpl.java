@@ -102,4 +102,10 @@ public class PaymentInstrumentControllerImpl implements PaymentInstrumentControl
     paymentInstrumentDiscountService.enrollInstrumentCode(body);
     return new ResponseEntity<>(HttpStatus.OK);
   }
+
+  @Override
+  public ResponseEntity<CheckEnrollmentDTO> codeStatus(String userId) {
+    CheckEnrollmentDTO checkEnrollmentDTO = paymentInstrumentCodeService.codeStatus(userId);
+    return new ResponseEntity<>(checkEnrollmentDTO, HttpStatus.OK);
+  }
 }
