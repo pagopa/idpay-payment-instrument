@@ -17,13 +17,13 @@ public class PaymentInstrumentCodeRepositoryExtImpl implements PaymentInstrument
 
   @Override
   public void updateCode(String userId, String code, LocalDateTime creationDate) {
-    mongoTemplate.updateFirst(
+    mongoTemplate.upsert(
         Query.query(Criteria.where(Fields.userId).is(userId)),
         new Update()
             .set(Fields.userId, userId)
             .set(Fields.idpayCode, code)
             .set(Fields.creationDate, creationDate)
-            .inc(Fields.regenerationCodeCounter, 1),
+            .inc(Fields.generationCodeCounter, 1),
         PaymentInstrumentCode.class);
   }
 }

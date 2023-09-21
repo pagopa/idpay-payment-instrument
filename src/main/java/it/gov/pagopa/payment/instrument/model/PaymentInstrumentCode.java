@@ -20,7 +20,7 @@ public class PaymentInstrumentCode {
   private String id;
   private String userId;
   private String idpayCode;
-  private int regenerationCodeCounter;
+  private int generationCodeCounter;
   private LocalDateTime creationDate;
 
 }

@@ -24,7 +24,7 @@ class PaymentInstrumentCodeRepositoryExtTest {
   void updateCode(){
     paymentInstrumentCodeRepositoryExt.updateCode("USERID", "CODE", LocalDateTime.now());
     Mockito.verify(mongoTemplate, Mockito.times(1))
-        .updateFirst(Mockito.any(), Mockito.any(), (Class<?>) Mockito.any());
+        .upsert(Mockito.any(), Mockito.any(), (Class<?>) Mockito.any());
   }
 
 }
