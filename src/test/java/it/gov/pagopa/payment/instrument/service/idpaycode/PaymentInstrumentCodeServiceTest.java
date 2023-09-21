@@ -1,7 +1,9 @@
 package it.gov.pagopa.payment.instrument.service.idpaycode;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
@@ -12,11 +14,14 @@ import feign.Request;
 import feign.Request.HttpMethod;
 import feign.RequestTemplate;
 import it.gov.pagopa.payment.instrument.connector.WalletRestConnector;
+import it.gov.pagopa.payment.instrument.dto.CheckEnrollmentDTO;
 import it.gov.pagopa.payment.instrument.dto.GenerateCodeRespDTO;
 import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
+import it.gov.pagopa.payment.instrument.model.PaymentInstrumentCode;
 import it.gov.pagopa.payment.instrument.repository.PaymentInstrumentCodeRepository;
 import it.gov.pagopa.payment.instrument.utils.AuditUtilities;
 import java.util.HashMap;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -111,10 +116,27 @@ class PaymentInstrumentCodeServiceTest {
     }
   }
 
-//  @Test
-//  void codeStatus_true(){
-//    Mockito.when(paymentInstrumentCodeRepository.findByUserId())
-//  }
+  @Test
+  void codeStatus_true(){
+    PaymentInstrumentCode paymentInstrumentCode = PaymentInstrumentCode.builder()
+        .userId(USERID)
+        .idpayCode("CODE")
+        .build();
+    Mockito.when(paymentInstrumentCodeRepository.findByUserId(USERID)).thenReturn(Optional.of(paymentInstrumentCode));
+
+    CheckEnrollmentDTO checkEnrollmentDTO = paymentInstrumentCodeService.codeStatus(USERID);
+
+    assertTrue(checkEnrollmentDTO.isIdPayCodeEnabled());
+  }
+
+  @Test
+  void codeStatus_false(){
+    Mockito.when(paymentInstrumentCodeRepository.findByUserId(USERID)).thenReturn(Optional.ofNullable(any(PaymentInstrumentCode.class)));
+
+    CheckEnrollmentDTO checkEnrollmentDTO = paymentInstrumentCodeService.codeStatus(USERID);
+
+    assertFalse(checkEnrollmentDTO.isIdPayCodeEnabled());
+  }
 
   private void assertions(GenerateCodeRespDTO generateCodeRespDTO) {
     verify(paymentInstrumentCodeRepository, Mockito.times(1))

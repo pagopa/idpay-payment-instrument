@@ -2,9 +2,10 @@ package it.gov.pagopa.payment.instrument.service.idpaycode;
 
 import feign.FeignException;
 import it.gov.pagopa.payment.instrument.connector.WalletRestConnector;
-import it.gov.pagopa.payment.instrument.dto.GenerateCodeReqDTO;
+import it.gov.pagopa.payment.instrument.dto.CheckEnrollmentDTO;
 import it.gov.pagopa.payment.instrument.dto.GenerateCodeRespDTO;
 import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
+import it.gov.pagopa.payment.instrument.model.PaymentInstrumentCode;
 import it.gov.pagopa.payment.instrument.repository.PaymentInstrumentCodeRepository;
 import it.gov.pagopa.payment.instrument.utils.AuditUtilities;
 import java.security.SecureRandom;
