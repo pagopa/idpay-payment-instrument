@@ -51,4 +51,6 @@ public interface PaymentInstrumentController {
   @PostMapping("/generate-code/{userId}")
   ResponseEntity<GenerateCodeRespDTO> generateCode(@PathVariable("userId") String userId, @RequestBody GenerateCodeReqDTO body);
 
+  @PutMapping("/code/enroll")
+  ResponseEntity<HpanGetDTO> enrollInstrumentCode(@Valid @RequestBody BaseEnrollmentBodyDTO body);
 }

@@ -8,7 +8,7 @@ import java.util.List;
 public interface PaymentInstrumentService {
 
   void enrollInstrument(String initiativeId, String userId, String idWallet,
-      String channel);
+      String channel, String instrumentType);
 
   void deactivateInstrument(String initiativeId, String userId, String instrumentId);
   void processRtdMessage(RTDEventsDTO dto);

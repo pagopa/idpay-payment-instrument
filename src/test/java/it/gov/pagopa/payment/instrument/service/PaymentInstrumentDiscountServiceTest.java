@@ -1,14 +1,17 @@
 package it.gov.pagopa.payment.instrument.service;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import it.gov.pagopa.payment.instrument.dto.BaseEnrollmentBodyDTO;
 import it.gov.pagopa.payment.instrument.dto.InstrumentFromDiscountDTO;
 import it.gov.pagopa.payment.instrument.dto.RuleEngineRequestDTO;
+import it.gov.pagopa.payment.instrument.dto.mapper.BaseEnrollmentBodyDTO2PaymentInstrument;
 import it.gov.pagopa.payment.instrument.dto.mapper.InstrumentFromDiscountDTO2PaymentInstrumentMapper;
 import it.gov.pagopa.payment.instrument.dto.mapper.MessageMapper;
 import it.gov.pagopa.payment.instrument.event.producer.ErrorProducer;
@@ -16,8 +19,10 @@ import it.gov.pagopa.payment.instrument.event.producer.RuleEngineProducer;
 import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
 import it.gov.pagopa.payment.instrument.model.PaymentInstrument;
 import it.gov.pagopa.payment.instrument.repository.PaymentInstrumentRepository;
+import it.gov.pagopa.payment.instrument.test.fakers.BaseEnrollmentDTOFaker;
 import it.gov.pagopa.payment.instrument.test.fakers.InstrumentFromDiscountDTOFaker;
 import it.gov.pagopa.payment.instrument.test.fakers.PaymentInstrumentFaker;
+import it.gov.pagopa.payment.instrument.utils.AuditUtilities;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,6 +37,8 @@ class PaymentInstrumentDiscountServiceTest {
   @Mock
   private InstrumentFromDiscountDTO2PaymentInstrumentMapper instrumentFromDiscountDTO2PaymentInstrumentMapper;
   @Mock
+  private BaseEnrollmentBodyDTO2PaymentInstrument baseEnrollmentBodyDTO2PaymentInstrument;
+  @Mock
   private PaymentInstrumentRepository paymentInstrumentRepository;
   @Mock
   private MessageMapper messageMapper;
@@ -39,14 +46,16 @@ class PaymentInstrumentDiscountServiceTest {
   private ErrorProducer errorProducer;
   @Mock
   private RuleEngineProducer ruleEngineProducer;
+  @Mock
+  private AuditUtilities auditUtilities;
 
   PaymentInstrumentDiscountService paymentInstrumentDiscountService;
 
   @BeforeEach
   void setUp() {
     paymentInstrumentDiscountService = new PaymentInstrumentDiscountServiceImpl(
-        instrumentFromDiscountDTO2PaymentInstrumentMapper, paymentInstrumentRepository,
-        messageMapper, "ruleEngineServer", "ruleEngineTopic", errorProducer, ruleEngineProducer);
+        instrumentFromDiscountDTO2PaymentInstrumentMapper, baseEnrollmentBodyDTO2PaymentInstrument, paymentInstrumentRepository,
+        messageMapper, "ruleEngineServer", "ruleEngineTopic", errorProducer, ruleEngineProducer, auditUtilities);
   }
 
   @Test
@@ -83,6 +92,54 @@ class PaymentInstrumentDiscountServiceTest {
         )).build());
 
     paymentInstrumentDiscountService.enrollDiscountInitiative(instrumentFromDiscountDTO);
+
+    verify(paymentInstrumentRepository, times(1)).save(any());
+    verify(errorProducer, times(1)).sendEvent(any());
+  }
+
+  @Test
+  void enrollInstrumentCode() {
+    // Given
+    BaseEnrollmentBodyDTO enrollmentRequest = BaseEnrollmentDTOFaker.mockInstance(1);
+
+    PaymentInstrument paymentInstrument = PaymentInstrumentFaker.mockInstance(1);
+
+    when(baseEnrollmentBodyDTO2PaymentInstrument.apply(any(), anyString()))
+            .thenReturn(paymentInstrument);
+
+    when(messageMapper.apply(any())).thenReturn(
+            MessageBuilder.withPayload(new RuleEngineRequestDTO(
+            )).build());
+
+    doNothing().when(ruleEngineProducer).sendInstruments(any());
+
+    // When
+    paymentInstrumentDiscountService.enrollInstrumentCode(enrollmentRequest);
+
+    // Then
+    verify(paymentInstrumentRepository, times(1)).save(any());
+    verify(errorProducer, times(0)).sendEvent(any());
+
+  }
+
+  @Test
+  void enrollInstrumentCodeError() {
+    // Given
+    BaseEnrollmentBodyDTO enrollmentRequest = BaseEnrollmentDTOFaker.mockInstance(1);
+
+    PaymentInstrument paymentInstrument = PaymentInstrumentFaker.mockInstance(1);
+
+    when(baseEnrollmentBodyDTO2PaymentInstrument.apply(any(), anyString()))
+            .thenReturn(paymentInstrument);
+
+    doThrow(new PaymentInstrumentException(HttpStatus.BAD_REQUEST.value(), "")).when(
+            ruleEngineProducer).sendInstruments(any());
+
+    when(messageMapper.apply(any())).thenReturn(
+            MessageBuilder.withPayload(new RuleEngineRequestDTO(
+            )).build());
+
+    paymentInstrumentDiscountService.enrollInstrumentCode(enrollmentRequest);
 
     verify(paymentInstrumentRepository, times(1)).save(any());
     verify(errorProducer, times(1)).sendEvent(any());

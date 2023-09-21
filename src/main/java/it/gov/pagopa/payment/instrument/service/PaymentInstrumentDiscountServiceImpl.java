@@ -1,8 +1,10 @@
 package it.gov.pagopa.payment.instrument.service;
 
 import it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants;
+import it.gov.pagopa.payment.instrument.dto.BaseEnrollmentBodyDTO;
 import it.gov.pagopa.payment.instrument.dto.InstrumentFromDiscountDTO;
 import it.gov.pagopa.payment.instrument.dto.RuleEngineRequestDTO;
+import it.gov.pagopa.payment.instrument.dto.mapper.BaseEnrollmentBodyDTO2PaymentInstrument;
 import it.gov.pagopa.payment.instrument.dto.mapper.InstrumentFromDiscountDTO2PaymentInstrumentMapper;
 import it.gov.pagopa.payment.instrument.dto.mapper.MessageMapper;
 import it.gov.pagopa.payment.instrument.dto.pm.PaymentMethodInfoList;
@@ -12,6 +14,8 @@ import it.gov.pagopa.payment.instrument.model.PaymentInstrument;
 import it.gov.pagopa.payment.instrument.repository.PaymentInstrumentRepository;
 import java.time.LocalDateTime;
 import java.util.List;
+
+import it.gov.pagopa.payment.instrument.utils.AuditUtilities;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.support.MessageBuilder;
@@ -22,27 +26,39 @@ import org.springframework.stereotype.Service;
 public class PaymentInstrumentDiscountServiceImpl implements
     PaymentInstrumentDiscountService {
 
+  private static final String FLOW_ENROLL_FROM_DISCOUNT_INITIATIVE = "ENROLL_FROM_DISCOUNT_INITIATIVE";
+  private static final String FLOW_ENROLL_INSTRUMENT_CODE = "ENROLL_INSTRUMENT_CODE";
+
   private final InstrumentFromDiscountDTO2PaymentInstrumentMapper instrumentFromDiscountDTO2PaymentInstrumentMapper;
+  private final BaseEnrollmentBodyDTO2PaymentInstrument baseEnrollmentBodyDTO2PaymentInstrument;
   private final PaymentInstrumentRepository paymentInstrumentRepository;
   private final MessageMapper messageMapper;
   private final String ruleEngineServer;
   private final String ruleEngineTopic;
   private final ErrorProducer errorProducer;
   private final RuleEngineProducer ruleEngineProducer;
+  private final AuditUtilities auditUtilities;
 
+  @SuppressWarnings("squid:S00107") // suppressing too many parameters alert
   public PaymentInstrumentDiscountServiceImpl(
-      InstrumentFromDiscountDTO2PaymentInstrumentMapper instrumentFromDiscountDTO2PaymentInstrumentMapper,
-      PaymentInstrumentRepository paymentInstrumentRepository, MessageMapper messageMapper,
-      @Value("${spring.cloud.stream.binders.kafka-re.environment.spring.cloud.stream.kafka.binder.brokers}") String ruleEngineServer,
-      @Value("${spring.cloud.stream.bindings.paymentInstrumentQueue-out-0.destination}") String ruleEngineTopic,
-      ErrorProducer errorProducer, RuleEngineProducer ruleEngineProducer) {
+          InstrumentFromDiscountDTO2PaymentInstrumentMapper instrumentFromDiscountDTO2PaymentInstrumentMapper,
+          BaseEnrollmentBodyDTO2PaymentInstrument baseEnrollmentBodyDTO2PaymentInstrument,
+          PaymentInstrumentRepository paymentInstrumentRepository,
+          MessageMapper messageMapper,
+          @Value("${spring.cloud.stream.binders.kafka-re.environment.spring.cloud.stream.kafka.binder.brokers}") String ruleEngineServer,
+          @Value("${spring.cloud.stream.bindings.paymentInstrumentQueue-out-0.destination}") String ruleEngineTopic,
+          ErrorProducer errorProducer,
+          RuleEngineProducer ruleEngineProducer,
+          AuditUtilities auditUtilities) {
     this.instrumentFromDiscountDTO2PaymentInstrumentMapper = instrumentFromDiscountDTO2PaymentInstrumentMapper;
+    this.baseEnrollmentBodyDTO2PaymentInstrument = baseEnrollmentBodyDTO2PaymentInstrument;
     this.paymentInstrumentRepository = paymentInstrumentRepository;
     this.messageMapper = messageMapper;
     this.ruleEngineServer = ruleEngineServer;
     this.ruleEngineTopic = ruleEngineTopic;
     this.errorProducer = errorProducer;
     this.ruleEngineProducer = ruleEngineProducer;
+    this.auditUtilities = auditUtilities;
   }
 
   @Override
@@ -50,13 +66,32 @@ public class PaymentInstrumentDiscountServiceImpl implements
     long startTime = System.currentTimeMillis();
     PaymentInstrument paymentInstrument = instrumentFromDiscountDTO2PaymentInstrumentMapper.apply(
         body);
+
+    notifyRuleEngineAndSavePaymentInstrument(paymentInstrument, FLOW_ENROLL_FROM_DISCOUNT_INITIATIVE);
+    performanceLog(startTime, FLOW_ENROLL_FROM_DISCOUNT_INITIATIVE);
+  }
+
+  @Override
+  public void enrollInstrumentCode(BaseEnrollmentBodyDTO bodyInstrumentCode) {
+    long startTime = System.currentTimeMillis();
+    log.info("[ENROLL_INSTRUMENT_CODE] Processing IDPayCode enrollment request of the user {} for the initiative {}", bodyInstrumentCode.getUserId(), bodyInstrumentCode.getInitiativeId());
+
+    PaymentInstrument paymentInstrument = baseEnrollmentBodyDTO2PaymentInstrument.apply(bodyInstrumentCode,
+            PaymentInstrumentConstants.IDPAY_CODE_FAKE_INSTRUMENT_PREFIX.formatted(bodyInstrumentCode.getUserId()));
+
+    notifyRuleEngineAndSavePaymentInstrument(paymentInstrument, FLOW_ENROLL_INSTRUMENT_CODE);
+    auditUtilities.logEnrollInstrumentCodeComplete(bodyInstrumentCode.getUserId(), bodyInstrumentCode.getInitiativeId(), bodyInstrumentCode.getChannel(), bodyInstrumentCode.getInstrumentType());
+    performanceLog(startTime, FLOW_ENROLL_INSTRUMENT_CODE);
+
+  }
+
+  private void notifyRuleEngineAndSavePaymentInstrument(PaymentInstrument paymentInstrument, String flowName) {
     PaymentMethodInfoList info = new PaymentMethodInfoList();
     info.setHpan(paymentInstrument.getHpan());
 
-    sendToRuleEngine(body.getUserId(), body.getInitiativeId(), List.of(info));
+    sendToRuleEngine(paymentInstrument.getUserId(), paymentInstrument.getInitiativeId(), List.of(info), paymentInstrument.getChannel(), flowName);
 
     paymentInstrumentRepository.save(paymentInstrument);
-    performanceLog(startTime, "ENROLL_FROM_DISCOUNT_INITIATIVE");
   }
 
   private void sendToErrorQueue(Exception e, MessageBuilder<?> errorMessage, String server,
@@ -78,20 +113,22 @@ public class PaymentInstrumentDiscountServiceImpl implements
     errorProducer.sendEvent(errorMessage.build());
   }
 
-  private void sendToRuleEngine(String userId, String initiativeId,
-      List<PaymentMethodInfoList>
-          paymentMethodInfoList) {
+  private void sendToRuleEngine(String userId,
+                                String initiativeId,
+                                List<PaymentMethodInfoList> paymentMethodInfoList,
+                                String channel,
+                                String flowName) {
 
     RuleEngineRequestDTO ruleEngineRequestDTO = RuleEngineRequestDTO.builder()
         .userId(userId)
         .initiativeId(initiativeId)
         .infoList(paymentMethodInfoList)
-        .channel(PaymentInstrumentConstants.IDPAY_PAYMENT)
+        .channel(channel)
         .operationType(PaymentInstrumentConstants.OPERATION_ADD)
         .operationDate(LocalDateTime.now())
         .build();
 
-    log.info("[PaymentInstrumentDiscountService] Sending message to Rule Engine.");
+    log.info("[{}] Sending message to Rule Engine.", flowName);
 
     try {
       ruleEngineProducer.sendInstruments(messageMapper.apply(ruleEngineRequestDTO));

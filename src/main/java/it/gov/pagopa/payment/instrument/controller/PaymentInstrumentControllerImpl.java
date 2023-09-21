@@ -1,15 +1,6 @@
 package it.gov.pagopa.payment.instrument.controller;
 
-import it.gov.pagopa.payment.instrument.dto.DeactivationBodyDTO;
-import it.gov.pagopa.payment.instrument.dto.EnrollmentBodyDTO;
-import it.gov.pagopa.payment.instrument.dto.GenerateCodeReqDTO;
-import it.gov.pagopa.payment.instrument.dto.GenerateCodeRespDTO;
-import it.gov.pagopa.payment.instrument.dto.HpanGetDTO;
-import it.gov.pagopa.payment.instrument.dto.InstrumentDetailDTO;
-import it.gov.pagopa.payment.instrument.dto.InstrumentFromDiscountDTO;
-import it.gov.pagopa.payment.instrument.dto.InstrumentIssuerDTO;
-import it.gov.pagopa.payment.instrument.dto.UnsubscribeBodyDTO;
-import it.gov.pagopa.payment.instrument.service.PaymentInstrumentCodeService;
+import it.gov.pagopa.payment.instrument.dto.*;
 import it.gov.pagopa.payment.instrument.service.PaymentInstrumentDiscountService;
 import it.gov.pagopa.payment.instrument.service.PaymentInstrumentService;
 import java.util.List;
@@ -39,7 +30,8 @@ public class PaymentInstrumentControllerImpl implements PaymentInstrumentControl
         body.getInitiativeId(),
         body.getUserId(),
         body.getIdWallet(),
-        body.getChannel()
+        body.getChannel(),
+        body.getInstrumentType()
     );
 
     return new ResponseEntity<>(HttpStatus.OK);
@@ -102,5 +94,11 @@ public class PaymentInstrumentControllerImpl implements PaymentInstrumentControl
   public ResponseEntity<GenerateCodeRespDTO> generateCode(String userId, GenerateCodeReqDTO body) {
     GenerateCodeRespDTO generateCodeRespDTO = paymentInstrumentCodeService.generateCode(userId, body);
     return new ResponseEntity<>(generateCodeRespDTO, HttpStatus.OK);
+  }
+
+  @Override
+  public ResponseEntity<HpanGetDTO> enrollInstrumentCode(BaseEnrollmentBodyDTO body) {
+    paymentInstrumentDiscountService.enrollInstrumentCode(body);
+    return new ResponseEntity<>(HttpStatus.OK);
   }
 }
