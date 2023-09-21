@@ -1,7 +1,7 @@
 package it.gov.pagopa.payment.instrument.controller;
 
 import it.gov.pagopa.payment.instrument.dto.*;
-import it.gov.pagopa.payment.instrument.service.PaymentInstrumentCodeService;
+import it.gov.pagopa.payment.instrument.service.idpaycode.PaymentInstrumentCodeService;
 import it.gov.pagopa.payment.instrument.service.PaymentInstrumentDiscountService;
 import it.gov.pagopa.payment.instrument.service.PaymentInstrumentService;
 import java.util.List;
@@ -93,7 +93,7 @@ public class PaymentInstrumentControllerImpl implements PaymentInstrumentControl
 
   @Override
   public ResponseEntity<GenerateCodeRespDTO> generateCode(String userId, GenerateCodeReqDTO body) {
-    GenerateCodeRespDTO generateCodeRespDTO = paymentInstrumentCodeService.generateCode(userId, body);
+    GenerateCodeRespDTO generateCodeRespDTO = paymentInstrumentCodeService.generateCode(userId, body.getInitiativeId());
     return new ResponseEntity<>(generateCodeRespDTO, HttpStatus.OK);
   }
 
