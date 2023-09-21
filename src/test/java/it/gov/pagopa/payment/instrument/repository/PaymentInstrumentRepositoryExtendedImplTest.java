@@ -34,23 +34,22 @@ class PaymentInstrumentRepositoryExtendedImplTest {
     @Test
     void deletePaged (){
         // Given
-        String initiativeId = INITIATIVE_ID;
         int pageSize = 100;
         Pageable pageable = PageRequest.of(0, pageSize);
         PaymentInstrument paymentInstrument = PaymentInstrument.builder()
                 .id(INSTRUMENT_ID)
                 .initiativeId(INITIATIVE_ID)
                 .build();
-        when(mongoTemplate.findAllAndRemove(Query.query(Criteria.where(Fields.initiativeId).is(initiativeId)).with(pageable), PaymentInstrument.class))
+        when(mongoTemplate.findAllAndRemove(Query.query(Criteria.where(Fields.initiativeId).is(INITIATIVE_ID)).with(pageable), PaymentInstrument.class))
                 .thenReturn(List.of(paymentInstrument));
 
         // When
-        List<PaymentInstrument> result = paymentInstrumentRepositoryExtended.deletePaged(initiativeId, pageSize);
+        List<PaymentInstrument> result = paymentInstrumentRepositoryExtended.deletePaged(INITIATIVE_ID, pageSize);
 
         // Then
         Assertions.assertEquals(1, result.size());
         verify(mongoTemplate, times(1)).findAllAndRemove(
-                Query.query(Criteria.where(Fields.initiativeId).is(initiativeId)).with(pageable),
+                Query.query(Criteria.where(Fields.initiativeId).is(INITIATIVE_ID)).with(pageable),
                 PaymentInstrument.class);
     }
 
