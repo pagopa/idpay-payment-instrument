@@ -60,12 +60,11 @@ class PaymentInstrumentCodeServiceTest {
         paymentInstrumentCodeService.generateCode("USERID", GenerateCodeReqDTO.mockInstance(1, false));
 
     verify(walletRestConnector, never()).enrollInstrumentCode(any(), any());
-
     assertions(generateCodeRespDTO);
   }
 
   @Test
-  void generateCode_enrollKo(){
+  void generateCode_enrollKo_notFound(){
     Request request =
         Request.create(
             HttpMethod.PUT, "url", new HashMap<>(), null, new RequestTemplate());
@@ -75,7 +74,36 @@ class PaymentInstrumentCodeServiceTest {
       paymentInstrumentCodeService.generateCode("USERID", GenerateCodeReqDTO.mockInstance(1, true));
     }catch (PaymentInstrumentException e){
       assertEquals(HttpStatus.NOT_FOUND.value(), e.getCode());
-      assertEquals("Initiative not found", e.getMessage());
+      assertEquals("Resource not found while enrolling idpayCode on ms wallet", e.getMessage());
+    }
+  }
+
+  @Test
+  void generateCode_enrollKo_tooManyRequests(){
+    Request request =
+        Request.create(
+            HttpMethod.PUT, "url", new HashMap<>(), null, new RequestTemplate());
+    Mockito.doThrow(new FeignException.TooManyRequests("", request, new byte[0], null))
+        .when(walletRestConnector).enrollInstrumentCode("INITIATIVEID1", "USERID");
+    try {
+      paymentInstrumentCodeService.generateCode("USERID", GenerateCodeReqDTO.mockInstance(1, true));
+    }catch (PaymentInstrumentException e){
+      assertEquals(HttpStatus.TOO_MANY_REQUESTS.value(), e.getCode());
+      assertEquals("Too many request on the ms wallet", e.getMessage());
+    }
+  }
+  @Test
+  void generateCode_enrollKo_internalServerError(){
+    Request request =
+        Request.create(
+            HttpMethod.PUT, "url", new HashMap<>(), null, new RequestTemplate());
+    Mockito.doThrow(new FeignException.InternalServerError("", request, new byte[0], null))
+        .when(walletRestConnector).enrollInstrumentCode("INITIATIVEID1", "USERID");
+    try {
+      paymentInstrumentCodeService.generateCode("USERID", GenerateCodeReqDTO.mockInstance(1, true));
+    }catch (PaymentInstrumentException e){
+      assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getCode());
+      assertEquals("An error occurred in the microservice wallet", e.getMessage());
     }
   }
 

@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -52,7 +53,11 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
       } catch (FeignException e) {
         log.info("[{}] Code enrollment on userId: {} and initiativeId: {} failed",
             ENROLL_CODE_AFTER_CODE_GENERATED, userId, body.getInitiativeId());
-        throw new PaymentInstrumentException(e.status(), e.getMessage());
+        switch (e.status()) {
+          case 429 -> throw new PaymentInstrumentException(HttpStatus.TOO_MANY_REQUESTS.value(), "Too many request on the ms wallet");
+          case 404 -> throw new PaymentInstrumentException(HttpStatus.NOT_FOUND.value(), "Resource not found while enrolling idpayCode on ms wallet");
+          default -> throw new PaymentInstrumentException(HttpStatus.INTERNAL_SERVER_ERROR.value(), "An error occurred in the microservice wallet");
+        }
       }
     }
 
