@@ -831,7 +831,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
         instrument.getUserId(), List.of(PaymentInstrumentConstants.STATUS_ACTIVE,
             PaymentInstrumentConstants.STATUS_PENDING_DEACTIVATION_REQUEST));
 
-    InstrumentAckDTO dto = ackMapper.ackToWallet(ruleEngineAckDTO, instrument.getChannel(),
+    InstrumentAckDTO dto = ackMapper.ackToWallet(ruleEngineAckDTO, instrument.getChannel(), instrument.getInstrumentType, //TODO 1802 in attesa di 1798
         instrument.getMaskedPan(), instrument.getBrandLogo(), instrument.getBrand(), nInstr);
 
     log.info("[PROCESS_ACK_ENROLL] Updating wallet with status {}.", dto.getOperationType());
