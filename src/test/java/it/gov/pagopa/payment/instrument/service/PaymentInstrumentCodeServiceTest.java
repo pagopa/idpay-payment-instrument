@@ -12,10 +12,10 @@ import feign.Request;
 import feign.Request.HttpMethod;
 import feign.RequestTemplate;
 import it.gov.pagopa.payment.instrument.connector.WalletRestConnector;
-import it.gov.pagopa.payment.instrument.dto.GeneratedCodeDTO;
+import it.gov.pagopa.payment.instrument.dto.GenerateCodeRespDTO;
 import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
 import it.gov.pagopa.payment.instrument.repository.PaymentInstrumentCodeRepository;
-import it.gov.pagopa.payment.instrument.test.fakers.GenerateCodeDTOFaker;
+import it.gov.pagopa.payment.instrument.test.fakers.GenerateCodeReqDTO;
 import it.gov.pagopa.payment.instrument.utils.AuditUtilities;
 import java.util.HashMap;
 import org.junit.jupiter.api.BeforeEach;
@@ -48,20 +48,20 @@ class PaymentInstrumentCodeServiceTest {
 
   @Test
   void generateCode_initiativeId_not_empty(){
-        GeneratedCodeDTO generatedCodeDTO =
-        paymentInstrumentCodeService.generateCode("USERID", GenerateCodeDTOFaker.mockInstance(1, true));
+        GenerateCodeRespDTO generateCodeRespDTO =
+        paymentInstrumentCodeService.generateCode("USERID", GenerateCodeReqDTO.mockInstance(1, true));
 
-    assertions(generatedCodeDTO);
+    assertions(generateCodeRespDTO);
   }
 
   @Test
   void generateCode_initiativeId_empty(){
-    GeneratedCodeDTO generatedCodeDTO =
-        paymentInstrumentCodeService.generateCode("USERID", GenerateCodeDTOFaker.mockInstance(1, false));
+    GenerateCodeRespDTO generateCodeRespDTO =
+        paymentInstrumentCodeService.generateCode("USERID", GenerateCodeReqDTO.mockInstance(1, false));
 
     verify(walletRestConnector, never()).enrollInstrumentCode(any(), any());
 
-    assertions(generatedCodeDTO);
+    assertions(generateCodeRespDTO);
   }
 
   @Test
@@ -69,24 +69,21 @@ class PaymentInstrumentCodeServiceTest {
     Request request =
         Request.create(
             HttpMethod.PUT, "url", new HashMap<>(), null, new RequestTemplate());
-    Mockito.doThrow(new FeignException.BadRequest("", request, new byte[0], null))
+    Mockito.doThrow(new FeignException.NotFound("Initiative not found", request, new byte[0], null))
         .when(walletRestConnector).enrollInstrumentCode("INITIATIVEID1", "USERID");
     try {
-      paymentInstrumentCodeService.generateCode("USERID", GenerateCodeDTOFaker.mockInstance(1, true));
+      paymentInstrumentCodeService.generateCode("USERID", GenerateCodeReqDTO.mockInstance(1, true));
     }catch (PaymentInstrumentException e){
-      assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getCode());
-      assertEquals("An error occurred while enrolling code", e.getMessage());
+      assertEquals(HttpStatus.NOT_FOUND.value(), e.getCode());
+      assertEquals("Initiative not found", e.getMessage());
     }
-
-    verify(paymentInstrumentCodeRepository, Mockito.times(1))
-        .updateCode(anyString(), anyString(), any());
   }
 
-  private void assertions(GeneratedCodeDTO generatedCodeDTO) {
+  private void assertions(GenerateCodeRespDTO generateCodeRespDTO) {
     verify(paymentInstrumentCodeRepository, Mockito.times(1))
         .updateCode(anyString(), anyString(), any());
-    assertNotNull(generatedCodeDTO);
-    assertEquals(5, generatedCodeDTO.getIdpayCode().length());
+    assertNotNull(generateCodeRespDTO);
+    assertEquals(5, generateCodeRespDTO.getIdpayCode().length());
   }
 
 }

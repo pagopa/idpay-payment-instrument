@@ -2,8 +2,8 @@ package it.gov.pagopa.payment.instrument.controller;
 
 import it.gov.pagopa.payment.instrument.dto.DeactivationBodyDTO;
 import it.gov.pagopa.payment.instrument.dto.EnrollmentBodyDTO;
-import it.gov.pagopa.payment.instrument.dto.GenerateCodeDTO;
-import it.gov.pagopa.payment.instrument.dto.GeneratedCodeDTO;
+import it.gov.pagopa.payment.instrument.dto.GenerateCodeReqDTO;
+import it.gov.pagopa.payment.instrument.dto.GenerateCodeRespDTO;
 import it.gov.pagopa.payment.instrument.dto.HpanGetDTO;
 import it.gov.pagopa.payment.instrument.dto.InstrumentDetailDTO;
 import it.gov.pagopa.payment.instrument.dto.InstrumentFromDiscountDTO;
@@ -99,8 +99,8 @@ public class PaymentInstrumentControllerImpl implements PaymentInstrumentControl
   }
 
   @Override
-  public ResponseEntity<GeneratedCodeDTO> generateCode(String userId, GenerateCodeDTO body) {
-    GeneratedCodeDTO generatedCodeDTO = paymentInstrumentCodeService.generateCode(userId, body);
-    return new ResponseEntity<>(generatedCodeDTO, HttpStatus.OK);
+  public ResponseEntity<GenerateCodeRespDTO> generateCode(String userId, GenerateCodeReqDTO body) {
+    GenerateCodeRespDTO generateCodeRespDTO = paymentInstrumentCodeService.generateCode(userId, body);
+    return new ResponseEntity<>(generateCodeRespDTO, HttpStatus.OK);
   }
 }

@@ -2,14 +2,15 @@ package it.gov.pagopa.payment.instrument.service;
 
 import feign.FeignException;
 import it.gov.pagopa.payment.instrument.connector.WalletRestConnector;
-import it.gov.pagopa.payment.instrument.dto.GenerateCodeDTO;
-import it.gov.pagopa.payment.instrument.dto.GeneratedCodeDTO;
+import it.gov.pagopa.payment.instrument.dto.GenerateCodeReqDTO;
+import it.gov.pagopa.payment.instrument.dto.GenerateCodeRespDTO;
 import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
 import it.gov.pagopa.payment.instrument.repository.PaymentInstrumentCodeRepository;
 import it.gov.pagopa.payment.instrument.utils.AuditUtilities;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 
@@ -34,17 +35,14 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
   }
 
   @Override
-  public GeneratedCodeDTO generateCode(String userId, GenerateCodeDTO body) {
+  public GenerateCodeRespDTO generateCode(String userId, GenerateCodeReqDTO body) {
     long startTime = System.currentTimeMillis();
 
-    StringBuilder code = buildCode();
+    String clearCode = buildCode();
+    String idpayCode = encryptIdpayCode(clearCode);
     log.info("[{}] Code generated successfully on userId: {}", GENERATED_CODE, userId);
 
-    paymentInstrumentCodeRepository.updateCode(userId, code.toString(), LocalDateTime.now());
-    performanceLog(startTime, GENERATED_CODE, userId, body.getInitiativeId());
-    auditUtilities.logGeneratedCode(userId, LocalDateTime.now());
-
-    if (!body.getInitiativeId().isBlank()) {
+    if (StringUtils.isNotBlank(body.getInitiativeId())) {
       log.info("[{}] Code generated successfully, starting code enrollment on userId: {} and initiativeId: {}",
           ENROLL_CODE_AFTER_CODE_GENERATED, userId, body.getInitiativeId());
       try {
@@ -54,15 +52,19 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
       } catch (FeignException e) {
         log.info("[{}] Code enrollment on userId: {} and initiativeId: {} failed",
             ENROLL_CODE_AFTER_CODE_GENERATED, userId, body.getInitiativeId());
-        throw new PaymentInstrumentException(500, "An error occurred while enrolling code");
+        throw new PaymentInstrumentException(e.status(), e.getMessage());
       }
     }
 
-    return new GeneratedCodeDTO(code.toString());
+    paymentInstrumentCodeRepository.updateCode(userId, idpayCode, LocalDateTime.now());
+    performanceLog(startTime, GENERATED_CODE, userId, body.getInitiativeId());
+    auditUtilities.logGeneratedCode(userId, LocalDateTime.now());
+
+    return new GenerateCodeRespDTO(idpayCode);
   }
 
   @NotNull
-  private StringBuilder buildCode() {
+  private String buildCode() {
     StringBuilder code = new StringBuilder();
     int lastDigit = -2;
     int maxDigitRepetition = 1;
@@ -83,6 +85,10 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
         }
       }
     }
+    return code.toString();
+  }
+
+  private String encryptIdpayCode(String code){
     return code;
   }
 

@@ -1,10 +1,10 @@
 package it.gov.pagopa.payment.instrument.service;
 
-import it.gov.pagopa.payment.instrument.dto.GenerateCodeDTO;
-import it.gov.pagopa.payment.instrument.dto.GeneratedCodeDTO;
+import it.gov.pagopa.payment.instrument.dto.GenerateCodeReqDTO;
+import it.gov.pagopa.payment.instrument.dto.GenerateCodeRespDTO;
 
 public interface PaymentInstrumentCodeService {
 
-  GeneratedCodeDTO generateCode(String userId, GenerateCodeDTO body);
+  GenerateCodeRespDTO generateCode(String userId, GenerateCodeReqDTO body);
 
 }

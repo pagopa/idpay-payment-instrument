@@ -21,8 +21,9 @@ public class PaymentInstrumentCodeRepositoryExtImpl implements PaymentInstrument
         Query.query(Criteria.where(Fields.userId).is(userId)),
         new Update()
             .set(Fields.userId, userId)
-            .set(Fields.code, code)
-            .set(Fields.creationDate, creationDate),
+            .set(Fields.idpayCode, code)
+            .set(Fields.creationDate, creationDate)
+            .inc(Fields.regenerationCodeCounter, 1),
         PaymentInstrumentCode.class);
   }
 }

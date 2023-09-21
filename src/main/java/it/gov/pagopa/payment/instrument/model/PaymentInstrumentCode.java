@@ -19,7 +19,8 @@ public class PaymentInstrumentCode {
   @Id
   private String id;
   private String userId;
-  private String code;
+  private String idpayCode;
+  private int regenerationCodeCounter;
   private LocalDateTime creationDate;
 
 }

@@ -18,7 +18,7 @@ import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
 import it.gov.pagopa.payment.instrument.service.PaymentInstrumentCodeService;
 import it.gov.pagopa.payment.instrument.service.PaymentInstrumentDiscountService;
 import it.gov.pagopa.payment.instrument.service.PaymentInstrumentService;
-import it.gov.pagopa.payment.instrument.test.fakers.GenerateCodeDTOFaker;
+import it.gov.pagopa.payment.instrument.test.fakers.GenerateCodeReqDTO;
 import it.gov.pagopa.payment.instrument.test.fakers.InstrumentFromDiscountDTOFaker;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -345,7 +345,7 @@ class PaymentInstrumentControllerTest {
 
     mvc.perform(MockMvcRequestBuilders.post(BASE_URL + ENROLL_CODE_URL)
             .contentType(MediaType.APPLICATION_JSON_VALUE)
-            .content(objectMapper.writeValueAsString(GenerateCodeDTOFaker.mockInstance(1, true)))
+            .content(objectMapper.writeValueAsString(GenerateCodeReqDTO.mockInstance(1, true)))
             .accept(MediaType.APPLICATION_JSON_VALUE))
         .andExpect(MockMvcResultMatchers.status().isOk())
         .andReturn();

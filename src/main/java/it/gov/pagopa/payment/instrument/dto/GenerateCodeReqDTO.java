@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class GenerateCodeDTO {
+public class GenerateCodeReqDTO {
 
   private String initiativeId;
 
