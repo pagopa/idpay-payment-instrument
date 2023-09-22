@@ -1,11 +1,42 @@
 package it.gov.pagopa.payment.instrument.service;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import feign.FeignException;
 import feign.Request;
 import feign.RequestTemplate;
-import it.gov.pagopa.payment.instrument.connector.*;
+import it.gov.pagopa.payment.instrument.connector.DecryptRestConnector;
+import it.gov.pagopa.payment.instrument.connector.EncryptRestConnector;
+import it.gov.pagopa.payment.instrument.connector.PMRestClientConnector;
+import it.gov.pagopa.payment.instrument.connector.RewardCalculatorConnector;
+import it.gov.pagopa.payment.instrument.connector.WalletRestConnector;
 import it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants;
-import it.gov.pagopa.payment.instrument.dto.*;
+import it.gov.pagopa.payment.instrument.dto.CFDTO;
+import it.gov.pagopa.payment.instrument.dto.DecryptCfDTO;
+import it.gov.pagopa.payment.instrument.dto.EncryptedCfDTO;
+import it.gov.pagopa.payment.instrument.dto.HpanDTO;
+import it.gov.pagopa.payment.instrument.dto.HpanGetDTO;
+import it.gov.pagopa.payment.instrument.dto.InstrumentAckDTO;
+import it.gov.pagopa.payment.instrument.dto.InstrumentDetailDTO;
+import it.gov.pagopa.payment.instrument.dto.InstrumentIssuerDTO;
+import it.gov.pagopa.payment.instrument.dto.QueueCommandOperationDTO;
+import it.gov.pagopa.payment.instrument.dto.RuleEngineAckDTO;
+import it.gov.pagopa.payment.instrument.dto.RuleEngineRequestDTO;
+import it.gov.pagopa.payment.instrument.dto.WalletCallDTO;
 import it.gov.pagopa.payment.instrument.dto.mapper.AckMapper;
 import it.gov.pagopa.payment.instrument.dto.mapper.MessageMapper;
 import it.gov.pagopa.payment.instrument.dto.pm.PaymentMethodInfo;
@@ -23,6 +54,14 @@ import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
 import it.gov.pagopa.payment.instrument.model.PaymentInstrument;
 import it.gov.pagopa.payment.instrument.repository.PaymentInstrumentRepository;
 import it.gov.pagopa.payment.instrument.utils.AuditUtilities;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,15 +76,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-
-import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
-import java.util.*;
-import java.util.stream.Stream;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 @ExtendWith({SpringExtension.class, MockitoExtension.class})
 @ContextConfiguration(classes = PaymentInstrumentServiceImpl.class)
@@ -118,11 +148,12 @@ class PaymentInstrumentServiceTest {
             BANK_NAME, INSTITUTE_CODE, BLURRED_NUMBER, PAYMENT_INSTRUMENTS,
             UUID, UUID);
     private static final String UPDATE_DATE = "LocalDateTime.now()";
+    public static final String CARD = "CARD";
     private static final WalletV2 WALLET_V2_CARD = new WalletV2(CREATE_DATE, ENABLEABLE_FUNCTIONS,
-            FAVOURITE, ID_WALLET, ONBOARDING_CHANNEL, UPDATE_DATE, "CARD", PAYMENT_METHOD_INFO);
+            FAVOURITE, ID_WALLET, ONBOARDING_CHANNEL, UPDATE_DATE, CARD, PAYMENT_METHOD_INFO);
     private static final WalletV2 WALLET_V2_PBD_KO = new WalletV2(CREATE_DATE,
             ENABLEABLE_FUNCTIONS_KO,
-            FAVOURITE, ID_WALLET, ONBOARDING_CHANNEL, UPDATE_DATE, "CARD", PAYMENT_METHOD_INFO);
+            FAVOURITE, ID_WALLET, ONBOARDING_CHANNEL, UPDATE_DATE, CARD, PAYMENT_METHOD_INFO);
     private static final WalletV2 WALLET_V2_SATISPAY = new WalletV2(CREATE_DATE,
             
             ENABLEABLE_FUNCTIONS,
@@ -195,6 +226,7 @@ class PaymentInstrumentServiceTest {
             .hpan(HPAN)
             .maskedPan(MASKED_PAN)
             .brandLogo(BRAND_LOGO)
+            .instrumentType(CARD)
             .brand(BRAND)
             .consent(CONSENT)
             .status(PaymentInstrumentConstants.STATUS_PENDING_RE)
@@ -548,7 +580,7 @@ class PaymentInstrumentServiceTest {
         final RuleEngineAckDTO dto = new RuleEngineAckDTO(INITIATIVE_ID, USER_ID,
                 PaymentInstrumentConstants.OPERATION_ADD, List.of(HPAN), List.of(), LocalDateTime.now());
         
-        Mockito.when(ackMapper.ackToWallet(Mockito.any(), Mockito.anyString(), Mockito.anyString(),Mockito.anyString(), Mockito.anyString(), Mockito.anyInt())).thenReturn(TEST_INSTRUMENT_ACK_DTO);
+        Mockito.when(ackMapper.ackToWallet(Mockito.any(), Mockito.any(), Mockito.anyString(), Mockito.anyString(),Mockito.anyString(), Mockito.anyString(), Mockito.anyInt())).thenReturn(TEST_INSTRUMENT_ACK_DTO);
         Mockito.when(
                         paymentInstrumentRepositoryMock.findByInitiativeIdAndUserIdAndHpanAndStatus(INITIATIVE_ID,
                                 USER_ID, HPAN, PaymentInstrumentConstants.STATUS_PENDING_RE))
@@ -582,7 +614,7 @@ class PaymentInstrumentServiceTest {
     
     @Test
     void processAck_enroll_ko() {
-        Mockito.when(ackMapper.ackToWallet(Mockito.any(),Mockito.anyString(),Mockito.anyString(),Mockito.anyString(),Mockito.anyString(),Mockito.anyInt())).thenReturn(TEST_INSTRUMENT_ACK_DTO);
+        Mockito.when(ackMapper.ackToWallet(Mockito.any(),Mockito.any(),Mockito.anyString(),Mockito.anyString(),Mockito.anyString(),Mockito.anyString(),Mockito.anyInt())).thenReturn(TEST_INSTRUMENT_ACK_DTO);
         final RuleEngineAckDTO dto = new RuleEngineAckDTO(INITIATIVE_ID, USER_ID,
                 PaymentInstrumentConstants.OPERATION_ADD, List.of(), List.of(HPAN), LocalDateTime.now());
         
