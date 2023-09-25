@@ -32,6 +32,8 @@ class InstrumentFromDiscountDTO2PaymentInstrumentMapperTest {
       Assertions.assertEquals(
           PaymentInstrumentConstants.IDPAY_PAYMENT_FAKE_INSTRUMENT_PREFIX.formatted(
               instrumentFromDiscountDTO.getUserId()), result.getHpan());
+      Assertions.assertTrue(result.isConsent());
+      Assertions.assertNotNull(result.getActivationDate());
     });
 
   }
