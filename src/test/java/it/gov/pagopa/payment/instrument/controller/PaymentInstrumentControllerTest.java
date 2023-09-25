@@ -76,7 +76,7 @@ class PaymentInstrumentControllerTest {
       "", "");
 
   private static final HpanDTO HPAN_DTO_TEST = new HpanDTO(HPAN, CHANNEL, BRAND_LOGO, BRAND_LOGO, ID_WALLET,
-      INSTRUMENT_ID, CHANNEL, LocalDateTime.now());
+      INSTRUMENT_ID, CHANNEL, PaymentInstrumentConstants.INSTRUMENT_TYPE_CARD, LocalDateTime.now());
 
   private static final HpanGetDTO HPANGETDTO = new HpanGetDTO();
 

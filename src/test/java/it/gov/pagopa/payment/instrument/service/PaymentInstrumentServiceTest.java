@@ -713,6 +713,7 @@ class PaymentInstrumentServiceTest {
                 .hpan(HPAN)
                 .maskedPan(MASKED_PAN)
                 .brandLogo(BRAND_LOGO)
+                .instrumentType(PaymentInstrumentConstants.INSTRUMENT_TYPE_CARD)
                 .status(PaymentInstrumentConstants.STATUS_ACTIVE)
                 .channel(CHANNEL)
                 .build();
@@ -742,6 +743,7 @@ class PaymentInstrumentServiceTest {
                 .idWallet(ID_WALLET)
                 .hpan(HPAN)
                 .maskedPan(MASKED_PAN)
+                .instrumentType(PaymentInstrumentConstants.INSTRUMENT_TYPE_CARD)
                 .brandLogo(BRAND_LOGO)
                 .status(PaymentInstrumentConstants.STATUS_PENDING_RE)
                 .channel(CHANNEL)
@@ -776,6 +778,7 @@ class PaymentInstrumentServiceTest {
                 .userId(USER_ID)
                 .idWallet(ID_WALLET)
                 .hpan(HPAN)
+                .instrumentType(PaymentInstrumentConstants.INSTRUMENT_TYPE_CARD)
                 .maskedPan(MASKED_PAN)
                 .brandLogo(BRAND_LOGO)
                 .status(PaymentInstrumentConstants.STATUS_PENDING_DEACTIVATION_REQUEST)
@@ -797,6 +800,7 @@ class PaymentInstrumentServiceTest {
             assertEquals(INSTRUMENT.getId(), actual.getInstrumentId());
             assertEquals(INSTRUMENT.getChannel(), actual.getChannel());
             assertEquals(INSTRUMENT.getMaskedPan(), actual.getMaskedPan());
+            assertEquals(INSTRUMENT.getInstrumentType(), actual.getInstrumentType());
             assertEquals(INSTRUMENT.getBrandLogo(), actual.getBrandLogo());
             assertFalse(hpanGetDTO.getInstrumentList().isEmpty());
         } catch (PaymentInstrumentException e) {
