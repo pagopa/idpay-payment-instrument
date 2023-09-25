@@ -189,6 +189,7 @@ class PaymentInstrumentServiceTest {
             .maskedPan(MASKED_PAN)
             .brandLogo(BRAND_LOGO)
             .brand(BRAND)
+            .instrumentType(PaymentInstrumentConstants.INSTRUMENT_TYPE_CARD)
             .consent(CONSENT)
             .status(PaymentInstrumentConstants.STATUS_ACTIVE)
             .channel(CHANNEL)

@@ -759,9 +759,11 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
 
       auditUtilities.logDeactivationComplete(instrument.getIdWallet(), instrument.getChannel(),
           LocalDateTime.now());
-      log.info("[PROCESS_ACK_DEACTIVATE] Deactivation OK: sending to RTD.");
-      sendToRtd(List.of(hpanListDTO), ruleEngineAckDTO.getOperationType(),
-          instrument.getInitiativeId());
+      if(PaymentInstrumentConstants.INSTRUMENT_TYPE_CARD.equals(instrument.getInstrumentType())){
+        log.info("[PROCESS_ACK_DEACTIVATE] Deactivation OK: sending to RTD.");
+        sendToRtd(List.of(hpanListDTO), ruleEngineAckDTO.getOperationType(),
+            instrument.getInitiativeId());
+      }
     }
 
     if (!ruleEngineAckDTO.getRejectedHpanList().isEmpty()) {
