@@ -16,6 +16,7 @@ public class BaseEnrollmentBodyDTO2PaymentInstrument implements
     return PaymentInstrument.builder()
             .initiativeId(baseEnrollmentBodyDTO.getInitiativeId())
             .userId(baseEnrollmentBodyDTO.getUserId())
+            .consent(true)
             .hpan(hpan)
             .channel(baseEnrollmentBodyDTO.getChannel())
             .instrumentType(baseEnrollmentBodyDTO.getInstrumentType())

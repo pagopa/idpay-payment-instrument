@@ -628,6 +628,8 @@ class PaymentInstrumentServiceTest {
         
         assertEquals(PaymentInstrumentConstants.STATUS_ENROLLMENT_FAILED_KO_RE,
                 TEST_PENDING_ENROLLMENT_INSTRUMENT.getStatus());
+        assertEquals(PaymentInstrumentConstants.INSTRUMENT_TYPE_CARD,
+            TEST_PENDING_ENROLLMENT_INSTRUMENT.getInstrumentType());
         Mockito.verify(paymentInstrumentRepositoryMock, Mockito.times(1))
                 .save(Mockito.any(PaymentInstrument.class));
     }

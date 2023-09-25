@@ -67,7 +67,7 @@ public class PaymentInstrumentDiscountServiceImpl implements
     PaymentInstrument paymentInstrument = instrumentFromDiscountDTO2PaymentInstrumentMapper.apply(
         body);
 
-    notifyRuleEngineAndSavePaymentInstrument(paymentInstrument, FLOW_ENROLL_FROM_DISCOUNT_INITIATIVE);
+    notifyRuleEngineAndSavePaymentInstrument(paymentInstrument);
     performanceLog(startTime, FLOW_ENROLL_FROM_DISCOUNT_INITIATIVE);
   }
 
@@ -79,17 +79,17 @@ public class PaymentInstrumentDiscountServiceImpl implements
     PaymentInstrument paymentInstrument = baseEnrollmentBodyDTO2PaymentInstrument.apply(bodyInstrumentCode,
             PaymentInstrumentConstants.IDPAY_CODE_FAKE_INSTRUMENT_PREFIX.formatted(bodyInstrumentCode.getUserId()));
 
-    notifyRuleEngineAndSavePaymentInstrument(paymentInstrument, FLOW_ENROLL_INSTRUMENT_CODE);
+    notifyRuleEngineAndSavePaymentInstrument(paymentInstrument);
     auditUtilities.logEnrollInstrumentCodeComplete(bodyInstrumentCode.getUserId(), bodyInstrumentCode.getInitiativeId(), bodyInstrumentCode.getChannel(), bodyInstrumentCode.getInstrumentType());
     performanceLog(startTime, FLOW_ENROLL_INSTRUMENT_CODE);
 
   }
 
-  private void notifyRuleEngineAndSavePaymentInstrument(PaymentInstrument paymentInstrument, String flowName) {
+  private void notifyRuleEngineAndSavePaymentInstrument(PaymentInstrument paymentInstrument) {
     PaymentMethodInfoList info = new PaymentMethodInfoList();
     info.setHpan(paymentInstrument.getHpan());
 
-    sendToRuleEngine(paymentInstrument.getUserId(), paymentInstrument.getInitiativeId(), List.of(info), paymentInstrument.getChannel(), flowName);
+    sendToRuleEngine(paymentInstrument.getUserId(), paymentInstrument.getInitiativeId(), List.of(info), paymentInstrument.getChannel());
 
     paymentInstrumentRepository.save(paymentInstrument);
   }
@@ -116,8 +116,7 @@ public class PaymentInstrumentDiscountServiceImpl implements
   private void sendToRuleEngine(String userId,
                                 String initiativeId,
                                 List<PaymentMethodInfoList> paymentMethodInfoList,
-                                String channel,
-                                String flowName) {
+                                String channel) {
 
     RuleEngineRequestDTO ruleEngineRequestDTO = RuleEngineRequestDTO.builder()
         .userId(userId)
@@ -128,7 +127,7 @@ public class PaymentInstrumentDiscountServiceImpl implements
         .operationDate(LocalDateTime.now())
         .build();
 
-    log.info("[{}] Sending message to Rule Engine.", flowName);
+    log.info("[{}] Sending message to Rule Engine.", FLOW_ENROLL_INSTRUMENT_CODE);
 
     try {
       ruleEngineProducer.sendInstruments(messageMapper.apply(ruleEngineRequestDTO));

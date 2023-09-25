@@ -173,9 +173,9 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
   }
 
   private PaymentInstrument savePaymentInstrument(String initiativeId, String userId,
-                                                  String idWallet, String channel,
-                                                  PaymentMethodInfoList infoList,
-                                                  String instrumentType) {
+      String idWallet, String channel,
+      PaymentMethodInfoList infoList,
+      String instrumentType) {
     PaymentInstrument newInstrument = PaymentInstrument.builder()
         .initiativeId(initiativeId)
         .userId(userId)
@@ -675,7 +675,8 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
         body.getBrandLogo(), body.getBrand(), true);
 
     PaymentInstrument newInstrument = savePaymentInstrument(
-        body.getInitiativeId(), body.getUserId(), null, body.getChannel(), infoList, body.getInstrumentType() );
+        body.getInitiativeId(), body.getUserId(), null, body.getChannel(), infoList,
+        body.getInstrumentType());
 
     RTDHpanListDTO hpanListDTO = new RTDHpanListDTO();
     hpanListDTO.setHpan(infoList.getHpan());
@@ -810,7 +811,8 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       return;
     }
 
-    if (status.equals(PaymentInstrumentConstants.STATUS_ENROLLMENT_FAILED_KO_RE)) {
+    if (status.equals(PaymentInstrumentConstants.STATUS_ENROLLMENT_FAILED_KO_RE)
+        && PaymentInstrumentConstants.INSTRUMENT_TYPE_CARD.equals(instrument.getInstrumentType())) {
       log.info(
           "[PROCESS_ACK_ENROLL] [RESULT] ACK RULE ENGINE KO: updating instrument status to {}.",
           PaymentInstrumentConstants.STATUS_ENROLLMENT_FAILED);

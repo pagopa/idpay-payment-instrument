@@ -30,6 +30,7 @@ class BaseEnrollmentBodyDTO2PaymentInstrumentMapperTest {
       Assertions.assertEquals(baseEnrollmentDTO.getUserId(), result.getUserId());
       Assertions.assertEquals(baseEnrollmentDTO.getChannel(), result.getChannel());
       Assertions.assertEquals(testHpan, result.getHpan());
+      Assertions.assertTrue(result.isConsent());
       Assertions.assertEquals(baseEnrollmentDTO.getInstrumentType(), result.getInstrumentType());
       Assertions.assertEquals(PaymentInstrumentConstants.STATUS_PENDING_RE, result.getStatus());
     });
