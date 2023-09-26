@@ -5,6 +5,7 @@ import it.gov.pagopa.payment.instrument.service.idpaycode.PaymentInstrumentCodeS
 import it.gov.pagopa.payment.instrument.service.PaymentInstrumentDiscountService;
 import it.gov.pagopa.payment.instrument.service.PaymentInstrumentService;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
@@ -92,13 +93,15 @@ public class PaymentInstrumentControllerImpl implements PaymentInstrumentControl
   }
 
   @Override
-  public ResponseEntity<GenerateCodeRespDTO> generateCode(String userId, GenerateCodeReqDTO body) {
-    GenerateCodeRespDTO generateCodeRespDTO = paymentInstrumentCodeService.generateCode(userId, body.getInitiativeId());
+  public ResponseEntity<GenerateCodeRespDTO> generateCode(String userId, Optional<GenerateCodeReqDTO> body) {
+    String initiativeId = body.map(GenerateCodeReqDTO::getInitiativeId).orElse(null);
+    GenerateCodeRespDTO generateCodeRespDTO = paymentInstrumentCodeService.generateCode(userId, initiativeId);
+
     return new ResponseEntity<>(generateCodeRespDTO, HttpStatus.OK);
   }
 
   @Override
-  public ResponseEntity<HpanGetDTO> enrollInstrumentCode(BaseEnrollmentBodyDTO body) {
+  public ResponseEntity<Void> enrollInstrumentCode(BaseEnrollmentBodyDTO body) {
     paymentInstrumentDiscountService.enrollInstrumentCode(body);
     return new ResponseEntity<>(HttpStatus.OK);
   }

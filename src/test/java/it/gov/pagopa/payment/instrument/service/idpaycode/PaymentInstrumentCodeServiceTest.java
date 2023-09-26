@@ -72,7 +72,20 @@ class PaymentInstrumentCodeServiceTest {
   }
 
   @Test
+  void generateCode_initiativeId_null(){
+    Mockito.when(encryptCodeService.encryptIdpayCode(anyString())).thenReturn("12345");
+
+    GenerateCodeRespDTO generateCodeRespDTO =
+        paymentInstrumentCodeService.generateCode(USERID, null);
+
+    verify(walletRestConnector, never()).enrollInstrumentCode(any(), any());
+    assertions(generateCodeRespDTO);
+  }
+
+  @Test
   void generateCode_enrollKo_notFound(){
+    Mockito.when(paymentInstrumentCodeRepository.deleteInstrument(USERID))
+        .thenReturn(new PaymentInstrumentCode());
     Request request =
         Request.create(
             HttpMethod.PUT, "url", new HashMap<>(), null, new RequestTemplate());
@@ -84,10 +97,14 @@ class PaymentInstrumentCodeServiceTest {
       assertEquals(HttpStatus.NOT_FOUND.value(), e.getCode());
       assertEquals("Resource not found while enrolling idpayCode on ms wallet", e.getMessage());
     }
+    verify(paymentInstrumentCodeRepository, Mockito.times(1))
+        .deleteInstrument(USERID);
   }
 
   @Test
   void generateCode_enrollKo_tooManyRequests(){
+    Mockito.when(paymentInstrumentCodeRepository.deleteInstrument(USERID))
+        .thenReturn(new PaymentInstrumentCode());
     Request request =
         Request.create(
             HttpMethod.PUT, "url", new HashMap<>(), null, new RequestTemplate());
@@ -99,9 +116,13 @@ class PaymentInstrumentCodeServiceTest {
       assertEquals(HttpStatus.TOO_MANY_REQUESTS.value(), e.getCode());
       assertEquals("Too many request on the ms wallet", e.getMessage());
     }
+    verify(paymentInstrumentCodeRepository, Mockito.times(1))
+        .deleteInstrument(USERID);
   }
   @Test
   void generateCode_enrollKo_internalServerError(){
+    Mockito.when(paymentInstrumentCodeRepository.deleteInstrument(USERID))
+        .thenReturn(new PaymentInstrumentCode());
     Request request =
         Request.create(
             HttpMethod.PUT, "url", new HashMap<>(), null, new RequestTemplate());
@@ -113,6 +134,8 @@ class PaymentInstrumentCodeServiceTest {
       assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getCode());
       assertEquals("An error occurred in the microservice wallet", e.getMessage());
     }
+    verify(paymentInstrumentCodeRepository, Mockito.times(1))
+        .deleteInstrument(USERID);
   }
 
   @Test

@@ -3,6 +3,7 @@ package it.gov.pagopa.payment.instrument.controller;
 import it.gov.pagopa.payment.instrument.dto.*;
 
 import jakarta.validation.Valid;
+import java.util.Optional;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -49,10 +50,11 @@ public interface PaymentInstrumentController {
   ResponseEntity<Void> rollback(@PathVariable("initiativeId") String initiativeId, @PathVariable("userId") String userId);
 
   @PostMapping("/generate-code/{userId}")
-  ResponseEntity<GenerateCodeRespDTO> generateCode(@PathVariable("userId") String userId, @RequestBody GenerateCodeReqDTO body);
+  ResponseEntity<GenerateCodeRespDTO> generateCode(@PathVariable("userId") String userId,
+      @RequestBody(required = false) Optional<GenerateCodeReqDTO> body);
 
   @PutMapping("/code/enroll")
-  ResponseEntity<HpanGetDTO> enrollInstrumentCode(@Valid @RequestBody BaseEnrollmentBodyDTO body);
+  ResponseEntity<Void> enrollInstrumentCode(@Valid @RequestBody BaseEnrollmentBodyDTO body);
 
   @GetMapping("/code/status/{userId}")
   ResponseEntity<CheckEnrollmentDTO> codeStatus(@PathVariable("userId") String userId);

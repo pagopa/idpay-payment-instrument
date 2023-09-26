@@ -5,6 +5,8 @@ import java.time.LocalDateTime;
 
 public interface PaymentInstrumentCodeRepositoryExt {
 
-  PaymentInstrumentCode updateCode(String userId, String code, LocalDateTime creationDate);
+  void updateCode(String userId, String code, LocalDateTime creationDate);
+
+  PaymentInstrumentCode deleteInstrument(String userId);
 
 }

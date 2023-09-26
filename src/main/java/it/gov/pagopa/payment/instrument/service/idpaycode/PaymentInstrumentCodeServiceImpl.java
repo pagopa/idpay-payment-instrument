@@ -50,8 +50,7 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
     log.info("[{}] Code generated successfully on userId: {}", GENERATED_CODE, userId);
 
     // save encrypted code
-    PaymentInstrumentCode paymentInstrumentCode =
-        paymentInstrumentCodeRepository.updateCode(userId, idpayCode, LocalDateTime.now());
+    paymentInstrumentCodeRepository.updateCode(userId, idpayCode, LocalDateTime.now());
     performanceLog(startTime, GENERATED_CODE, userId, initiativeId);
     auditUtilities.logGeneratedCode(userId, LocalDateTime.now());
 
@@ -68,7 +67,7 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
             ENROLL_CODE_AFTER_CODE_GENERATED, userId, initiativeId);
 
         // delete code if enrollment have failed
-        paymentInstrumentCodeRepository.delete(paymentInstrumentCode);
+        paymentInstrumentCodeRepository.deleteInstrument(userId);
 
         switch (e.status()) {
           case 429 -> throw new PaymentInstrumentException(HttpStatus.TOO_MANY_REQUESTS.value(),

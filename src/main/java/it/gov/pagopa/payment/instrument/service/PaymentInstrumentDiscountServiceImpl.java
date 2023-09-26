@@ -76,26 +76,39 @@ public class PaymentInstrumentDiscountServiceImpl implements
   }
 
   @Override
-  public void enrollInstrumentCode(BaseEnrollmentBodyDTO bodyInstrumentCode) {
+  public void enrollInstrumentCode(BaseEnrollmentBodyDTO body) {
     long startTime = System.currentTimeMillis();
     log.info("[IDPAY_CODE_STATUS] Checking idpayCode status");
 
-    boolean idayCodeEnabled = paymentInstrumentCodeService.codeStatus(bodyInstrumentCode.getUserId());
+    boolean idayCodeEnabled = paymentInstrumentCodeService.codeStatus(body.getUserId());
 
-    log.info("[IDPAY_CODE_STATUS] The userId {} has code with status {}", bodyInstrumentCode.getUserId(), idayCodeEnabled);
+    log.info("[IDPAY_CODE_STATUS] The userId {} has code with status {}", body.getUserId(), idayCodeEnabled);
 
     if(!idayCodeEnabled){
       throw new PaymentInstrumentException(403, "IdpayCode must be generated");
     }
 
     log.info("[ENROLL_INSTRUMENT_CODE] Processing IDPayCode enrollment request of the user {} for the initiative {}",
-        bodyInstrumentCode.getUserId(), bodyInstrumentCode.getInitiativeId());
+        body.getUserId(), body.getInitiativeId());
 
-    PaymentInstrument paymentInstrument = baseEnrollmentBodyDTO2PaymentInstrument.apply(bodyInstrumentCode,
-            PaymentInstrumentConstants.IDPAY_CODE_FAKE_INSTRUMENT_PREFIX.formatted(bodyInstrumentCode.getUserId()));
+    PaymentInstrument paymentInstrument = baseEnrollmentBodyDTO2PaymentInstrument.apply(body,
+            PaymentInstrumentConstants.IDPAY_CODE_FAKE_INSTRUMENT_PREFIX.formatted(body.getUserId()));
+
+    List<PaymentInstrument> instrumentList = paymentInstrumentRepository.findByHpan(paymentInstrument.getHpan());
+
+    boolean isInstrumentAlreadyActiveOrPending = instrumentList.stream()
+        .anyMatch(pi -> pi.getInitiativeId().equals(body.getInitiativeId())
+            && !pi.getStatus().equals(PaymentInstrumentConstants.STATUS_INACTIVE));
+
+    if (isInstrumentAlreadyActiveOrPending) {
+      log.info("[ENROLL_INSTRUMENT_CODE] The Payment Instrument is already active, or there is a pending request on it.");
+      auditUtilities.logEnrollInstrFromIssuerKO("already active or in pending", paymentInstrument.getHpan(), body.getChannel());
+      performanceLog(startTime, FLOW_ENROLL_INSTRUMENT_CODE);
+      return;
+    }
 
     notifyRuleEngineAndSavePaymentInstrument(paymentInstrument);
-    auditUtilities.logEnrollInstrumentCodeComplete(bodyInstrumentCode.getUserId(), bodyInstrumentCode.getInitiativeId(), bodyInstrumentCode.getChannel(), bodyInstrumentCode.getInstrumentType());
+    auditUtilities.logEnrollInstrumentCodeComplete(body.getUserId(), body.getInitiativeId(), body.getChannel(), body.getInstrumentType());
     performanceLog(startTime, FLOW_ENROLL_INSTRUMENT_CODE);
 
   }
