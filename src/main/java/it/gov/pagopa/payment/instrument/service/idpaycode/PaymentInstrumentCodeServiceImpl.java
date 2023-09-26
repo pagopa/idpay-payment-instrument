@@ -49,6 +49,12 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
     String idpayCode = encryptCodeService.encryptIdpayCode(clearCode);
     log.info("[{}] Code generated successfully on userId: {}", GENERATED_CODE, userId);
 
+    // save encrypted code
+    PaymentInstrumentCode paymentInstrumentCode =
+        paymentInstrumentCodeRepository.updateCode(userId, idpayCode, LocalDateTime.now());
+    performanceLog(startTime, GENERATED_CODE, userId, initiativeId);
+    auditUtilities.logGeneratedCode(userId, LocalDateTime.now());
+
     // enroll code if an initiativeId was provided
     if (StringUtils.isNotBlank(initiativeId)) {
       log.info("[{}] Code generated successfully, starting code enrollment on userId: {} and initiativeId: {}",
@@ -60,6 +66,10 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
       } catch (FeignException e) {
         log.info("[{}] Code enrollment on userId: {} and initiativeId: {} failed",
             ENROLL_CODE_AFTER_CODE_GENERATED, userId, initiativeId);
+
+        // delete code if enrollment have failed
+        paymentInstrumentCodeRepository.delete(paymentInstrumentCode);
+
         switch (e.status()) {
           case 429 -> throw new PaymentInstrumentException(HttpStatus.TOO_MANY_REQUESTS.value(),
               "Too many request on the ms wallet");
@@ -70,10 +80,6 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
         }
       }
     }
-
-    paymentInstrumentCodeRepository.updateCode(userId, idpayCode, LocalDateTime.now());
-    performanceLog(startTime, GENERATED_CODE, userId, initiativeId);
-    auditUtilities.logGeneratedCode(userId, LocalDateTime.now());
 
     return new GenerateCodeRespDTO(idpayCode);
   }
