@@ -10,12 +10,13 @@ import it.gov.pagopa.payment.instrument.dto.mapper.MessageMapper;
 import it.gov.pagopa.payment.instrument.dto.pm.PaymentMethodInfoList;
 import it.gov.pagopa.payment.instrument.event.producer.ErrorProducer;
 import it.gov.pagopa.payment.instrument.event.producer.RuleEngineProducer;
+import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
 import it.gov.pagopa.payment.instrument.model.PaymentInstrument;
 import it.gov.pagopa.payment.instrument.repository.PaymentInstrumentRepository;
+import it.gov.pagopa.payment.instrument.service.idpaycode.PaymentInstrumentCodeService;
+import it.gov.pagopa.payment.instrument.utils.AuditUtilities;
 import java.time.LocalDateTime;
 import java.util.List;
-
-import it.gov.pagopa.payment.instrument.utils.AuditUtilities;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.support.MessageBuilder;
@@ -39,6 +40,8 @@ public class PaymentInstrumentDiscountServiceImpl implements
   private final RuleEngineProducer ruleEngineProducer;
   private final AuditUtilities auditUtilities;
 
+  private final PaymentInstrumentCodeService paymentInstrumentCodeService;
+
   @SuppressWarnings("squid:S00107") // suppressing too many parameters alert
   public PaymentInstrumentDiscountServiceImpl(
           InstrumentFromDiscountDTO2PaymentInstrumentMapper instrumentFromDiscountDTO2PaymentInstrumentMapper,
@@ -49,7 +52,7 @@ public class PaymentInstrumentDiscountServiceImpl implements
           @Value("${spring.cloud.stream.bindings.paymentInstrumentQueue-out-0.destination}") String ruleEngineTopic,
           ErrorProducer errorProducer,
           RuleEngineProducer ruleEngineProducer,
-          AuditUtilities auditUtilities) {
+          AuditUtilities auditUtilities, PaymentInstrumentCodeService paymentInstrumentCodeService) {
     this.instrumentFromDiscountDTO2PaymentInstrumentMapper = instrumentFromDiscountDTO2PaymentInstrumentMapper;
     this.baseEnrollmentBodyDTO2PaymentInstrument = baseEnrollmentBodyDTO2PaymentInstrument;
     this.paymentInstrumentRepository = paymentInstrumentRepository;
@@ -59,6 +62,7 @@ public class PaymentInstrumentDiscountServiceImpl implements
     this.errorProducer = errorProducer;
     this.ruleEngineProducer = ruleEngineProducer;
     this.auditUtilities = auditUtilities;
+    this.paymentInstrumentCodeService = paymentInstrumentCodeService;
   }
 
   @Override
@@ -74,7 +78,18 @@ public class PaymentInstrumentDiscountServiceImpl implements
   @Override
   public void enrollInstrumentCode(BaseEnrollmentBodyDTO bodyInstrumentCode) {
     long startTime = System.currentTimeMillis();
-    log.info("[ENROLL_INSTRUMENT_CODE] Processing IDPayCode enrollment request of the user {} for the initiative {}", bodyInstrumentCode.getUserId(), bodyInstrumentCode.getInitiativeId());
+    log.info("[IDPAY_CODE_STATUS] Checking idpayCode status");
+
+    boolean idayCodeEnabled = paymentInstrumentCodeService.codeStatus(bodyInstrumentCode.getUserId());
+
+    log.info("[IDPAY_CODE_STATUS] The userId {} has code with status {}", bodyInstrumentCode.getUserId(), idayCodeEnabled);
+
+    if(!idayCodeEnabled){
+      throw new PaymentInstrumentException(403, "IdpayCode must be generated");
+    }
+
+    log.info("[ENROLL_INSTRUMENT_CODE] Processing IDPayCode enrollment request of the user {} for the initiative {}",
+        bodyInstrumentCode.getUserId(), bodyInstrumentCode.getInitiativeId());
 
     PaymentInstrument paymentInstrument = baseEnrollmentBodyDTO2PaymentInstrument.apply(bodyInstrumentCode,
             PaymentInstrumentConstants.IDPAY_CODE_FAKE_INSTRUMENT_PREFIX.formatted(bodyInstrumentCode.getUserId()));

@@ -86,6 +86,7 @@ class PaymentInstrumentControllerTest {
   private static final String GET_INSTRUMENT_INITIATIVES_DETAIL = "/initiatives/" + ID_WALLET + "/" + USER_ID + "/detail";
   private static final String ENROLL_DISCOUNT_URL = "/discount/enroll";
   private static final String ENROLL_CODE_URL = "/generate-code/" + USER_ID;
+  private static final String CODE_STATUS_URL = "/code/status/" + USER_ID;
   @MockBean
   PaymentInstrumentService paymentInstrumentServiceMock;
 
@@ -398,6 +399,16 @@ class PaymentInstrumentControllerTest {
             .contentType(MediaType.APPLICATION_JSON_VALUE)
             .accept(MediaType.APPLICATION_JSON_VALUE))
         .andExpect(MockMvcResultMatchers.status().isInternalServerError())
+        .andReturn();
+  }
+
+  @Test
+  void idpayCode_status_ok() throws Exception {
+
+    mvc.perform(MockMvcRequestBuilders.get(BASE_URL + CODE_STATUS_URL)
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .accept(MediaType.APPLICATION_JSON_VALUE))
+        .andExpect(MockMvcResultMatchers.status().isOk())
         .andReturn();
   }
 }

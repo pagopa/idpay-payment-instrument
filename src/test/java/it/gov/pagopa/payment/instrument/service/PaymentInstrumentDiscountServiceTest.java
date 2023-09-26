@@ -1,5 +1,7 @@
 package it.gov.pagopa.payment.instrument.service;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
@@ -19,6 +21,7 @@ import it.gov.pagopa.payment.instrument.event.producer.RuleEngineProducer;
 import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
 import it.gov.pagopa.payment.instrument.model.PaymentInstrument;
 import it.gov.pagopa.payment.instrument.repository.PaymentInstrumentRepository;
+import it.gov.pagopa.payment.instrument.service.idpaycode.PaymentInstrumentCodeService;
 import it.gov.pagopa.payment.instrument.test.fakers.BaseEnrollmentDTOFaker;
 import it.gov.pagopa.payment.instrument.test.fakers.InstrumentFromDiscountDTOFaker;
 import it.gov.pagopa.payment.instrument.test.fakers.PaymentInstrumentFaker;
@@ -49,13 +52,17 @@ class PaymentInstrumentDiscountServiceTest {
   @Mock
   private AuditUtilities auditUtilities;
 
+  @Mock
+  private PaymentInstrumentCodeService paymentInstrumentCodeService;
+
   PaymentInstrumentDiscountService paymentInstrumentDiscountService;
 
   @BeforeEach
   void setUp() {
     paymentInstrumentDiscountService = new PaymentInstrumentDiscountServiceImpl(
         instrumentFromDiscountDTO2PaymentInstrumentMapper, baseEnrollmentBodyDTO2PaymentInstrument, paymentInstrumentRepository,
-        messageMapper, "ruleEngineServer", "ruleEngineTopic", errorProducer, ruleEngineProducer, auditUtilities);
+        messageMapper, "ruleEngineServer", "ruleEngineTopic", errorProducer, ruleEngineProducer, auditUtilities,
+        paymentInstrumentCodeService);
   }
 
   @Test
@@ -104,6 +111,8 @@ class PaymentInstrumentDiscountServiceTest {
 
     PaymentInstrument paymentInstrument = PaymentInstrumentFaker.mockInstance(1);
 
+    when(paymentInstrumentCodeService.codeStatus(paymentInstrument.getUserId())).thenReturn(true);
+
     when(baseEnrollmentBodyDTO2PaymentInstrument.apply(any(), anyString()))
             .thenReturn(paymentInstrument);
 
@@ -129,6 +138,8 @@ class PaymentInstrumentDiscountServiceTest {
 
     PaymentInstrument paymentInstrument = PaymentInstrumentFaker.mockInstance(1);
 
+    when(paymentInstrumentCodeService.codeStatus(paymentInstrument.getUserId())).thenReturn(true);
+
     when(baseEnrollmentBodyDTO2PaymentInstrument.apply(any(), anyString()))
             .thenReturn(paymentInstrument);
 
@@ -143,5 +154,22 @@ class PaymentInstrumentDiscountServiceTest {
 
     verify(paymentInstrumentRepository, times(1)).save(any());
     verify(errorProducer, times(1)).sendEvent(any());
+  }
+
+  @Test
+  void enrollInstrumentCode_codeStatus_false() {
+    BaseEnrollmentBodyDTO enrollmentRequest = BaseEnrollmentDTOFaker.mockInstance(1);
+
+    PaymentInstrument paymentInstrument = PaymentInstrumentFaker.mockInstance(1);
+
+    when(paymentInstrumentCodeService.codeStatus(paymentInstrument.getUserId())).thenReturn(false);
+
+    try{
+      paymentInstrumentDiscountService.enrollInstrumentCode(enrollmentRequest);
+      fail();
+    }catch (PaymentInstrumentException e){
+      assertEquals(403, e.getCode());
+      assertEquals("IdpayCode must be generated", e.getMessage());
+    }
   }
 }

@@ -14,7 +14,6 @@ import feign.Request;
 import feign.Request.HttpMethod;
 import feign.RequestTemplate;
 import it.gov.pagopa.payment.instrument.connector.WalletRestConnector;
-import it.gov.pagopa.payment.instrument.dto.CheckEnrollmentDTO;
 import it.gov.pagopa.payment.instrument.dto.GenerateCodeRespDTO;
 import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
 import it.gov.pagopa.payment.instrument.model.PaymentInstrumentCode;
@@ -124,18 +123,18 @@ class PaymentInstrumentCodeServiceTest {
         .build();
     Mockito.when(paymentInstrumentCodeRepository.findByUserId(USERID)).thenReturn(Optional.of(paymentInstrumentCode));
 
-    CheckEnrollmentDTO checkEnrollmentDTO = paymentInstrumentCodeService.codeStatus(USERID);
+    boolean isIdPayCodeEnabled = paymentInstrumentCodeService.codeStatus(USERID);
 
-    assertTrue(checkEnrollmentDTO.isIdPayCodeEnabled());
+    assertTrue(isIdPayCodeEnabled);
   }
 
   @Test
   void codeStatus_false(){
     Mockito.when(paymentInstrumentCodeRepository.findByUserId(USERID)).thenReturn(Optional.ofNullable(any(PaymentInstrumentCode.class)));
 
-    CheckEnrollmentDTO checkEnrollmentDTO = paymentInstrumentCodeService.codeStatus(USERID);
+    boolean isIdPayCodeEnabled = paymentInstrumentCodeService.codeStatus(USERID);
 
-    assertFalse(checkEnrollmentDTO.isIdPayCodeEnabled());
+    assertFalse(isIdPayCodeEnabled);
   }
 
   private void assertions(GenerateCodeRespDTO generateCodeRespDTO) {

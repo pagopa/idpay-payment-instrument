@@ -2,7 +2,6 @@ package it.gov.pagopa.payment.instrument.service.idpaycode;
 
 import feign.FeignException;
 import it.gov.pagopa.payment.instrument.connector.WalletRestConnector;
-import it.gov.pagopa.payment.instrument.dto.CheckEnrollmentDTO;
 import it.gov.pagopa.payment.instrument.dto.GenerateCodeRespDTO;
 import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
 import it.gov.pagopa.payment.instrument.model.PaymentInstrumentCode;
@@ -80,17 +79,17 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
   }
 
   @Override
-  public CheckEnrollmentDTO codeStatus(String userId) {
+  public boolean codeStatus(String userId) {
     long startTime = System.currentTimeMillis();
 
     PaymentInstrumentCode paymentInstrumentCode = paymentInstrumentCodeRepository.findByUserId(
         userId).orElse(null);
 
-    boolean idPayCodeEnabled = (paymentInstrumentCode != null) && (paymentInstrumentCode.getIdpayCode() != null);
+    boolean idpayCodeEnabled = (paymentInstrumentCode != null) && (paymentInstrumentCode.getIdpayCode() != null);
 
-    log.info("[IDPAY_CODE_STATUS] The userId {} has code with status {}", userId, idPayCodeEnabled);
+    log.info("[IDPAY_CODE_STATUS] The userId {} has code with status {}", userId, idpayCodeEnabled);
     performanceLog(startTime, "IDPAY_CODE_STATUS", userId, null);
-    return new CheckEnrollmentDTO(idPayCodeEnabled);
+    return idpayCodeEnabled;
   }
 
   @NotNull
