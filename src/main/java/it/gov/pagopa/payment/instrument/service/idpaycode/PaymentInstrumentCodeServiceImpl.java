@@ -81,12 +81,15 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
 
   @Override
   public CheckEnrollmentDTO codeStatus(String userId) {
+    long startTime = System.currentTimeMillis();
 
     PaymentInstrumentCode paymentInstrumentCode = paymentInstrumentCodeRepository.findByUserId(
         userId).orElse(null);
 
     boolean idPayCodeEnabled = (paymentInstrumentCode != null) && (paymentInstrumentCode.getIdpayCode() != null);
 
+    log.info("[IDPAY_CODE_STATUS] The userId {} has code with status {}", userId, idPayCodeEnabled);
+    performanceLog(startTime, "IDPAY_CODE_STATUS", userId, null);
     return new CheckEnrollmentDTO(idPayCodeEnabled);
   }
 
