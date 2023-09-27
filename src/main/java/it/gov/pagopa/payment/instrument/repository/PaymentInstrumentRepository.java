@@ -36,6 +36,5 @@ public interface PaymentInstrumentRepository extends MongoRepository<PaymentInst
 
   List<PaymentInstrument> findByStatusRegex(String status);
   List<PaymentInstrument> findByIdWalletAndUserId(String idWallet, String userId);
-  List<PaymentInstrument> deleteByInitiativeId(String initiativeId);
 
 }

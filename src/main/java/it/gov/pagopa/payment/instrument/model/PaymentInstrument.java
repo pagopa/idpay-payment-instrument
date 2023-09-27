@@ -3,11 +3,13 @@ package it.gov.pagopa.payment.instrument.model;
 import java.time.LocalDateTime;
 import lombok.Builder;
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Data
 @Document(collection = "payment_instrument")
+@FieldNameConstants
 @Builder
 public class PaymentInstrument {
 
