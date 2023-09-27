@@ -262,11 +262,11 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
 
   @Override
   public void deactivateAllInstruments(String initiativeId, String userId,
-                                       String deactivationDate) {
+      String deactivationDate) {
     long startTime = System.currentTimeMillis();
 
     List<PaymentInstrument> paymentInstrumentList = paymentInstrumentRepository.findByInitiativeIdAndUserIdAndStatus(
-            initiativeId, userId, PaymentInstrumentConstants.STATUS_ACTIVE);
+        initiativeId, userId, PaymentInstrumentConstants.STATUS_ACTIVE);
 
     if (paymentInstrumentList.isEmpty()) {
       return;
@@ -274,26 +274,20 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
 
     List<RTDHpanListDTO> hpanList = new ArrayList<>();
     RTDHpanListDTO rtdHpanListDTO = new RTDHpanListDTO();
-    List<PaymentInstrument> paymentInstrumentsToSave = new ArrayList<>();
 
     for (PaymentInstrument paymentInstrument : paymentInstrumentList) {
-
-      if(PaymentInstrumentConstants.INSTRUMENT_TYPE_QRCODE.equals(paymentInstrument.getInstrumentType())){
-        continue;
-      }
 
       paymentInstrument.setDeactivationDate(LocalDateTime.parse(deactivationDate));
       paymentInstrument.setStatus(PaymentInstrumentConstants.STATUS_INACTIVE);
       paymentInstrument.setDeleteChannel(PaymentInstrumentConstants.IO);
-      if (PaymentInstrumentConstants.INSTRUMENT_TYPE_CARD.equals(paymentInstrument.getInstrumentType())) {
+      if (!PaymentInstrumentConstants.IDPAY_PAYMENT.equals(paymentInstrument.getChannel())) {
         rtdHpanListDTO.setHpan(paymentInstrument.getHpan());
         rtdHpanListDTO.setConsent(paymentInstrument.isConsent());
         hpanList.add(rtdHpanListDTO);
       }
       paymentInstrument.setUpdateDate(LocalDateTime.now());
-      paymentInstrumentsToSave.add(paymentInstrument);
     }
-    paymentInstrumentRepository.saveAll(paymentInstrumentsToSave);
+    paymentInstrumentRepository.saveAll(paymentInstrumentList);
     try {
       rewardCalculatorConnector.disableUserInitiativeInstruments(userId, initiativeId);
     } catch (Exception e) {
@@ -301,8 +295,8 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       performanceLog(startTime, "DEACTIVATE_ALL_INSTRUMENTS");
       throw new PaymentInstrumentException(HttpStatus.BAD_REQUEST.value(), e.getMessage());
     }
-    if (PaymentInstrumentConstants.INSTRUMENT_TYPE_CARD.equals(
-            paymentInstrumentsToSave.get(0).getInstrumentType())) {
+    if (!PaymentInstrumentConstants.IDPAY_PAYMENT.equals(
+        paymentInstrumentList.get(0).getChannel())) {
       log.info("[SEND TO RTD] sending to RTD");
       sendToRtd(hpanList, PaymentInstrumentConstants.OPERATION_DELETE, initiativeId);
       performanceLog(startTime, "DEACTIVATE_ALL_INSTRUMENTS");

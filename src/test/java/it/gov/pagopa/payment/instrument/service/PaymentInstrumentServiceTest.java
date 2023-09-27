@@ -226,28 +226,6 @@ class PaymentInstrumentServiceTest {
             .rtdAckDate(TEST_RULE_ENGINE_ACKDATE)
             .updateDate(TEST_DATE.plusHours(1))
             .build();
-
-    private static final PaymentInstrument TEST_INSTRUMENT_QRCODE = PaymentInstrument.builder()
-            .id(INSTRUMENT_ID)
-            .initiativeId(INITIATIVE_ID)
-            .userId(USER_ID)
-            .hpan(HPAN)
-            .instrumentType(PaymentInstrumentConstants.INSTRUMENT_TYPE_QRCODE)
-            .consent(CONSENT)
-            .status(PaymentInstrumentConstants.STATUS_ACTIVE)
-            .channel(PaymentInstrumentConstants.IDPAY_PAYMENT)
-            .build();
-
-    private static final PaymentInstrument TEST_INSTRUMENT_IDPAYCODE = PaymentInstrument.builder()
-            .id(INSTRUMENT_ID)
-            .initiativeId(INITIATIVE_ID)
-            .userId(USER_ID)
-            .hpan(HPAN)
-            .instrumentType(PaymentInstrumentConstants.INSTRUMENT_TYPE_IDPAYCODE)
-            .consent(CONSENT)
-            .status(PaymentInstrumentConstants.STATUS_ACTIVE)
-            .channel(CHANNEL)
-            .build();
     
     private static final PaymentInstrument TEST_PENDING_ENROLLMENT_INSTRUMENT = PaymentInstrument.builder()
             .id(INSTRUMENT_ID)
@@ -879,8 +857,8 @@ class PaymentInstrumentServiceTest {
     void disableAllPayInstrument_ok_channel_IDPAY_PAYMENT() {
 
         List<PaymentInstrument> paymentInstruments = new ArrayList<>();
-        paymentInstruments.add(TEST_INSTRUMENT_IDPAYCODE);
-        paymentInstruments.add(TEST_INSTRUMENT_QRCODE);
+        paymentInstruments.add(TEST_INSTRUMENT);
+        TEST_INSTRUMENT.setChannel(PaymentInstrumentConstants.IDPAY_PAYMENT);
 
         Mockito.when(
                         paymentInstrumentRepositoryMock.findByInitiativeIdAndUserIdAndStatus(INITIATIVE_ID, USER_ID,
@@ -889,8 +867,8 @@ class PaymentInstrumentServiceTest {
 
         Mockito.doAnswer(
                         invocationOnMock -> {
-                            TEST_INSTRUMENT_IDPAYCODE.setStatus(PaymentInstrumentConstants.STATUS_INACTIVE);
-                            TEST_INSTRUMENT_IDPAYCODE.setDeactivationDate(TEST_DATE);
+                            TEST_INSTRUMENT.setStatus(PaymentInstrumentConstants.STATUS_INACTIVE);
+                            TEST_INSTRUMENT.setDeactivationDate(TEST_DATE);
                             return null;
                         })
                 .when(paymentInstrumentRepositoryMock).save(Mockito.any(PaymentInstrument.class));
@@ -898,10 +876,8 @@ class PaymentInstrumentServiceTest {
 
         paymentInstrumentService.deactivateAllInstruments(INITIATIVE_ID, USER_ID,
                 LocalDateTime.now().toString());
-        assertNotNull(TEST_INSTRUMENT_IDPAYCODE.getDeactivationDate());
-        assertNull(TEST_INSTRUMENT_QRCODE.getDeactivationDate());
-        assertEquals(PaymentInstrumentConstants.STATUS_INACTIVE, TEST_INSTRUMENT_IDPAYCODE.getStatus());
-        assertEquals(PaymentInstrumentConstants.STATUS_ACTIVE, TEST_INSTRUMENT_QRCODE.getStatus());
+        assertNotNull(TEST_INSTRUMENT.getDeactivationDate());
+        assertEquals(PaymentInstrumentConstants.STATUS_INACTIVE, TEST_INSTRUMENT.getStatus());
     }
     
     @Test
