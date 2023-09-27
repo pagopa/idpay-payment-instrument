@@ -8,13 +8,14 @@ import org.springframework.stereotype.Service;
 @Service
 public class AckMapper {
 
-  public InstrumentAckDTO ackToWallet(RuleEngineAckDTO dto, String channel, String maskedPan,
+  public InstrumentAckDTO ackToWallet(RuleEngineAckDTO dto, String channel, String instrumentType, String maskedPan,
       String brandLogo, String brand, int nInstr) {
     String operationType = (dto.getRejectedHpanList().isEmpty()) ? dto.getOperationType() : PaymentInstrumentConstants.REJECTED.concat(dto.getOperationType());
     return InstrumentAckDTO.builder()
         .initiativeId(dto.getInitiativeId())
         .userId(dto.getUserId())
         .channel(channel)
+        .instrumentType(instrumentType)
         .maskedPan(maskedPan)
         .brandLogo(brandLogo)
         .brand(brand)

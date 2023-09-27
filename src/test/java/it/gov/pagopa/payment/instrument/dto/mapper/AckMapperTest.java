@@ -25,6 +25,7 @@ class AckMapperTest {
   private static final String CHANNEL = "TEST_CHANNEL";
   private static final String MASKED_PAN = "TEST_MASKED_PAN";
   private static final String BRAND_LOGO = "TEST_BRAND_LOGO";
+  private static final String INSTRUMENT_TYPE = "INSTRUMENT_TYPE";
   private static final LocalDateTime DATE = LocalDateTime.now();
   private static final int NINSTR = 1;
   private static final RuleEngineAckDTO RULE_ENGINE_ACK_DTO = new RuleEngineAckDTO(INITIATIVE_ID,
@@ -38,13 +39,14 @@ class AckMapperTest {
 
   @Test
   void ackToWallet() {
-    InstrumentAckDTO actual = ackMapper.ackToWallet(RULE_ENGINE_ACK_DTO, CHANNEL, MASKED_PAN, BRAND_LOGO, BRAND_LOGO, NINSTR);
+    InstrumentAckDTO actual = ackMapper.ackToWallet(RULE_ENGINE_ACK_DTO, CHANNEL, INSTRUMENT_TYPE, MASKED_PAN, BRAND_LOGO, BRAND_LOGO, NINSTR);
 
     assertNotNull(actual);
     assertEquals(INITIATIVE_ID, actual.getInitiativeId());
     assertEquals(USER_ID, actual.getUserId());
     assertEquals(MASKED_PAN, actual.getMaskedPan());
     assertEquals(BRAND_LOGO, actual.getBrandLogo());
+    assertEquals(INSTRUMENT_TYPE, actual.getInstrumentType());
     assertEquals(PaymentInstrumentConstants.OPERATION_ADD, actual.getOperationType());
     assertEquals(CHANNEL, actual.getChannel());
     assertEquals(NINSTR, actual.getNinstr());
@@ -53,12 +55,13 @@ class AckMapperTest {
 
   @Test
   void ackToWallet_ko() {
-    InstrumentAckDTO actual = ackMapper.ackToWallet(RULE_ENGINE_ACK_DTO_KO, CHANNEL, MASKED_PAN, BRAND_LOGO, BRAND_LOGO, NINSTR);
+    InstrumentAckDTO actual = ackMapper.ackToWallet(RULE_ENGINE_ACK_DTO_KO, CHANNEL, INSTRUMENT_TYPE, MASKED_PAN, BRAND_LOGO, BRAND_LOGO, NINSTR);
 
     assertNotNull(actual);
     assertEquals(INITIATIVE_ID, actual.getInitiativeId());
     assertEquals(USER_ID, actual.getUserId());
     assertEquals(MASKED_PAN, actual.getMaskedPan());
+    assertEquals(INSTRUMENT_TYPE, actual.getInstrumentType());
     assertEquals(BRAND_LOGO, actual.getBrandLogo());
     assertEquals(PaymentInstrumentConstants.REJECTED.concat(PaymentInstrumentConstants.OPERATION_ADD), actual.getOperationType());
     assertEquals(CHANNEL, actual.getChannel());
