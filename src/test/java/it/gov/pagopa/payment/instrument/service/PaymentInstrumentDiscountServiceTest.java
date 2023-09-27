@@ -26,6 +26,7 @@ import it.gov.pagopa.payment.instrument.test.fakers.BaseEnrollmentDTOFaker;
 import it.gov.pagopa.payment.instrument.test.fakers.InstrumentFromDiscountDTOFaker;
 import it.gov.pagopa.payment.instrument.test.fakers.PaymentInstrumentFaker;
 import it.gov.pagopa.payment.instrument.utils.AuditUtilities;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -127,6 +128,30 @@ class PaymentInstrumentDiscountServiceTest {
 
     // Then
     verify(paymentInstrumentRepository, times(1)).save(any());
+    verify(errorProducer, times(0)).sendEvent(any());
+
+  }
+
+  @Test
+  void enrollInstrumentCode_idemp() {
+    // Given
+    BaseEnrollmentBodyDTO enrollmentRequest = BaseEnrollmentDTOFaker.mockInstance(1);
+
+    PaymentInstrument paymentInstrument = PaymentInstrumentFaker.mockInstance(1);
+
+    when(paymentInstrumentCodeService.codeStatus(paymentInstrument.getUserId())).thenReturn(true);
+
+    when(baseEnrollmentBodyDTO2PaymentInstrument.apply(any(), anyString()))
+        .thenReturn(paymentInstrument);
+
+    paymentInstrument.setStatus("STATUS");
+    when(paymentInstrumentRepository.findByHpan(paymentInstrument.getHpan()))
+        .thenReturn(List.of(paymentInstrument));
+    // When
+    paymentInstrumentDiscountService.enrollInstrumentCode(enrollmentRequest);
+
+    // Then
+    verify(paymentInstrumentRepository, times(0)).save(any());
     verify(errorProducer, times(0)).sendEvent(any());
 
   }
