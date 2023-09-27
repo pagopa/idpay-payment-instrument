@@ -35,6 +35,8 @@ class InstrumentFromDiscountDTO2PaymentInstrumentMapperTest {
               instrumentFromDiscountDTO.getUserId()), result.getHpan());
       Assertions.assertTrue(result.isConsent());
       Assertions.assertNotNull(result.getActivationDate());
+      Assertions.assertNotNull(result.getCreationDate());
+      Assertions.assertNotNull(result.getUpdateDate());
     });
 
   }

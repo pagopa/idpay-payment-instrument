@@ -33,6 +33,8 @@ class BaseEnrollmentBodyDTO2PaymentInstrumentMapperTest {
       Assertions.assertTrue(result.isConsent());
       Assertions.assertEquals(baseEnrollmentDTO.getInstrumentType(), result.getInstrumentType());
       Assertions.assertEquals(PaymentInstrumentConstants.STATUS_PENDING_RE, result.getStatus());
+      Assertions.assertNotNull(result.getCreationDate());
+      Assertions.assertNotNull(result.getUpdateDate());
     });
 
   }

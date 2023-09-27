@@ -3,6 +3,7 @@ package it.gov.pagopa.payment.instrument.dto.mapper;
 import it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants;
 import it.gov.pagopa.payment.instrument.dto.BaseEnrollmentBodyDTO;
 import it.gov.pagopa.payment.instrument.model.PaymentInstrument;
+import java.time.LocalDateTime;
 import org.springframework.stereotype.Service;
 
 import java.util.function.BiFunction;
@@ -21,6 +22,8 @@ public class BaseEnrollmentBodyDTO2PaymentInstrument implements
             .channel(baseEnrollmentBodyDTO.getChannel())
             .instrumentType(baseEnrollmentBodyDTO.getInstrumentType())
             .status(PaymentInstrumentConstants.STATUS_PENDING_RE)
+            .creationDate(LocalDateTime.now())
+            .updateDate(LocalDateTime.now())
             .build();
   }
 }
