@@ -152,6 +152,18 @@ class PaymentInstrumentCodeServiceTest {
   }
 
   @Test
+  void codeStatus_false_code_null(){
+    PaymentInstrumentCode paymentInstrumentCode = PaymentInstrumentCode.builder()
+        .userId(USERID)
+        .build();
+    Mockito.when(paymentInstrumentCodeRepository.findByUserId(USERID)).thenReturn(Optional.of(paymentInstrumentCode));
+
+    boolean isIdPayCodeEnabled = paymentInstrumentCodeService.codeStatus(USERID);
+
+    assertFalse(isIdPayCodeEnabled);
+  }
+
+  @Test
   void codeStatus_false(){
     Mockito.when(paymentInstrumentCodeRepository.findByUserId(USERID)).thenReturn(Optional.ofNullable(any(PaymentInstrumentCode.class)));
 
