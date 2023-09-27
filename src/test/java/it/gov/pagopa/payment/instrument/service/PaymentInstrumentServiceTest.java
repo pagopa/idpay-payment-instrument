@@ -53,6 +53,7 @@ import it.gov.pagopa.payment.instrument.event.producer.RuleEngineProducer;
 import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
 import it.gov.pagopa.payment.instrument.model.PaymentInstrument;
 import it.gov.pagopa.payment.instrument.repository.PaymentInstrumentRepository;
+import it.gov.pagopa.payment.instrument.repository.PaymentInstrumentRepositoryExtended;
 import it.gov.pagopa.payment.instrument.utils.AuditUtilities;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
@@ -107,6 +108,8 @@ class PaymentInstrumentServiceTest {
     AckMapper ackMapper;
     @MockBean
     AuditUtilities auditUtilities;
+    @MockBean
+    PaymentInstrumentRepositoryExtended paymentInstrumentRepositoryExtended;
     private static final String USER_ID = "TEST_USER_ID";
     private static final String USER_ID_FAIL = "TEST_USER_ID_FAIL";
     private static final String INITIATIVE_ID = "TEST_INITIATIVE_ID";
@@ -142,6 +145,10 @@ class PaymentInstrumentServiceTest {
     private static final String ONBOARDING_CHANNEL = "ONBOARDING_CHANNEL";
     private static final String BANK_NAME = "BANK_NAME";
     private static final String INSTITUTE_CODE = "INSTITUTE_CODE";
+    private static final String PAGINATION_KEY = "pagination";
+    private static final String PAGINATION_VALUE = "100";
+    private static final String DELAY_KEY = "delay";
+    private static final String DELAY_VALUE = "1500";
     private static final List<BPayPaymentInstrumentWallet> PAYMENT_INSTRUMENTS = null;
     private static final PaymentMethodInfo PAYMENT_METHOD_INFO = new PaymentMethodInfo(BLURRED_NUMBER,
             BRAND, BRAND_LOGO, EXPIRE_MONTH, EXPIRE_YEAR, HPAN, HOLDER, ISSUER_ABI_CODE,
@@ -1597,28 +1604,64 @@ class PaymentInstrumentServiceTest {
         assertEquals(2, instrumentDetailDTO.getInitiativeList().size());
         assertEquals(PaymentInstrumentConstants.STATUS_ACTIVE, instrumentDetailDTO.getInitiativeList().get(0).getStatus());
     }
+
     @ParameterizedTest
     @MethodSource("operationTypeAndInvocationTimes")
-    void processOperation_deleteOperation(String operationType, int times) {
-        QueueCommandOperationDTO queueCommandOperationDTO = QueueCommandOperationDTO.builder()
+    void processOperation(String operationType, int times) {
+        // Given
+        Map<String, String> additionalParams = new HashMap<>();
+        additionalParams.put(PAGINATION_KEY, PAGINATION_VALUE);
+        additionalParams.put(DELAY_KEY, DELAY_VALUE);
+        final QueueCommandOperationDTO queueCommandOperationDTO = QueueCommandOperationDTO.builder()
                 .entityId(INITIATIVE_ID)
                 .operationType(operationType)
+                .operationTime(LocalDateTime.now().minusMinutes(5))
+                .additionalParams(additionalParams)
                 .build();
+        PaymentInstrument paymentInstrument = PaymentInstrument.builder()
+                .id(INSTRUMENT_ID)
+                .initiativeId(INITIATIVE_ID)
+                .build();
+        final List<PaymentInstrument> deletedPage = List.of(paymentInstrument);
 
-        List<PaymentInstrument> deletedOperation = List.of(TEST_INSTRUMENT);
+        if(times == 2){
+            final List<PaymentInstrument> instrumentsPage = createPaymentInstrumentPage(Integer.parseInt(PAGINATION_VALUE));
+            when(paymentInstrumentRepositoryExtended.deletePaged(queueCommandOperationDTO.getEntityId(), Integer.parseInt(queueCommandOperationDTO.getAdditionalParams().get(PAGINATION_KEY))))
+                    .thenReturn(instrumentsPage)
+                    .thenReturn(deletedPage);
+        } else {
+            when(paymentInstrumentRepositoryExtended.deletePaged(queueCommandOperationDTO.getEntityId(), Integer.parseInt(queueCommandOperationDTO.getAdditionalParams().get(PAGINATION_KEY))))
+                    .thenReturn(deletedPage);
+        }
 
-        Mockito.when(paymentInstrumentRepositoryMock.deleteByInitiativeId(queueCommandOperationDTO.getEntityId()))
-                .thenReturn(deletedOperation);
-
+        // When
+        if(times == 1){
+            Thread.currentThread().interrupt();
+        }
         paymentInstrumentService.processOperation(queueCommandOperationDTO);
 
-        Mockito.verify(paymentInstrumentRepositoryMock, Mockito.times(times)).deleteByInitiativeId(queueCommandOperationDTO.getEntityId());
+        // Then
+        Mockito.verify(paymentInstrumentRepositoryExtended, Mockito.times(times)).deletePaged(queueCommandOperationDTO.getEntityId(), Integer.parseInt(queueCommandOperationDTO.getAdditionalParams().get(PAGINATION_KEY)));
     }
 
     private static Stream<Arguments> operationTypeAndInvocationTimes() {
         return Stream.of(
                 Arguments.of(OPERATION_TYPE_DELETE_INITIATIVE, 1),
+                Arguments.of(OPERATION_TYPE_DELETE_INITIATIVE, 2),
                 Arguments.of("OPERATION_TYPE_TEST", 0)
         );
+    }
+
+    private List<PaymentInstrument> createPaymentInstrumentPage(int pageSize){
+        List<PaymentInstrument> paymentInstrumentsPage = new ArrayList<>();
+
+        for(int i=0;i<pageSize; i++){
+            paymentInstrumentsPage.add(PaymentInstrument.builder()
+                    .id(INSTRUMENT_ID+i)
+                    .initiativeId(INITIATIVE_ID)
+                    .build());
+        }
+
+        return paymentInstrumentsPage;
     }
 }

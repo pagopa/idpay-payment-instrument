@@ -27,6 +27,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.*;
 
+import it.gov.pagopa.payment.instrument.repository.PaymentInstrumentRepositoryExtended;
 import it.gov.pagopa.payment.instrument.utils.AuditUtilities;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,10 +39,14 @@ import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
+@SuppressWarnings("BusyWait")
 public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
 
   public static final String ENROLL_FROM_ISSUER = "ENROLL_FROM_ISSUER";
   public static final String ENROLL_INSTRUMENT = "ENROLL_INSTRUMENT";
+  private static final String PAGINATION_KEY = "pagination";
+  private static final String DELAY_KEY = "delay";
+
   @Autowired
   private PaymentInstrumentRepository paymentInstrumentRepository;
   @Autowired
@@ -66,6 +71,8 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
   private AckMapper ackMapper;
   @Autowired
   AuditUtilities auditUtilities;
+  @Autowired
+  PaymentInstrumentRepositoryExtended paymentInstrumentRepositoryExtended;
 
   @Value(
       "${spring.cloud.stream.binders.kafka-rtd.environment.spring.cloud.stream.kafka.binder.brokers}")
@@ -966,16 +973,26 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
         queueCommandOperationDTO.getOperationType())) {
       long startTime = System.currentTimeMillis();
 
-      List<PaymentInstrument> deletedInstrument = paymentInstrumentRepository.deleteByInitiativeId(
-          queueCommandOperationDTO.getEntityId());
-      List<String> usersId = deletedInstrument.stream().map(PaymentInstrument::getUserId).distinct()
-          .toList();
+      List<PaymentInstrument> deletedInstrument = new ArrayList<>();
+      List<PaymentInstrument> fetchedInstruments;
+
+      do {
+        fetchedInstruments = paymentInstrumentRepositoryExtended.deletePaged(queueCommandOperationDTO.getEntityId(),
+                Integer.parseInt(queueCommandOperationDTO.getAdditionalParams().get(PAGINATION_KEY)));
+        deletedInstrument.addAll(fetchedInstruments);
+        try{
+          Thread.sleep(Long.parseLong(queueCommandOperationDTO.getAdditionalParams().get(DELAY_KEY)));
+        } catch (InterruptedException e){
+          log.error("An error has occurred while waiting {}", e.getMessage());
+          Thread.currentThread().interrupt();
+        }
+      } while (fetchedInstruments.size() == (Integer.parseInt(queueCommandOperationDTO.getAdditionalParams().get(PAGINATION_KEY))));
 
       log.info("[DELETE_INITIATIVE] Deleted initiative {} from collection: payment_instrument",
           queueCommandOperationDTO.getEntityId());
 
-      usersId.forEach(userId -> auditUtilities.logDeleteInstrument(userId,
-          queueCommandOperationDTO.getEntityId()));
+      List<String> usersId = deletedInstrument.stream().map(PaymentInstrument::getUserId).distinct().toList();
+      usersId.forEach(userId -> auditUtilities.logDeleteInstrument(userId, queueCommandOperationDTO.getEntityId()));
       performanceLog(startTime, "DELETE_INITIATIVE");
     }
   }
