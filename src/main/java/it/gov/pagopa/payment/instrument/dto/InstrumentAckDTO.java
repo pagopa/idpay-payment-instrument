@@ -14,6 +14,8 @@ public class InstrumentAckDTO {
 
   String channel;
 
+  String instrumentType;
+
   String brandLogo;
 
   String brand;

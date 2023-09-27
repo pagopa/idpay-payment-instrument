@@ -3,11 +3,11 @@ package it.gov.pagopa.payment.instrument.controller;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import it.gov.pagopa.common.web.dto.ErrorDTO;
 import it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants;
+import it.gov.pagopa.payment.instrument.dto.BaseEnrollmentBodyDTO;
 import it.gov.pagopa.payment.instrument.dto.DeactivationBodyDTO;
 import it.gov.pagopa.payment.instrument.dto.EnrollmentBodyDTO;
 import it.gov.pagopa.payment.instrument.dto.HpanDTO;
@@ -16,8 +16,10 @@ import it.gov.pagopa.payment.instrument.dto.InstrumentDetailDTO;
 import it.gov.pagopa.payment.instrument.dto.InstrumentIssuerDTO;
 import it.gov.pagopa.payment.instrument.dto.UnsubscribeBodyDTO;
 import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
+import it.gov.pagopa.payment.instrument.service.idpaycode.PaymentInstrumentCodeService;
 import it.gov.pagopa.payment.instrument.service.PaymentInstrumentDiscountService;
 import it.gov.pagopa.payment.instrument.service.PaymentInstrumentService;
+import it.gov.pagopa.payment.instrument.test.fakers.GenerateCodeReqDTO;
 import it.gov.pagopa.payment.instrument.test.fakers.InstrumentFromDiscountDTOFaker;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -44,6 +46,7 @@ class PaymentInstrumentControllerTest {
 
   private static final String BASE_URL = "http://localhost:8080/idpay/instrument";
   private static final String ENROLL_URL = "/enroll";
+  private static final String CODE_ENROLL_URL = "/code/enroll";
   private static final String ENROLL_ISSUER_URL = "/hb/enroll";
   private static final String DEACTIVATE_URL = "/deactivate";
   private static final String DISABLE_ALL_URL = "/disableall";
@@ -55,32 +58,43 @@ class PaymentInstrumentControllerTest {
   private static final String INSTRUMENT_ID = "INSTRUMENT_ID";
   private static final String CHANNEL = "TEST_CHANNEL";
   private static final String BRAND_LOGO = "BRAND_LOGO";
+  private static final String INSTRUMENT_TYPE = "TEST_INSTRUMENT_TYPE";
 
   private static final String GETHPAN_URL = "/" + INITIATIVE_ID + "/" + USER_ID;
   private static final EnrollmentBodyDTO ENROLLMENT_BODY_DTO = new EnrollmentBodyDTO(USER_ID,
-      INITIATIVE_ID, ID_WALLET, CHANNEL);
+      INITIATIVE_ID, ID_WALLET, CHANNEL, INSTRUMENT_TYPE);
   private static final EnrollmentBodyDTO ENROLLMENT_BODY_DTO_EMPTY = new EnrollmentBodyDTO("", "",
-      "", "");
+      "", "", "");
   private static final DeactivationBodyDTO DEACTIVATION_BODY_DTO = new DeactivationBodyDTO(USER_ID,
       INITIATIVE_ID, INSTRUMENT_ID);
+
+  private static final BaseEnrollmentBodyDTO BASE_ENROLLMENT_BODY_DTO = new BaseEnrollmentBodyDTO(USER_ID,
+          INITIATIVE_ID, CHANNEL, INSTRUMENT_TYPE);
+  private static final BaseEnrollmentBodyDTO BASE_ENROLLMENT_BODY_DTO_EMPTY = new BaseEnrollmentBodyDTO("",
+          "", "", "");
   private static final DeactivationBodyDTO DEACTIVATION_BODY_DTO_EMPTY = new DeactivationBodyDTO("",
       "", "");
 
   private static final HpanDTO HPAN_DTO_TEST = new HpanDTO(HPAN, CHANNEL, BRAND_LOGO, BRAND_LOGO, ID_WALLET,
-      INSTRUMENT_ID, CHANNEL, LocalDateTime.now());
+      INSTRUMENT_ID, CHANNEL, PaymentInstrumentConstants.INSTRUMENT_TYPE_CARD, LocalDateTime.now());
 
   private static final HpanGetDTO HPANGETDTO = new HpanGetDTO();
 
   private static final String GETHPANISSUER_URL = "/" + INITIATIVE_ID + "/" + USER_ID + "/" + CHANNEL;
-  private static final InstrumentIssuerDTO ENROLLMENT_ISSUER_BODY_DTO = new InstrumentIssuerDTO(INITIATIVE_ID, USER_ID, "HPAN", "ISSUER", "", "", "");
-  private static final InstrumentIssuerDTO ENROLLMENT_ISSUER_BODY_DTO_EMPTY = new InstrumentIssuerDTO(INITIATIVE_ID, USER_ID, "", "", "", "", "");
+  private static final InstrumentIssuerDTO ENROLLMENT_ISSUER_BODY_DTO = new InstrumentIssuerDTO(INITIATIVE_ID, USER_ID, "HPAN", "ISSUER", PaymentInstrumentConstants.INSTRUMENT_TYPE_CARD,"", "", "");
+  private static final InstrumentIssuerDTO ENROLLMENT_ISSUER_BODY_DTO_EMPTY = new InstrumentIssuerDTO(INITIATIVE_ID, USER_ID, "", "", "","", "", "");
   private static final String GET_INSTRUMENT_INITIATIVES_DETAIL = "/initiatives/" + ID_WALLET + "/" + USER_ID + "/detail";
   private static final String ENROLL_DISCOUNT_URL = "/discount/enroll";
+  private static final String ENROLL_CODE_URL = "/generate-code/" + USER_ID;
+  private static final String CODE_STATUS_URL = "/code/status/" + USER_ID;
   @MockBean
   PaymentInstrumentService paymentInstrumentServiceMock;
 
   @MockBean
   PaymentInstrumentDiscountService paymentInstrumentDiscountService;
+
+  @MockBean
+  PaymentInstrumentCodeService paymentInstrumentCodeService;
 
   @Autowired
   protected MockMvc mvc;
@@ -123,7 +137,7 @@ class PaymentInstrumentControllerTest {
     Mockito.doThrow(new PaymentInstrumentException(HttpStatus.FORBIDDEN.value(),
             PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_ALREADY_ASSOCIATED))
         .when(paymentInstrumentServiceMock)
-        .enrollInstrument(INITIATIVE_ID, USER_ID, ID_WALLET, CHANNEL);
+        .enrollInstrument(INITIATIVE_ID, USER_ID, ID_WALLET, CHANNEL, INSTRUMENT_TYPE);
 
     MvcResult res = mvc.perform(MockMvcRequestBuilders.put(BASE_URL + ENROLL_URL)
             .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -333,5 +347,68 @@ class PaymentInstrumentControllerTest {
                             .accept(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(MockMvcResultMatchers.status().isNoContent())
             .andReturn();
+  }
+
+  @Test
+  void enroll_code_ok() throws Exception {
+    ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
+
+    mvc.perform(MockMvcRequestBuilders.put(BASE_URL + CODE_ENROLL_URL)
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .content(objectMapper.writeValueAsString(BASE_ENROLLMENT_BODY_DTO))
+                    .accept(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(MockMvcResultMatchers.status().isOk())
+            .andReturn();
+
+  }
+
+  @Test
+  void enroll_code_ko() throws Exception {
+    ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
+
+    MvcResult result = mvc.perform(MockMvcRequestBuilders.put(BASE_URL + CODE_ENROLL_URL)
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .content(objectMapper.writeValueAsString(BASE_ENROLLMENT_BODY_DTO_EMPTY))
+                    .accept(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(MockMvcResultMatchers.status().isBadRequest())
+            .andReturn();
+
+    ErrorDTO error = objectMapper.readValue(result.getResponse().getContentAsString(), ErrorDTO.class);
+
+    assertEquals(HttpStatus.BAD_REQUEST.value(), error.getCode());
+    assertTrue(error.getMessage().contains(PaymentInstrumentConstants.ERROR_MANDATORY_FIELD));
+
+  }
+
+  @Test
+  void enroll_idpayCode_ok() throws Exception {
+    ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
+
+    mvc.perform(MockMvcRequestBuilders.post(BASE_URL + ENROLL_CODE_URL)
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .content(objectMapper.writeValueAsString(GenerateCodeReqDTO.mockInstance(1, true)))
+            .accept(MediaType.APPLICATION_JSON_VALUE))
+        .andExpect(MockMvcResultMatchers.status().isOk())
+        .andReturn();
+  }
+
+  @Test
+  void enroll_code_empty_body() throws Exception {
+
+    mvc.perform(MockMvcRequestBuilders.post(BASE_URL + ENROLL_CODE_URL)
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .accept(MediaType.APPLICATION_JSON_VALUE))
+        .andExpect(MockMvcResultMatchers.status().isOk())
+        .andReturn();
+  }
+
+  @Test
+  void idpayCode_status_ok() throws Exception {
+
+    mvc.perform(MockMvcRequestBuilders.get(BASE_URL + CODE_STATUS_URL)
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .accept(MediaType.APPLICATION_JSON_VALUE))
+        .andExpect(MockMvcResultMatchers.status().isOk())
+        .andReturn();
   }
 }
