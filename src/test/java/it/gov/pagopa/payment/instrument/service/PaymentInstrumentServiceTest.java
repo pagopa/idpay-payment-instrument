@@ -61,7 +61,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Assertions;
@@ -73,14 +72,22 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 @ExtendWith({SpringExtension.class, MockitoExtension.class})
 @ContextConfiguration(classes = PaymentInstrumentServiceImpl.class)
+@TestPropertySource(
+        locations = "classpath:application.yml",
+        properties = {
+                "app.delete.paginationSize=100",
+                "app.delete.delayTime=1000"
+        })
 class PaymentInstrumentServiceTest {
     
     @MockBean
@@ -146,10 +153,6 @@ class PaymentInstrumentServiceTest {
     private static final String ONBOARDING_CHANNEL = "ONBOARDING_CHANNEL";
     private static final String BANK_NAME = "BANK_NAME";
     private static final String INSTITUTE_CODE = "INSTITUTE_CODE";
-    private static final String PAGINATION_KEY = "pagination";
-    private static final String PAGINATION_VALUE = "100";
-    private static final String DELAY_KEY = "delay";
-    private static final String DELAY_VALUE = "1500";
     private static final List<BPayPaymentInstrumentWallet> PAYMENT_INSTRUMENTS = null;
     private static final PaymentMethodInfo PAYMENT_METHOD_INFO = new PaymentMethodInfo(BLURRED_NUMBER,
             BRAND, BRAND_LOGO, EXPIRE_MONTH, EXPIRE_YEAR, HPAN, HOLDER, ISSUER_ABI_CODE,
@@ -188,6 +191,8 @@ class PaymentInstrumentServiceTest {
     private static final WalletV2ListResponse WALLET_V_2_LIST_RESPONSE_BPAY = new WalletV2ListResponse(
             WALLET_V2_LIST_BPAY);
     private static final DecryptCfDTO DECRYPT_CF_DTO = new DecryptCfDTO(USER_ID);
+    @Value("${app.delete.paginationSize}")
+    private String pagination;
     private static final PaymentInstrument TEST_INSTRUMENT = PaymentInstrument.builder()
             .id(INSTRUMENT_ID)
             .initiativeId(INITIATIVE_ID)
@@ -1590,14 +1595,10 @@ class PaymentInstrumentServiceTest {
     @MethodSource("operationTypeAndInvocationTimes")
     void processOperation(String operationType, int times) {
         // Given
-        Map<String, String> additionalParams = new HashMap<>();
-        additionalParams.put(PAGINATION_KEY, PAGINATION_VALUE);
-        additionalParams.put(DELAY_KEY, DELAY_VALUE);
         final QueueCommandOperationDTO queueCommandOperationDTO = QueueCommandOperationDTO.builder()
                 .entityId(INITIATIVE_ID)
                 .operationType(operationType)
                 .operationTime(LocalDateTime.now().minusMinutes(5))
-                .additionalParams(additionalParams)
                 .build();
         PaymentInstrument paymentInstrument = PaymentInstrument.builder()
                 .id(INSTRUMENT_ID)
@@ -1606,12 +1607,12 @@ class PaymentInstrumentServiceTest {
         final List<PaymentInstrument> deletedPage = List.of(paymentInstrument);
 
         if(times == 2){
-            final List<PaymentInstrument> instrumentsPage = createPaymentInstrumentPage(Integer.parseInt(PAGINATION_VALUE));
-            when(paymentInstrumentRepositoryExtended.deletePaged(queueCommandOperationDTO.getEntityId(), Integer.parseInt(queueCommandOperationDTO.getAdditionalParams().get(PAGINATION_KEY))))
+            final List<PaymentInstrument> instrumentsPage = createPaymentInstrumentPage(Integer.parseInt(pagination));
+            when(paymentInstrumentRepositoryExtended.deletePaged(queueCommandOperationDTO.getEntityId(), Integer.parseInt(pagination)))
                     .thenReturn(instrumentsPage)
                     .thenReturn(deletedPage);
         } else {
-            when(paymentInstrumentRepositoryExtended.deletePaged(queueCommandOperationDTO.getEntityId(), Integer.parseInt(queueCommandOperationDTO.getAdditionalParams().get(PAGINATION_KEY))))
+            when(paymentInstrumentRepositoryExtended.deletePaged(queueCommandOperationDTO.getEntityId(), Integer.parseInt(pagination)))
                     .thenReturn(deletedPage);
         }
 
@@ -1622,7 +1623,7 @@ class PaymentInstrumentServiceTest {
         paymentInstrumentService.processOperation(queueCommandOperationDTO);
 
         // Then
-        Mockito.verify(paymentInstrumentRepositoryExtended, Mockito.times(times)).deletePaged(queueCommandOperationDTO.getEntityId(), Integer.parseInt(queueCommandOperationDTO.getAdditionalParams().get(PAGINATION_KEY)));
+        Mockito.verify(paymentInstrumentRepositoryExtended, Mockito.times(times)).deletePaged(queueCommandOperationDTO.getEntityId(), Integer.parseInt(pagination));
     }
 
     private static Stream<Arguments> operationTypeAndInvocationTimes() {
