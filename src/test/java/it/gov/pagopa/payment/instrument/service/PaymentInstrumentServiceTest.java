@@ -192,7 +192,7 @@ class PaymentInstrumentServiceTest {
             WALLET_V2_LIST_BPAY);
     private static final DecryptCfDTO DECRYPT_CF_DTO = new DecryptCfDTO(USER_ID);
     @Value("${app.delete.paginationSize}")
-    private String pagination;
+    private int pageSize;
     private static final PaymentInstrument TEST_INSTRUMENT = PaymentInstrument.builder()
             .id(INSTRUMENT_ID)
             .initiativeId(INITIATIVE_ID)
@@ -1623,12 +1623,12 @@ class PaymentInstrumentServiceTest {
         final List<PaymentInstrument> deletedPage = List.of(paymentInstrument);
 
         if(times == 2){
-            final List<PaymentInstrument> instrumentsPage = createPaymentInstrumentPage(Integer.parseInt(pagination));
-            when(paymentInstrumentRepositoryExtended.deletePaged(queueCommandOperationDTO.getEntityId(), Integer.parseInt(pagination)))
+            final List<PaymentInstrument> instrumentsPage = createPaymentInstrumentPage(pageSize);
+            when(paymentInstrumentRepositoryExtended.deletePaged(queueCommandOperationDTO.getEntityId(), pageSize))
                     .thenReturn(instrumentsPage)
                     .thenReturn(deletedPage);
         } else {
-            when(paymentInstrumentRepositoryExtended.deletePaged(queueCommandOperationDTO.getEntityId(), Integer.parseInt(pagination)))
+            when(paymentInstrumentRepositoryExtended.deletePaged(queueCommandOperationDTO.getEntityId(), pageSize))
                     .thenReturn(deletedPage);
         }
 
@@ -1639,7 +1639,7 @@ class PaymentInstrumentServiceTest {
         paymentInstrumentService.processOperation(queueCommandOperationDTO);
 
         // Then
-        Mockito.verify(paymentInstrumentRepositoryExtended, Mockito.times(times)).deletePaged(queueCommandOperationDTO.getEntityId(), Integer.parseInt(pagination));
+        Mockito.verify(paymentInstrumentRepositoryExtended, Mockito.times(times)).deletePaged(queueCommandOperationDTO.getEntityId(), pageSize);
     }
 
     private static Stream<Arguments> operationTypeAndInvocationTimes() {
