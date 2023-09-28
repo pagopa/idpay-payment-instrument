@@ -60,6 +60,8 @@ microservice-chart:
     APPLICATIONINSIGHTS_PREVIEW_PROFILER_ENABLED: "false"
     PDV_ENCRYPT_SERVICE_CODE: pdv-ms-tokenizer-encrypt
     PDV_DECRYPT_SERVICE_CODE: pdv-ms-tokenizer
+    DELETE_PAGINATION_SIZE: "100"
+    DELETE_DELAY_TIME: "1000"
 
   envConfigMapExternals:
     idpay-common:

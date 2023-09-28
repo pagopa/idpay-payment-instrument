@@ -83,10 +83,10 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
   @Value("${spring.cloud.stream.bindings.paymentInstrumentQueue-out-0.destination}")
   String ruleEngineTopic;
   @Value("${app.delete.paginationSize}")
-  private String pagination;
+  private int pageSize;
 
   @Value("${app.delete.delayTime}")
-  private String delay;
+  private long delay;
 
 
   @Override
@@ -976,15 +976,15 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
 
       do {
         fetchedInstruments = paymentInstrumentRepositoryExtended.deletePaged(queueCommandOperationDTO.getEntityId(),
-                Integer.parseInt(pagination));
+                pageSize);
         deletedInstrument.addAll(fetchedInstruments);
         try{
-          Thread.sleep(Long.parseLong(delay));
+          Thread.sleep(delay);
         } catch (InterruptedException e){
           log.error("An error has occurred while waiting {}", e.getMessage());
           Thread.currentThread().interrupt();
         }
-      } while (fetchedInstruments.size() == (Integer.parseInt(pagination)));
+      } while (fetchedInstruments.size() == pageSize);
 
       log.info("[DELETE_INITIATIVE] Deleted initiative {} from collection: payment_instrument",
           queueCommandOperationDTO.getEntityId());
