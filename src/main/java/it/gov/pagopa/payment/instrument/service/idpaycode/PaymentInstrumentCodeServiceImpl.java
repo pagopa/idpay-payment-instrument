@@ -7,6 +7,7 @@ import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
 import it.gov.pagopa.payment.instrument.model.PaymentInstrumentCode;
 import it.gov.pagopa.payment.instrument.repository.PaymentInstrumentCodeRepository;
 import it.gov.pagopa.payment.instrument.utils.AuditUtilities;
+import it.gov.pagopa.payment.instrument.utils.Utilities;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import lombok.extern.slf4j.Slf4j;
@@ -26,15 +27,17 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
   private final SecureRandom random;
   private final AuditUtilities auditUtilities;
   private final EncryptCodeService encryptCodeService;
+  private final Utilities utilities;
 
   public PaymentInstrumentCodeServiceImpl(
       PaymentInstrumentCodeRepository paymentInstrumentCodeRepository,
       WalletRestConnector walletRestConnector, AuditUtilities auditUtilities,
-      EncryptCodeService encryptCodeService) {
+      EncryptCodeService encryptCodeService, Utilities utilities) {
     this.paymentInstrumentCodeRepository = paymentInstrumentCodeRepository;
     this.walletRestConnector = walletRestConnector;
     this.auditUtilities = auditUtilities;
     this.encryptCodeService = encryptCodeService;
+    this.utilities = utilities;
     this.random = new SecureRandom();
   }
 
@@ -70,9 +73,9 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
         paymentInstrumentCodeRepository.deleteInstrument(userId);
 
         switch (e.status()) {
-          case 429 -> throw new PaymentInstrumentException(HttpStatus.TOO_MANY_REQUESTS.value(), e.getMessage());
-          case 400 -> throw new PaymentInstrumentException(HttpStatus.BAD_REQUEST.value(), e.getMessage());
-          case 404 -> throw new PaymentInstrumentException(HttpStatus.NOT_FOUND.value(), e.getMessage());
+          case 429 -> throw new PaymentInstrumentException(HttpStatus.TOO_MANY_REQUESTS.value(), utilities.exceptionConverter(e));
+          case 400 -> throw new PaymentInstrumentException(HttpStatus.BAD_REQUEST.value(), utilities.exceptionConverter(e));
+          case 404 -> throw new PaymentInstrumentException(HttpStatus.NOT_FOUND.value(), utilities.exceptionConverter(e));
           default -> throw new PaymentInstrumentException(HttpStatus.INTERNAL_SERVER_ERROR.value(),
               "An error occurred in the microservice wallet");
         }

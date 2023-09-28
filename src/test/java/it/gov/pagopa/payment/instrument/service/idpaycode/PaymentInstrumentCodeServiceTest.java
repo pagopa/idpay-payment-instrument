@@ -19,6 +19,7 @@ import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
 import it.gov.pagopa.payment.instrument.model.PaymentInstrumentCode;
 import it.gov.pagopa.payment.instrument.repository.PaymentInstrumentCodeRepository;
 import it.gov.pagopa.payment.instrument.utils.AuditUtilities;
+import it.gov.pagopa.payment.instrument.utils.Utilities;
 import java.util.HashMap;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,11 +44,13 @@ class PaymentInstrumentCodeServiceTest {
   AuditUtilities auditUtilities;
   @Mock
   EncryptCodeService encryptCodeService;
+  @Mock
+  Utilities utilities;
 
   @BeforeEach
   void setUp() {
     paymentInstrumentCodeService = new PaymentInstrumentCodeServiceImpl(paymentInstrumentCodeRepository,
-        walletRestConnector, auditUtilities, encryptCodeService);
+        walletRestConnector, auditUtilities, encryptCodeService, utilities);
   }
 
   @Test
