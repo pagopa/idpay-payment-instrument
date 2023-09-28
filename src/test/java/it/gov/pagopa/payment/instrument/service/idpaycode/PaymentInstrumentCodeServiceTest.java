@@ -95,7 +95,6 @@ class PaymentInstrumentCodeServiceTest {
       paymentInstrumentCodeService.generateCode(USERID, INITIATIVE_ID);
     }catch (PaymentInstrumentException e){
       assertEquals(HttpStatus.NOT_FOUND.value(), e.getCode());
-      assertEquals("Resource not found while enrolling idpayCode on ms wallet", e.getMessage());
     }
     verify(paymentInstrumentCodeRepository, Mockito.times(1))
         .deleteInstrument(USERID);
@@ -114,7 +113,6 @@ class PaymentInstrumentCodeServiceTest {
       paymentInstrumentCodeService.generateCode(USERID, INITIATIVE_ID);
     }catch (PaymentInstrumentException e){
       assertEquals(HttpStatus.TOO_MANY_REQUESTS.value(), e.getCode());
-      assertEquals("Too many request on the ms wallet", e.getMessage());
     }
     verify(paymentInstrumentCodeRepository, Mockito.times(1))
         .deleteInstrument(USERID);

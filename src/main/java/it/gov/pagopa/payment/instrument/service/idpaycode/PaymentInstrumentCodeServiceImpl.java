@@ -70,10 +70,9 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
         paymentInstrumentCodeRepository.deleteInstrument(userId);
 
         switch (e.status()) {
-          case 429 -> throw new PaymentInstrumentException(HttpStatus.TOO_MANY_REQUESTS.value(),
-              "Too many request on the ms wallet");
-          case 404 -> throw new PaymentInstrumentException(HttpStatus.NOT_FOUND.value(),
-              "Resource not found while enrolling idpayCode on ms wallet");
+          case 429 -> throw new PaymentInstrumentException(HttpStatus.TOO_MANY_REQUESTS.value(), e.getMessage());
+          case 400 -> throw new PaymentInstrumentException(HttpStatus.BAD_REQUEST.value(), e.getMessage());
+          case 404 -> throw new PaymentInstrumentException(HttpStatus.NOT_FOUND.value(), e.getMessage());
           default -> throw new PaymentInstrumentException(HttpStatus.INTERNAL_SERVER_ERROR.value(),
               "An error occurred in the microservice wallet");
         }

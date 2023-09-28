@@ -9,6 +9,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class CheckEnrollmentDTO {
 
-  private boolean isIdPayCodeEnabled;
+  private Boolean isIdPayCodeEnabled;
 
 }

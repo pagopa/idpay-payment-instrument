@@ -108,7 +108,7 @@ public class PaymentInstrumentControllerImpl implements PaymentInstrumentControl
 
   @Override
   public ResponseEntity<CheckEnrollmentDTO> codeStatus(String userId) {
-    boolean idpayCodeEnabled = paymentInstrumentCodeService.codeStatus(userId);
-    return new ResponseEntity<>(new CheckEnrollmentDTO(idpayCodeEnabled), HttpStatus.OK);
+    boolean isIdPayCodeEnabled = paymentInstrumentCodeService.codeStatus(userId);
+    return new ResponseEntity<>(new CheckEnrollmentDTO(isIdPayCodeEnabled), HttpStatus.OK);
   }
 }
