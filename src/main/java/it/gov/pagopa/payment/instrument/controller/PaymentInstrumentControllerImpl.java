@@ -1,15 +1,11 @@
 package it.gov.pagopa.payment.instrument.controller;
 
-import it.gov.pagopa.payment.instrument.dto.DeactivationBodyDTO;
-import it.gov.pagopa.payment.instrument.dto.EnrollmentBodyDTO;
-import it.gov.pagopa.payment.instrument.dto.HpanGetDTO;
-import it.gov.pagopa.payment.instrument.dto.InstrumentDetailDTO;
-import it.gov.pagopa.payment.instrument.dto.InstrumentFromDiscountDTO;
-import it.gov.pagopa.payment.instrument.dto.InstrumentIssuerDTO;
-import it.gov.pagopa.payment.instrument.dto.UnsubscribeBodyDTO;
+import it.gov.pagopa.payment.instrument.dto.*;
+import it.gov.pagopa.payment.instrument.service.idpaycode.PaymentInstrumentCodeService;
 import it.gov.pagopa.payment.instrument.service.PaymentInstrumentDiscountService;
 import it.gov.pagopa.payment.instrument.service.PaymentInstrumentService;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
@@ -19,11 +15,14 @@ public class PaymentInstrumentControllerImpl implements PaymentInstrumentControl
 
   private final PaymentInstrumentService paymentInstrumentService;
   private final PaymentInstrumentDiscountService paymentInstrumentDiscountService;
+  private final PaymentInstrumentCodeService paymentInstrumentCodeService;
 
   public PaymentInstrumentControllerImpl(PaymentInstrumentService paymentInstrumentService,
-      PaymentInstrumentDiscountService paymentInstrumentDiscountService) {
+      PaymentInstrumentDiscountService paymentInstrumentDiscountService,
+      PaymentInstrumentCodeService paymentInstrumentCodeService) {
     this.paymentInstrumentService = paymentInstrumentService;
     this.paymentInstrumentDiscountService = paymentInstrumentDiscountService;
+    this.paymentInstrumentCodeService = paymentInstrumentCodeService;
   }
 
   @Override
@@ -33,7 +32,8 @@ public class PaymentInstrumentControllerImpl implements PaymentInstrumentControl
         body.getInitiativeId(),
         body.getUserId(),
         body.getIdWallet(),
-        body.getChannel()
+        body.getChannel(),
+        body.getInstrumentType()
     );
 
     return new ResponseEntity<>(HttpStatus.OK);
@@ -90,5 +90,25 @@ public class PaymentInstrumentControllerImpl implements PaymentInstrumentControl
   public ResponseEntity<Void> rollback(String initiativeId, String userId) {
     paymentInstrumentService.rollback(initiativeId,userId);
     return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+  }
+
+  @Override
+  public ResponseEntity<GenerateCodeRespDTO> generateCode(String userId, Optional<GenerateCodeReqDTO> body) {
+    String initiativeId = body.map(GenerateCodeReqDTO::getInitiativeId).orElse(null);
+    GenerateCodeRespDTO generateCodeRespDTO = paymentInstrumentCodeService.generateCode(userId, initiativeId);
+
+    return new ResponseEntity<>(generateCodeRespDTO, HttpStatus.OK);
+  }
+
+  @Override
+  public ResponseEntity<Void> enrollInstrumentCode(BaseEnrollmentBodyDTO body) {
+    paymentInstrumentDiscountService.enrollInstrumentCode(body);
+    return new ResponseEntity<>(HttpStatus.OK);
+  }
+
+  @Override
+  public ResponseEntity<CheckEnrollmentDTO> codeStatus(String userId) {
+    boolean isIdPayCodeEnabled = paymentInstrumentCodeService.codeStatus(userId);
+    return new ResponseEntity<>(new CheckEnrollmentDTO(isIdPayCodeEnabled), HttpStatus.OK);
   }
 }

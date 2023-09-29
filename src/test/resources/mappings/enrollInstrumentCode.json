@@ -1,0 +1,9 @@
+{
+  "request": {
+    "method": "PUT",
+    "urlPathPattern": "/idpay/wallet/INITIATIVE_ID/TEST_USER_ID/code/instruments"
+  },
+  "response": {
+    "status": "204"
+  }
+}

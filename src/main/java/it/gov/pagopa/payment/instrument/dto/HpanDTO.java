@@ -22,6 +22,7 @@ public class HpanDTO {
   private String instrumentId;
   private String status;
   private String channel;
+  private String instrumentType;
   private LocalDateTime activationDate;
 
 }

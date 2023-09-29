@@ -88,6 +88,14 @@ class WalletRestClientTest {
       Assertions.fail();
     }
   }
+  @Test
+  void enrollInstrumentCode() {
+    try {
+      walletRestConnector.enrollInstrumentCode(INITIATIVE_ID, USER_ID);
+    } catch (Exception e) {
+      Assertions.fail();
+    }
+  }
 
 
   public static class WireMockInitializer
