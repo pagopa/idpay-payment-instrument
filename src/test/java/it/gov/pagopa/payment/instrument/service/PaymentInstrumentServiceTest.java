@@ -220,6 +220,7 @@ class PaymentInstrumentServiceTest {
             .idWallet(ID_WALLET)
             .hpan(HPAN)
             .maskedPan(MASKED_PAN)
+            .instrumentType(PaymentInstrumentConstants.INSTRUMENT_TYPE_CARD)
             .brandLogo(BRAND_LOGO)
             .brand(BRAND)
             .consent(CONSENT)
@@ -277,6 +278,7 @@ class PaymentInstrumentServiceTest {
             .idWallet(ID_WALLET)
             .hpan(HPAN)
             .maskedPan(MASKED_PAN)
+            .instrumentType(PaymentInstrumentConstants.INSTRUMENT_TYPE_CARD)
             .brandLogo(BRAND_LOGO)
             .brand(BRAND)
             .consent(CONSENT)
@@ -749,6 +751,24 @@ class PaymentInstrumentServiceTest {
 
         assertEquals(PaymentInstrumentConstants.STATUS_PENDING_DEACTIVATION_REQUEST,
             TEST_INSTRUMENT.getStatus());
+    }
+
+    @Test
+    void deactivateInstrument_ko_qrCode() {
+        TEST_INSTRUMENT.setStatus(PaymentInstrumentConstants.STATUS_ACTIVE);
+        TEST_INSTRUMENT.setDeactivationDate(null);
+        TEST_INSTRUMENT.setInstrumentType("QRCODE");
+        Mockito.when(
+                paymentInstrumentRepositoryMock.findByInitiativeIdAndUserIdAndId(INITIATIVE_ID,
+                    USER_ID, INSTRUMENT_ID))
+            .thenReturn(Optional.of(TEST_INSTRUMENT));
+
+        try {
+            paymentInstrumentService.deactivateInstrument(INITIATIVE_ID, USER_ID, INSTRUMENT_ID);
+        }catch (PaymentInstrumentException e){
+            assertEquals(HttpStatus.FORBIDDEN.value(), e.getCode());
+            assertEquals("It's not possible to delete an instrument of QRCODE type", e.getMessage());
+        }
     }
     
     @Test
