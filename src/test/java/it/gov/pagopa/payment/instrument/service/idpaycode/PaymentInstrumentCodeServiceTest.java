@@ -55,7 +55,7 @@ class PaymentInstrumentCodeServiceTest {
 
   @Test
   void generateCode_initiativeId_not_empty(){
-    Mockito.when(encryptCodeService.encryptIdpayCode(anyString())).thenReturn("12345");
+    Mockito.when(encryptCodeService.encryptIdpayCode(anyString(), anyString(), anyString())).thenReturn("12345");
 
         GenerateCodeRespDTO generateCodeRespDTO =
         paymentInstrumentCodeService.generateCode(USERID, INITIATIVE_ID);
@@ -65,7 +65,7 @@ class PaymentInstrumentCodeServiceTest {
 
   @Test
   void generateCode_initiativeId_empty(){
-    Mockito.when(encryptCodeService.encryptIdpayCode(anyString())).thenReturn("12345");
+    Mockito.when(encryptCodeService.encryptIdpayCode(anyString(), anyString(), anyString())).thenReturn("12345");
 
     GenerateCodeRespDTO generateCodeRespDTO =
         paymentInstrumentCodeService.generateCode(USERID, "");
@@ -76,7 +76,7 @@ class PaymentInstrumentCodeServiceTest {
 
   @Test
   void generateCode_initiativeId_null(){
-    Mockito.when(encryptCodeService.encryptIdpayCode(anyString())).thenReturn("12345");
+    Mockito.when(encryptCodeService.encryptIdpayCode(anyString(),anyString(), anyString())).thenReturn("12345");
 
     GenerateCodeRespDTO generateCodeRespDTO =
         paymentInstrumentCodeService.generateCode(USERID, null);
@@ -120,6 +120,25 @@ class PaymentInstrumentCodeServiceTest {
     verify(paymentInstrumentCodeRepository, Mockito.times(1))
         .deleteInstrument(USERID);
   }
+
+  @Test
+  void generateCode_enrollKo_badRequest(){
+    Mockito.when(paymentInstrumentCodeRepository.deleteInstrument(USERID))
+        .thenReturn(new PaymentInstrumentCode());
+    Request request =
+        Request.create(
+            HttpMethod.PUT, "url", new HashMap<>(), null, new RequestTemplate());
+    Mockito.doThrow(new FeignException.BadRequest("", request, new byte[0], null))
+        .when(walletRestConnector).enrollInstrumentCode(INITIATIVE_ID, USERID);
+    try {
+      paymentInstrumentCodeService.generateCode(USERID, INITIATIVE_ID);
+    }catch (PaymentInstrumentException e){
+      assertEquals(HttpStatus.BAD_REQUEST.value(), e.getCode());
+    }
+    verify(paymentInstrumentCodeRepository, Mockito.times(1))
+        .deleteInstrument(USERID);
+  }
+
   @Test
   void generateCode_enrollKo_internalServerError(){
     Mockito.when(paymentInstrumentCodeRepository.deleteInstrument(USERID))
@@ -175,7 +194,7 @@ class PaymentInstrumentCodeServiceTest {
 
   private void assertions(GenerateCodeRespDTO generateCodeRespDTO) {
     verify(paymentInstrumentCodeRepository, Mockito.times(1))
-        .updateCode(anyString(), anyString(), any());
+        .updateCode(anyString(), anyString(), anyString(), anyString(), any());
     assertNotNull(generateCodeRespDTO);
     assertEquals(5, generateCodeRespDTO.getIdpayCode().length());
   }

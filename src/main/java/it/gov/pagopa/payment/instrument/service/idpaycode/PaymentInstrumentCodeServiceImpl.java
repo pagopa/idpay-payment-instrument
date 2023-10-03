@@ -10,6 +10,7 @@ import it.gov.pagopa.payment.instrument.utils.AuditUtilities;
 import it.gov.pagopa.payment.instrument.utils.Utilities;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
+import java.util.Base64;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -48,12 +49,18 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
     // generate clear code
     String clearCode = buildCode();
 
+    // generate Salt
+    String salt = generateSaltOrSecondFactor(16);
+
+    // generate secondFactor
+    String secondFactor = generateSaltOrSecondFactor(16);
+
     // encrypt clear code
-    String idpayCode = encryptCodeService.encryptIdpayCode(clearCode);
+    String idpayCode = encryptCodeService.encryptIdpayCode(clearCode, secondFactor, salt);
     log.info("[{}] Code generated successfully on userId: {}", GENERATED_CODE, userId);
 
     // save encrypted code
-    paymentInstrumentCodeRepository.updateCode(userId, idpayCode, LocalDateTime.now());
+    paymentInstrumentCodeRepository.updateCode(userId, idpayCode, salt, secondFactor, LocalDateTime.now());
     performanceLog(startTime, GENERATED_CODE, userId, initiativeId);
     auditUtilities.logGeneratedCode(userId, LocalDateTime.now());
 
@@ -97,6 +104,14 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
     log.info("[IDPAY_CODE_STATUS] The userId {} has code with status {}", userId, idpayCodeEnabled);
     performanceLog(startTime, "IDPAY_CODE_STATUS", userId, null);
     return idpayCodeEnabled;
+  }
+
+  // Generate Salt or Second factor.
+  // TODO Put length like dynamic variable?
+  private String generateSaltOrSecondFactor(int length) {
+    byte[] salt = new byte[length];
+    random.nextBytes(salt);
+    return Base64.getEncoder().encodeToString(salt);
   }
 
   @NotNull
