@@ -10,8 +10,8 @@ import it.gov.pagopa.payment.instrument.utils.AuditUtilities;
 import it.gov.pagopa.payment.instrument.utils.Utilities;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
-import java.util.Base64;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.http.HttpStatus;
@@ -50,17 +50,18 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
     String clearCode = buildCode();
 
     // generate Salt
-    String salt = generateSaltOrSecondFactor(16);
+    String salt = generateRandomEvenCharHexString(16);
 
-    // generate secondFactor
-    String secondFactor = generateSaltOrSecondFactor(16);
+    // generate secondFactor and add left pad
+    String secondFactor = generateRandomEvenCharHexString(12);
+    String secondFactorWithLeftPad = StringUtils.leftPad(secondFactor, 16, '0');
 
     // encrypt clear code
-    String idpayCode = encryptCodeService.encryptIdpayCode(clearCode, secondFactor, salt);
+    String hashedPinBlock = encryptCodeService.buildHashedPinBlock(clearCode, secondFactorWithLeftPad, salt);
     log.info("[{}] Code generated successfully on userId: {}", GENERATED_CODE, userId);
 
     // save encrypted code
-    paymentInstrumentCodeRepository.updateCode(userId, idpayCode, salt, secondFactor, LocalDateTime.now());
+    paymentInstrumentCodeRepository.updateCode(userId, hashedPinBlock, salt, secondFactorWithLeftPad, LocalDateTime.now());
     performanceLog(startTime, GENERATED_CODE, userId, initiativeId);
     auditUtilities.logGeneratedCode(userId, LocalDateTime.now());
 
@@ -89,7 +90,7 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
       }
     }
 
-    return new GenerateCodeRespDTO(idpayCode);
+    return new GenerateCodeRespDTO(hashedPinBlock);
   }
 
   @Override
@@ -106,12 +107,11 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
     return idpayCodeEnabled;
   }
 
-  // Generate Salt or Second factor.
-  // TODO Put length like dynamic variable?
-  private String generateSaltOrSecondFactor(int length) {
-    byte[] salt = new byte[length];
+  // Generate Salt or Second factor only with length even
+  private String generateRandomEvenCharHexString(int length) {
+    byte[] salt = new byte[length/2];
     random.nextBytes(salt);
-    return Base64.getEncoder().encodeToString(salt);
+    return Hex.encodeHexString(salt);
   }
 
   @NotNull

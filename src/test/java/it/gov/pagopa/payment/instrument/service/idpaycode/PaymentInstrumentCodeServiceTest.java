@@ -55,7 +55,7 @@ class PaymentInstrumentCodeServiceTest {
 
   @Test
   void generateCode_initiativeId_not_empty(){
-    Mockito.when(encryptCodeService.encryptIdpayCode(anyString(), anyString(), anyString())).thenReturn("12345");
+    Mockito.when(encryptCodeService.buildHashedPinBlock(anyString(), anyString(), anyString())).thenReturn("12345");
 
         GenerateCodeRespDTO generateCodeRespDTO =
         paymentInstrumentCodeService.generateCode(USERID, INITIATIVE_ID);
@@ -65,7 +65,7 @@ class PaymentInstrumentCodeServiceTest {
 
   @Test
   void generateCode_initiativeId_empty(){
-    Mockito.when(encryptCodeService.encryptIdpayCode(anyString(), anyString(), anyString())).thenReturn("12345");
+    Mockito.when(encryptCodeService.buildHashedPinBlock(anyString(), anyString(), anyString())).thenReturn("12345");
 
     GenerateCodeRespDTO generateCodeRespDTO =
         paymentInstrumentCodeService.generateCode(USERID, "");
@@ -76,7 +76,7 @@ class PaymentInstrumentCodeServiceTest {
 
   @Test
   void generateCode_initiativeId_null(){
-    Mockito.when(encryptCodeService.encryptIdpayCode(anyString(),anyString(), anyString())).thenReturn("12345");
+    Mockito.when(encryptCodeService.buildHashedPinBlock(anyString(),anyString(), anyString())).thenReturn("12345");
 
     GenerateCodeRespDTO generateCodeRespDTO =
         paymentInstrumentCodeService.generateCode(USERID, null);

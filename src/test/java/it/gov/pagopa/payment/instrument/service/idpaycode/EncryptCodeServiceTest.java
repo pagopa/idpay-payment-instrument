@@ -23,8 +23,8 @@ class EncryptCodeServiceTest {
 
   @Test
   void encryptIdpayCode(){
-    String idpayCode = encryptCodeService.encryptIdpayCode(
-        "12345","secondFactor", "salt");
+    String idpayCode = encryptCodeService.buildHashedPinBlock(
+        "12345","0000FFFFFFFFFFFF", "salt");
 
     assertNotNull(idpayCode);
   }
@@ -32,20 +32,20 @@ class EncryptCodeServiceTest {
   @Test
   void encryptIdpayCode_ko_code_length(){
     try{
-      encryptCodeService.encryptIdpayCode(
-          "1234","secondFactor", "salt");
+      encryptCodeService.buildHashedPinBlock(
+          "1234","0000FFFFFFFFFFFF", "salt");
       fail();
     }catch (PaymentInstrumentException e){
       assertEquals(HttpStatus.BAD_REQUEST.value(), e.getCode());
-      assertEquals("Pin length it's not valid", e.getMessage());
+      assertEquals("Pin length is not valid", e.getMessage());
     }
   }
 
   @Test
   void encryptIdpayCode_ko_internalServerError() {
     try{
-      encryptCodeService.encryptIdpayCode(
-          "12345","", "salt");
+      encryptCodeService.buildHashedPinBlock(
+          "12345","testError", "salt");
       fail();
     }catch (PaymentInstrumentException e){
       assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getCode());
@@ -56,8 +56,8 @@ class EncryptCodeServiceTest {
   @Test
   void encryptIdpayCode_ko_sha256() {
     try{
-      encryptCodeService.encryptIdpayCode(
-          "12345","secondFactor", null);
+      encryptCodeService.buildHashedPinBlock(
+          "12345","0000FFFFFFFFFFFF", null);
       fail();
     }catch (PaymentInstrumentException e){
       assertEquals(HttpStatus.FORBIDDEN.value(), e.getCode());
