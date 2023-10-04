@@ -90,7 +90,7 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
       }
     }
 
-    return new GenerateCodeRespDTO(hashedPinBlock);
+    return new GenerateCodeRespDTO(clearCode);
   }
 
   @Override
