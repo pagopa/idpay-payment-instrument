@@ -11,6 +11,7 @@ import it.gov.pagopa.payment.instrument.utils.Utilities;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.http.HttpStatus;
@@ -48,12 +49,19 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
     // generate clear code
     String clearCode = buildCode();
 
+    // generate Salt
+    String salt = generateRandomEvenCharHexString(16);
+
+    // generate secondFactor and add left pad
+    String secondFactor = generateRandomEvenCharHexString(12);
+    String secondFactorWithLeftPad = StringUtils.leftPad(secondFactor, 16, '0');
+
     // encrypt clear code
-    String idpayCode = encryptCodeService.encryptIdpayCode(clearCode);
+    String hashedPinBlock = encryptCodeService.buildHashedPinBlock(clearCode, secondFactorWithLeftPad, salt);
     log.info("[{}] Code generated successfully on userId: {}", GENERATED_CODE, userId);
 
     // save encrypted code
-    paymentInstrumentCodeRepository.updateCode(userId, idpayCode, LocalDateTime.now());
+    paymentInstrumentCodeRepository.updateCode(userId, hashedPinBlock, salt, secondFactorWithLeftPad, LocalDateTime.now());
     performanceLog(startTime, GENERATED_CODE, userId, initiativeId);
     auditUtilities.logGeneratedCode(userId, LocalDateTime.now());
 
@@ -82,7 +90,7 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
       }
     }
 
-    return new GenerateCodeRespDTO(idpayCode);
+    return new GenerateCodeRespDTO(clearCode);
   }
 
   @Override
@@ -97,6 +105,13 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
     log.info("[IDPAY_CODE_STATUS] The userId {} has code with status {}", userId, idpayCodeEnabled);
     performanceLog(startTime, "IDPAY_CODE_STATUS", userId, null);
     return idpayCodeEnabled;
+  }
+
+  // Generate Salt or Second factor only with length even
+  private String generateRandomEvenCharHexString(int length) {
+    byte[] salt = new byte[length/2];
+    random.nextBytes(salt);
+    return Hex.encodeHexString(salt);
   }
 
   @NotNull
