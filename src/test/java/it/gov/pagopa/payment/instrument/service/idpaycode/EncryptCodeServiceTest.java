@@ -52,17 +52,4 @@ class EncryptCodeServiceTest {
       assertEquals("Something went wrong while creating pinBlock", e.getMessage());
     }
   }
-
-  @Test
-  void encryptIdpayCode_ko_sha256() {
-    try{
-      encryptCodeService.buildHashedPinBlock(
-          "12345","0000FFFFFFFFFFFF", null);
-      fail();
-    }catch (PaymentInstrumentException e){
-      assertEquals(HttpStatus.FORBIDDEN.value(), e.getCode());
-      assertEquals("Something went wrong creating SHA256 digest", e.getMessage());
-    }
-  }
-
 }

@@ -3,8 +3,10 @@ package it.gov.pagopa.payment.instrument.service.idpaycode;
 import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -46,9 +48,7 @@ public class EncryptCodeServiceImpl implements EncryptCodeService {
       performanceLog(startTime, GENERATE_PIN_BLOCK);
 
       return pinBlock;
-    } catch (PaymentInstrumentException e) {
-      throw e;
-    } catch (Exception ex) {
+    } catch (DecoderException ex) {
       throw new PaymentInstrumentException(500, "Something went wrong while creating pinBlock");
     }
   }
@@ -66,7 +66,7 @@ public class EncryptCodeServiceImpl implements EncryptCodeService {
       log.debug("[{}] pinBlock hashing done successfully", HASH_PIN_BLOCK);
       performanceLog(startTime, HASH_PIN_BLOCK);
       return hashedPinBlock;
-    } catch (Exception e) {
+    } catch (NoSuchAlgorithmException e) {
       throw new PaymentInstrumentException(403, "Something went wrong creating SHA256 digest");
     }
   }
