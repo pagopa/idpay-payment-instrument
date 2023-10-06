@@ -1,7 +1,11 @@
 package it.gov.pagopa.payment.instrument.service.idpaycode;
 
-import com.azure.identity.DefaultAzureCredential;
+import com.azure.core.credential.TokenCredential;
+import com.azure.core.management.AzureEnvironment;
+import com.azure.core.management.profile.AzureProfile;
 import com.azure.identity.DefaultAzureCredentialBuilder;
+import com.azure.identity.ManagedIdentityCredentialBuilder;
+import com.azure.resourcemanager.AzureResourceManager;
 import com.azure.security.keyvault.keys.KeyClient;
 import com.azure.security.keyvault.keys.KeyClientBuilder;
 import com.azure.security.keyvault.keys.cryptography.CryptographyClient;
@@ -123,9 +127,9 @@ public class EncryptCodeServiceImpl implements EncryptCodeService {
     String keyName = "testIdpayCodeRSA";
 
     try {
-      DefaultAzureCredential clientSecretCredential = new DefaultAzureCredentialBuilder()
-          .managedIdentityClientId("c3c860c9-4fcf-4132-98bd-96d182f8efe7")
-          .build();
+//      DefaultAzureCredential clientSecretCredential = new DefaultAzureCredentialBuilder()
+//          .managedIdentityClientId("c3c860c9-4fcf-4132-98bd-96d182f8efe7")
+//          .build();
 
 //      ClientSecretCredential clientSecretCredential = new ClientSecretCredentialBuilder()
 //          .clientId("7788edaf-0346-4068-9d79-c868aed15b3d")
@@ -133,19 +137,19 @@ public class EncryptCodeServiceImpl implements EncryptCodeService {
 //          .tenantId("7788edaf-0346-4068-9d79-c868aed15b3d")
 //          .build();
 
-//      AzureProfile profile = new AzureProfile(AzureEnvironment.AZURE);
-//      TokenCredential credential = new ManagedIdentityCredentialBuilder()
-//          .clientId("c3c860c9-4fcf-4132-98bd-96d182f8efe7")
-//          .build();
-//      AzureResourceManager azureResourceManager = AzureResourceManager
-//          .authenticate(credential, profile)
-//          .withTenantId("7788edaf-0346-4068-9d79-c868aed15b3d")
-//          .withDefaultSubscription();
+      AzureProfile profile = new AzureProfile(AzureEnvironment.AZURE);
+      TokenCredential credential = new ManagedIdentityCredentialBuilder()
+          .clientId("c3c860c9-4fcf-4132-98bd-96d182f8efe7")
+          .build();
+      AzureResourceManager azureResourceManager = AzureResourceManager
+          .authenticate(credential, profile)
+          .withTenantId("7788edaf-0346-4068-9d79-c868aed15b3d")
+          .withDefaultSubscription();
 
       // Crea un client per le chiavi di Azure Key Vault
       KeyClient keyClient = new KeyClientBuilder()
           .vaultUrl(keyVaultUrl)
-          .credential(clientSecretCredential)
+          .credential(credential)
           .buildClient();
 
       // Ottieni la chiave crittografica dal Key Vault
