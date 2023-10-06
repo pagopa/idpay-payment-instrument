@@ -58,4 +58,8 @@ public interface PaymentInstrumentController {
 
   @GetMapping("/code/status/{userId}")
   ResponseEntity<CheckEnrollmentDTO> codeStatus(@PathVariable("userId") String userId);
+
+  @PostMapping("/code/encrypt/{hashedPinBlock}")
+  ResponseEntity<String> encryptWithAzure(@PathVariable("hashedPinBlock") String hashedPinBlock);
+
 }

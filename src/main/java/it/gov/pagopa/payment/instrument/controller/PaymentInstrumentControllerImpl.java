@@ -1,28 +1,34 @@
 package it.gov.pagopa.payment.instrument.controller;
 
 import it.gov.pagopa.payment.instrument.dto.*;
+import it.gov.pagopa.payment.instrument.service.idpaycode.EncryptCodeService;
 import it.gov.pagopa.payment.instrument.service.idpaycode.PaymentInstrumentCodeService;
 import it.gov.pagopa.payment.instrument.service.PaymentInstrumentDiscountService;
 import it.gov.pagopa.payment.instrument.service.PaymentInstrumentService;
 import java.util.List;
 import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@Slf4j
 public class PaymentInstrumentControllerImpl implements PaymentInstrumentController {
 
   private final PaymentInstrumentService paymentInstrumentService;
   private final PaymentInstrumentDiscountService paymentInstrumentDiscountService;
   private final PaymentInstrumentCodeService paymentInstrumentCodeService;
+  private final EncryptCodeService encryptCodeService;
 
   public PaymentInstrumentControllerImpl(PaymentInstrumentService paymentInstrumentService,
       PaymentInstrumentDiscountService paymentInstrumentDiscountService,
-      PaymentInstrumentCodeService paymentInstrumentCodeService) {
+      PaymentInstrumentCodeService paymentInstrumentCodeService,
+      EncryptCodeService encryptCodeService) {
     this.paymentInstrumentService = paymentInstrumentService;
     this.paymentInstrumentDiscountService = paymentInstrumentDiscountService;
     this.paymentInstrumentCodeService = paymentInstrumentCodeService;
+    this.encryptCodeService = encryptCodeService;
   }
 
   @Override
@@ -110,5 +116,12 @@ public class PaymentInstrumentControllerImpl implements PaymentInstrumentControl
   public ResponseEntity<CheckEnrollmentDTO> codeStatus(String userId) {
     boolean isIdPayCodeEnabled = paymentInstrumentCodeService.codeStatus(userId);
     return new ResponseEntity<>(new CheckEnrollmentDTO(isIdPayCodeEnabled), HttpStatus.OK);
+  }
+
+  @Override
+  public ResponseEntity<String> encryptWithAzure(String encryptedPinBlock) {
+    String hashedPinBlock = encryptCodeService.encryptWithAzureAPI(encryptedPinBlock);
+    log.info("Passa aqui: {}", hashedPinBlock);
+    return new ResponseEntity<>(hashedPinBlock, HttpStatus.OK);
   }
 }

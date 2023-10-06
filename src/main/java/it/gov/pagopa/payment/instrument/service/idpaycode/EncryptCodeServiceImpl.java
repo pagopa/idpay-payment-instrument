@@ -1,14 +1,34 @@
 package it.gov.pagopa.payment.instrument.service.idpaycode;
 
+import com.azure.identity.DefaultAzureCredential;
+import com.azure.identity.DefaultAzureCredentialBuilder;
+import com.azure.security.keyvault.keys.KeyClient;
+import com.azure.security.keyvault.keys.KeyClientBuilder;
+import com.azure.security.keyvault.keys.cryptography.CryptographyClient;
+import com.azure.security.keyvault.keys.cryptography.CryptographyClientBuilder;
+import com.azure.security.keyvault.keys.cryptography.models.EncryptResult;
+import com.azure.security.keyvault.keys.cryptography.models.EncryptionAlgorithm;
+import com.azure.security.keyvault.keys.models.KeyVaultKey;
 import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
 import java.nio.charset.StandardCharsets;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -17,6 +37,15 @@ public class EncryptCodeServiceImpl implements EncryptCodeService {
 
   public static final String GENERATE_PIN_BLOCK = "GENERATE_PIN_BLOCK";
   public static final String HASH_PIN_BLOCK = "HASH_PIN_BLOCK";
+  private final String cipherInstance;
+  private final String iv;
+
+  public EncryptCodeServiceImpl(
+      @Value("${util.crypto.aes.cipherInstance}") String cipherInstance,
+      @Value("${util.crypto.aes.mode.gcm.iv}") String iv) {
+    this.cipherInstance = cipherInstance;
+    this.iv = iv;
+  }
 
   @Override
   public String buildHashedPinBlock(String code, String secondFactor, String salt) {
@@ -53,6 +82,11 @@ public class EncryptCodeServiceImpl implements EncryptCodeService {
     }
   }
 
+  public String verifyPinBlock(String encryptedPinBlock, String encryptedKey) {
+
+    return decryptPinBlockWithSimetricKey(encryptedPinBlock, encryptedKey);
+  }
+
   // Hashing pinBlock with algorithm SHA-256
   private String createSHA256Digest(String pinBlock, String salt) {
     long startTime = System.currentTimeMillis();
@@ -69,6 +103,89 @@ public class EncryptCodeServiceImpl implements EncryptCodeService {
     } catch (NoSuchAlgorithmException e) {
       throw new PaymentInstrumentException(403, "Something went wrong creating SHA256 digest");
     }
+  }
+
+  @NotNull
+  private String decryptPinBlockWithSimetricKey(String encryptedPinBlock, String encryptedKey) {
+    SecretKeySpec secretKeySpec = new SecretKeySpec(encryptedKey.getBytes(), "AES");
+
+    byte[] decryptedBytes = doFinal(secretKeySpec, Base64.getDecoder().decode(encryptedPinBlock));
+
+    return new String(decryptedBytes);
+  }
+
+  @Override
+  public String encryptWithAzureAPI(String hashedPinBlock){
+    // URL del tuo Key Vault
+    String keyVaultUrl = "https://cstar-d-idpay-kv.vault.azure.net/";
+
+    // Nome della chiave crittografica in Key Vault
+    String keyName = "testIdpayCodeRSA";
+
+    try {
+      DefaultAzureCredential clientSecretCredential = new DefaultAzureCredentialBuilder()
+          .managedIdentityClientId("c3c860c9-4fcf-4132-98bd-96d182f8efe7")
+          .build();
+
+//      ClientSecretCredential clientSecretCredential = new ClientSecretCredentialBuilder()
+//          .clientId("7788edaf-0346-4068-9d79-c868aed15b3d")
+//          .clientSecret("<YOUR_CLIENT_SECRET>")
+//          .tenantId("7788edaf-0346-4068-9d79-c868aed15b3d")
+//          .build();
+
+//      AzureProfile profile = new AzureProfile(AzureEnvironment.AZURE);
+//      TokenCredential credential = new ManagedIdentityCredentialBuilder()
+//          .clientId("c3c860c9-4fcf-4132-98bd-96d182f8efe7")
+//          .build();
+//      AzureResourceManager azureResourceManager = AzureResourceManager
+//          .authenticate(credential, profile)
+//          .withTenantId("7788edaf-0346-4068-9d79-c868aed15b3d")
+//          .withDefaultSubscription();
+
+      // Crea un client per le chiavi di Azure Key Vault
+      KeyClient keyClient = new KeyClientBuilder()
+          .vaultUrl(keyVaultUrl)
+          .credential(clientSecretCredential)
+          .buildClient();
+
+      // Ottieni la chiave crittografica dal Key Vault
+      KeyVaultKey key = keyClient.getKey(keyName);
+
+      // Create client with key identifier from Key Vault.
+      CryptographyClient cryptoClient = new CryptographyClientBuilder()
+          .keyIdentifier(key.getId())
+          .credential(new DefaultAzureCredentialBuilder().build())
+          .buildClient();
+
+      // Encrypt pin-block
+      EncryptResult encryptionResult = cryptoClient.encrypt(EncryptionAlgorithm.RSA_OAEP, hashedPinBlock.getBytes(StandardCharsets.UTF_8));
+
+      return  Hex.encodeHexString(encryptionResult.getCipherText());
+    } catch (Exception e) {
+      throw new PaymentInstrumentException(500, "");
+    }
+  }
+
+  private byte[] doFinal(SecretKey secretKeySpec, byte[] bytes) {
+    try{
+      Cipher cipher = Cipher.getInstance(cipherInstance);
+      IvParameterSpec ivParameterSpec = new IvParameterSpec(iv.getBytes());
+
+      cipher.init(Cipher.DECRYPT_MODE, secretKeySpec, ivParameterSpec);
+      return cipher.doFinal(bytes);
+
+    }catch (InvalidKeyException
+            | InvalidAlgorithmParameterException
+            | IllegalBlockSizeException
+            | NoSuchPaddingException
+            | NoSuchAlgorithmException
+            | BadPaddingException e) {
+      throw fail(e);
+    }
+  }
+
+  private IllegalStateException fail(Exception e) {
+    return new IllegalStateException(e);
   }
 
   private void performanceLog(long startTime, String service){

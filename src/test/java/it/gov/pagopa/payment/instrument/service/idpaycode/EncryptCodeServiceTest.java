@@ -15,10 +15,12 @@ import org.springframework.http.HttpStatus;
 class EncryptCodeServiceTest {
 
   private EncryptCodeService encryptCodeService;
+  private static final String CIPHER_INSTANCE = "AES/GCM/NoPadding";
+  private static final String IV = "IV_SAMPLE";
 
   @BeforeEach
   void setUp() {
-    encryptCodeService = new EncryptCodeServiceImpl();
+    encryptCodeService = new EncryptCodeServiceImpl(CIPHER_INSTANCE, IV);
   }
 
   @Test
