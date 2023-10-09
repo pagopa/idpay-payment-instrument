@@ -132,18 +132,18 @@ public class EncryptCodeServiceImpl implements EncryptCodeService {
 //          .build();
 
 //      ClientSecretCredential clientSecretCredential = new ClientSecretCredentialBuilder()
-//          .clientId("7788edaf-0346-4068-9d79-c868aed15b3d")
+//          .clientId("<YOUR_CLIENT_ID>")
 //          .clientSecret("<YOUR_CLIENT_SECRET>")
-//          .tenantId("7788edaf-0346-4068-9d79-c868aed15b3d")
+//          .tenantId("<YOUR_TENANT_ID>")
 //          .build();
 
       AzureProfile profile = new AzureProfile(AzureEnvironment.AZURE);
       TokenCredential credential = new ManagedIdentityCredentialBuilder()
-          .clientId("c3c860c9-4fcf-4132-98bd-96d182f8efe7")
+          .clientId("<YOUR_CLIENT_ID>")
           .build();
       AzureResourceManager azureResourceManager = AzureResourceManager
           .authenticate(credential, profile)
-          .withTenantId("7788edaf-0346-4068-9d79-c868aed15b3d")
+          .withTenantId("<YOUR_TENANT_ID>")
           .withDefaultSubscription();
 
       // Crea un client per le chiavi di Azure Key Vault
