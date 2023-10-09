@@ -121,14 +121,14 @@ public class EncryptCodeServiceImpl implements EncryptCodeService {
   @Override
   public String encryptWithAzureAPI(String hashedPinBlock){
     // URL del tuo Key Vault
-    String keyVaultUrl = "https://cstar-d-idpay-kv.vault.azure.net/";
+    String keyVaultUrl = "";
 
     // Nome della chiave crittografica in Key Vault
-    String keyName = "testIdpayCodeRSA";
+    String keyName = "";
 
     try {
 //      DefaultAzureCredential clientSecretCredential = new DefaultAzureCredentialBuilder()
-//          .managedIdentityClientId("c3c860c9-4fcf-4132-98bd-96d182f8efe7")
+//          .managedIdentityClientId("")
 //          .build();
 
 //      ClientSecretCredential clientSecretCredential = new ClientSecretCredentialBuilder()
