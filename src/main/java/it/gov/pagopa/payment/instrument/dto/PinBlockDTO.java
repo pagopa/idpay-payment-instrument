@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 public class PinBlockDTO {
 
   @NotBlank(message = PaymentInstrumentConstants.ERROR_MANDATORY_FIELD)
-  private String encryptedPinBlock;
+  private String pinBlock;
 
   @NotBlank(message = PaymentInstrumentConstants.ERROR_MANDATORY_FIELD)
   private String encryptedKey;

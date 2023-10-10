@@ -28,17 +28,17 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
   private final WalletRestConnector walletRestConnector;
   private final SecureRandom random;
   private final AuditUtilities auditUtilities;
-  private final EncryptIdpayCodeService encryptIdpayCodeService;
+  private final IdpayCodeEncryptionService idpayCodeEncryptionService;
   private final Utilities utilities;
 
   public PaymentInstrumentCodeServiceImpl(
       PaymentInstrumentCodeRepository paymentInstrumentCodeRepository,
       WalletRestConnector walletRestConnector, AuditUtilities auditUtilities,
-      EncryptIdpayCodeService encryptIdpayCodeService, Utilities utilities) {
+      IdpayCodeEncryptionService idpayCodeEncryptionService, Utilities utilities) {
     this.paymentInstrumentCodeRepository = paymentInstrumentCodeRepository;
     this.walletRestConnector = walletRestConnector;
     this.auditUtilities = auditUtilities;
-    this.encryptIdpayCodeService = encryptIdpayCodeService;
+    this.idpayCodeEncryptionService = idpayCodeEncryptionService;
     this.utilities = utilities;
     this.random = new SecureRandom();
   }
@@ -57,12 +57,13 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
     String secondFactor = generateRandomEvenCharHexString(12);
     String secondFactorWithLeftPad = StringUtils.leftPad(secondFactor, 16, '0');
 
-    // encrypt clear code
-    String hashedPinBlock = encryptIdpayCodeService.buildHashedDataBlock(plainCode, secondFactorWithLeftPad, salt);
+    // hash and encrypt plain code
+    String hashedDataBlock = idpayCodeEncryptionService.buildHashedDataBlock(plainCode, secondFactorWithLeftPad, salt);
+    String pinBlock = idpayCodeEncryptionService.encryptSHADataBlock(hashedDataBlock);
     log.info("[{}] Code generated successfully on userId: {}", GENERATED_CODE, userId);
 
     // save encrypted code
-    paymentInstrumentCodeRepository.updateCode(userId, hashedPinBlock, salt, secondFactorWithLeftPad, LocalDateTime.now());
+    paymentInstrumentCodeRepository.updateCode(userId, pinBlock, salt, secondFactorWithLeftPad, LocalDateTime.now());
     performanceLog(startTime, GENERATED_CODE, userId, initiativeId);
     auditUtilities.logGeneratedCode(userId, LocalDateTime.now());
 
@@ -117,10 +118,10 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
       throw new PaymentInstrumentException(404, "");
     }
 
-    String verifiedPin = encryptIdpayCodeService.verifyPinBlock(userId, pinBlockDTO,
+    String verifiedPin = idpayCodeEncryptionService.verifyPinBlock(userId, pinBlockDTO,
         paymentInstrumentCode.getSalt());
 
-    String encryptedPinBlock = encryptIdpayCodeService.encryptSHADataBlock(verifiedPin);
+    String encryptedPinBlock = idpayCodeEncryptionService.encryptSHADataBlock(verifiedPin);
 
     if (!paymentInstrumentCode.getIdpayCode().equals(encryptedPinBlock)){
       throw new PaymentInstrumentException(403, "");

@@ -12,20 +12,20 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 
 @ExtendWith(MockitoExtension.class)
-class EncryptIdpayCodeServiceTest {
+class IdpayCodeEncryptionServiceTest {
 
-  private EncryptIdpayCodeService encryptIdpayCodeService;
+  private IdpayCodeEncryptionService idpayCodeEncryptionService;
   private static final String CIPHER_INSTANCE = "AES/GCM/NoPadding";
   private static final String IV = "IV_SAMPLE";
 
   @BeforeEach
   void setUp() {
-    encryptIdpayCodeService = new EncryptIdpayCodeServiceImpl(CIPHER_INSTANCE, IV);
+    idpayCodeEncryptionService = new IdpayCodeEncryptionServiceImpl(CIPHER_INSTANCE, IV);
   }
 
   @Test
   void encryptIdpayCode(){
-    String idpayCode = encryptIdpayCodeService.buildHashedDataBlock(
+    String idpayCode = idpayCodeEncryptionService.buildHashedDataBlock(
         "12345","0000FFFFFFFFFFFF", "salt");
 
     assertNotNull(idpayCode);
@@ -34,7 +34,7 @@ class EncryptIdpayCodeServiceTest {
   @Test
   void encryptIdpayCode_ko_code_length(){
     try{
-      encryptIdpayCodeService.buildHashedDataBlock(
+      idpayCodeEncryptionService.buildHashedDataBlock(
           "1234","0000FFFFFFFFFFFF", "salt");
       fail();
     }catch (PaymentInstrumentException e){
@@ -46,7 +46,7 @@ class EncryptIdpayCodeServiceTest {
   @Test
   void encryptIdpayCode_ko_internalServerError() {
     try{
-      encryptIdpayCodeService.buildHashedDataBlock(
+      idpayCodeEncryptionService.buildHashedDataBlock(
           "12345","testError", "salt");
       fail();
     }catch (PaymentInstrumentException e){

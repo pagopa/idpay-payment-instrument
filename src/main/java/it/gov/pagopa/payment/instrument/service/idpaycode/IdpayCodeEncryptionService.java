@@ -2,7 +2,7 @@ package it.gov.pagopa.payment.instrument.service.idpaycode;
 
 import it.gov.pagopa.payment.instrument.dto.PinBlockDTO;
 
-public interface EncryptIdpayCodeService {
+public interface IdpayCodeEncryptionService {
 
   String buildHashedDataBlock(String code, String secondFactor, String salt);
   String createSHA256Digest(String dataBlock, String salt);

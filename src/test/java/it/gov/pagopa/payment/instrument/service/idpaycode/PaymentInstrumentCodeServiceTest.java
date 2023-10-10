@@ -43,19 +43,19 @@ class PaymentInstrumentCodeServiceTest {
   @Mock
   AuditUtilities auditUtilities;
   @Mock
-  EncryptIdpayCodeService encryptIdpayCodeService;
+  IdpayCodeEncryptionService idpayCodeEncryptionService;
   @Mock
   Utilities utilities;
 
   @BeforeEach
   void setUp() {
     paymentInstrumentCodeService = new PaymentInstrumentCodeServiceImpl(paymentInstrumentCodeRepository,
-        walletRestConnector, auditUtilities, encryptIdpayCodeService, utilities);
+        walletRestConnector, auditUtilities, idpayCodeEncryptionService, utilities);
   }
 
   @Test
   void generateCode_initiativeId_not_empty(){
-    Mockito.when(encryptIdpayCodeService.buildHashedDataBlock(anyString(), anyString(), anyString())).thenReturn("12345");
+    Mockito.when(idpayCodeEncryptionService.buildHashedDataBlock(anyString(), anyString(), anyString())).thenReturn("12345");
 
         GenerateCodeRespDTO generateCodeRespDTO =
         paymentInstrumentCodeService.generateCode(USERID, INITIATIVE_ID);
@@ -65,7 +65,7 @@ class PaymentInstrumentCodeServiceTest {
 
   @Test
   void generateCode_initiativeId_empty(){
-    Mockito.when(encryptIdpayCodeService.buildHashedDataBlock(anyString(), anyString(), anyString())).thenReturn("12345");
+    Mockito.when(idpayCodeEncryptionService.buildHashedDataBlock(anyString(), anyString(), anyString())).thenReturn("12345");
 
     GenerateCodeRespDTO generateCodeRespDTO =
         paymentInstrumentCodeService.generateCode(USERID, "");
@@ -76,7 +76,7 @@ class PaymentInstrumentCodeServiceTest {
 
   @Test
   void generateCode_initiativeId_null(){
-    Mockito.when(encryptIdpayCodeService.buildHashedDataBlock(anyString(),anyString(), anyString())).thenReturn("12345");
+    Mockito.when(idpayCodeEncryptionService.buildHashedDataBlock(anyString(),anyString(), anyString())).thenReturn("12345");
 
     GenerateCodeRespDTO generateCodeRespDTO =
         paymentInstrumentCodeService.generateCode(USERID, null);

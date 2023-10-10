@@ -25,14 +25,14 @@ import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
-public class EncryptIdpayCodeServiceImpl implements EncryptIdpayCodeService {
+public class IdpayCodeEncryptionServiceImpl implements IdpayCodeEncryptionService {
 
   public static final String GENERATE_PIN_BLOCK = "GENERATE_PIN_BLOCK";
   public static final String HASH_PIN_BLOCK = "HASH_PIN_BLOCK";
   private final String cipherInstance;
   private final String iv;
 
-  public EncryptIdpayCodeServiceImpl(
+  public IdpayCodeEncryptionServiceImpl(
       @Value("${util.crypto.aes.cipherInstance}") String cipherInstance,
       @Value("${util.crypto.aes.mode.gcm.iv}") String iv) {
     this.cipherInstance = cipherInstance;
@@ -49,7 +49,7 @@ public class EncryptIdpayCodeServiceImpl implements EncryptIdpayCodeService {
   /** Calculate Data Block from plain code and second factor */
   private String calculateDataBlock(String secondFactor, String code) {
     long startTime = System.currentTimeMillis();
-    // Control code length, must be 5
+    // Control code length, must be at least 5
     try {
       if (code.length() < 5) {
         throw new PaymentInstrumentException(400, "Pin length is not valid");
@@ -68,7 +68,7 @@ public class EncryptIdpayCodeServiceImpl implements EncryptIdpayCodeService {
 
       // Converts the result to a hexadecimal representation
       String dataBlock = Hex.encodeHexString(xorResult);
-      // log da rimuovere
+      // log to be deleted
       log.info("Code in chiaro: {}, DataBlock: {}", code, dataBlock);
       performanceLog(startTime, GENERATE_PIN_BLOCK);
 
@@ -90,7 +90,7 @@ public class EncryptIdpayCodeServiceImpl implements EncryptIdpayCodeService {
     // TODO String decryptedPin = decryptPinBlockWithSymmetricKey(pinBlockDTO.getEncryptedPinBlock(), decryptSymmetricKey);
 
     // Change pinBlockDTO.getEncryptedPinBlock() with decryptSymmetricKey variable
-    return createSHA256Digest(pinBlockDTO.getEncryptedPinBlock(), salt);
+    return createSHA256Digest(pinBlockDTO.getPinBlock(), salt);
   }
 
   @Override
@@ -116,7 +116,7 @@ public class EncryptIdpayCodeServiceImpl implements EncryptIdpayCodeService {
 
       String hashedPinBlock = Base64.getEncoder().encodeToString(hash);
 
-      // il log deve essere debug senza il hashedPinBlock
+      // this log must be of type debug and without hashedPinBlock
       log.info("[{}] pinBlock hashing done successfully: {}", HASH_PIN_BLOCK, hashedPinBlock);
       performanceLog(startTime, HASH_PIN_BLOCK);
       return hashedPinBlock;
