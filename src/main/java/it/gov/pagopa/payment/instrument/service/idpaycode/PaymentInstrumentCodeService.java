@@ -11,4 +11,6 @@ public interface PaymentInstrumentCodeService {
 
   boolean verifyPinBlock(String userId, PinBlockDTO pinBlockDTO);
 
+  String getSecondFactor(String userId);
+
 }

@@ -1,30 +1,16 @@
 package it.gov.pagopa.payment.instrument.controller;
 
-import it.gov.pagopa.payment.instrument.dto.BaseEnrollmentBodyDTO;
-import it.gov.pagopa.payment.instrument.dto.CheckEnrollmentDTO;
-import it.gov.pagopa.payment.instrument.dto.DeactivationBodyDTO;
-import it.gov.pagopa.payment.instrument.dto.EnrollmentBodyDTO;
-import it.gov.pagopa.payment.instrument.dto.GenerateCodeReqDTO;
-import it.gov.pagopa.payment.instrument.dto.GenerateCodeRespDTO;
-import it.gov.pagopa.payment.instrument.dto.HpanGetDTO;
-import it.gov.pagopa.payment.instrument.dto.InstrumentDetailDTO;
-import it.gov.pagopa.payment.instrument.dto.InstrumentFromDiscountDTO;
-import it.gov.pagopa.payment.instrument.dto.InstrumentIssuerDTO;
-import it.gov.pagopa.payment.instrument.dto.PinBlockDTO;
-import it.gov.pagopa.payment.instrument.dto.UnsubscribeBodyDTO;
-import it.gov.pagopa.payment.instrument.dto.VerifyPinBlockDTO;
+import it.gov.pagopa.payment.instrument.dto.*;
+import it.gov.pagopa.payment.instrument.service.idpaycode.PaymentInstrumentCodeService;
 import it.gov.pagopa.payment.instrument.service.PaymentInstrumentDiscountService;
 import it.gov.pagopa.payment.instrument.service.PaymentInstrumentService;
-import it.gov.pagopa.payment.instrument.service.idpaycode.PaymentInstrumentCodeService;
 import java.util.List;
 import java.util.Optional;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@Slf4j
 public class PaymentInstrumentControllerImpl implements PaymentInstrumentController {
 
   private final PaymentInstrumentService paymentInstrumentService;
@@ -130,5 +116,11 @@ public class PaymentInstrumentControllerImpl implements PaymentInstrumentControl
   public ResponseEntity<VerifyPinBlockDTO> verifyPinBlock(String userId, PinBlockDTO pinBlockDTO) {
     boolean pinBlockVerified = paymentInstrumentCodeService.verifyPinBlock(userId, pinBlockDTO);
     return new ResponseEntity<>(new VerifyPinBlockDTO(pinBlockVerified), HttpStatus.OK);
+  }
+
+  @Override
+  public ResponseEntity<SecondFactorDTO> secondFactor(String userId) {
+    String secondFactor = paymentInstrumentCodeService.getSecondFactor(userId);
+    return new ResponseEntity<>(new SecondFactorDTO(secondFactor), HttpStatus.OK);
   }
 }

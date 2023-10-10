@@ -160,7 +160,7 @@ class PaymentInstrumentCodeServiceTest {
 
   @Test
   void codeStatus_true(){
-    PaymentInstrumentCode paymentInstrumentCode = PaymentInstrumentCode.builder()
+    final PaymentInstrumentCode paymentInstrumentCode = PaymentInstrumentCode.builder()
         .userId(USERID)
         .idpayCode("CODE")
         .build();
@@ -173,7 +173,7 @@ class PaymentInstrumentCodeServiceTest {
 
   @Test
   void codeStatus_false_code_null(){
-    PaymentInstrumentCode paymentInstrumentCode = PaymentInstrumentCode.builder()
+    final PaymentInstrumentCode paymentInstrumentCode = PaymentInstrumentCode.builder()
         .userId(USERID)
         .build();
     Mockito.when(paymentInstrumentCodeRepository.findByUserId(USERID)).thenReturn(Optional.of(paymentInstrumentCode));
@@ -185,11 +185,38 @@ class PaymentInstrumentCodeServiceTest {
 
   @Test
   void codeStatus_false(){
-    Mockito.when(paymentInstrumentCodeRepository.findByUserId(USERID)).thenReturn(Optional.ofNullable(any(PaymentInstrumentCode.class)));
+    Mockito.when(paymentInstrumentCodeRepository.findByUserId(USERID))
+        .thenReturn(Optional.ofNullable(any(PaymentInstrumentCode.class)));
 
     boolean isIdPayCodeEnabled = paymentInstrumentCodeService.codeStatus(USERID);
 
     assertFalse(isIdPayCodeEnabled);
+  }
+
+  @Test
+  void getSecondFactor_ok(){
+    PaymentInstrumentCode paymentInstrumentCode = PaymentInstrumentCode.builder()
+        .userId(USERID)
+        .secondFactor("SECOND_FACTOR")
+        .build();
+    Mockito.when(paymentInstrumentCodeRepository.findByUserId(USERID)).thenReturn(Optional.of(paymentInstrumentCode));
+
+   String secondFactor = paymentInstrumentCodeService.getSecondFactor(USERID);
+
+    assertEquals(paymentInstrumentCode.getSecondFactor(), secondFactor);
+  }
+
+  @Test
+  void getSecondFactor_ko(){
+    Mockito.when(paymentInstrumentCodeRepository.findByUserId(USERID))
+        .thenReturn(Optional.ofNullable(any(PaymentInstrumentCode.class)));
+
+    try{
+      paymentInstrumentCodeService.getSecondFactor(USERID);
+    }catch (PaymentInstrumentException e){
+      assertEquals(HttpStatus.NOT_FOUND.value(), e.getCode());
+      assertEquals("There is not a idpaycode for the userId: "+USERID, e.getMessage());
+    }
   }
 
   private void assertions(GenerateCodeRespDTO generateCodeRespDTO) {

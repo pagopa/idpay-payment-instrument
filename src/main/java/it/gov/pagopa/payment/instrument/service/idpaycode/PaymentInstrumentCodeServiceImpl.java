@@ -128,6 +128,21 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
     return true;
   }
 
+  @Override
+  public String getSecondFactor(String userId) {
+    long startTime = System.currentTimeMillis();
+
+    PaymentInstrumentCode paymentInstrumentCode = paymentInstrumentCodeRepository.findByUserId(
+        userId).orElse(null);
+
+    if (paymentInstrumentCode==null){
+      throw new PaymentInstrumentException(404, String.format("There is not a idpaycode for the userId: %s", userId));
+    }
+    String secondFactor = paymentInstrumentCode.getSecondFactor();
+    performanceLog(startTime, "IDPAY_CODE_SECOND_FACTOR", userId, null);
+    return secondFactor;
+  }
+
   /** Generate Salt or Second factor only with length even */
   private String generateRandomEvenCharHexString(int length) {
     byte[] salt = new byte[length/2];

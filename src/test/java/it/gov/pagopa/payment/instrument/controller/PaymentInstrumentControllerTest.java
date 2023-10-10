@@ -87,6 +87,7 @@ class PaymentInstrumentControllerTest {
   private static final String ENROLL_DISCOUNT_URL = "/discount/enroll";
   private static final String ENROLL_CODE_URL = "/generate-code/" + USER_ID;
   private static final String CODE_STATUS_URL = "/code/status/" + USER_ID;
+  private static final String GET_SECOND_FACTOR_URL = "/code/secondFactor/" + USER_ID;
   @MockBean
   PaymentInstrumentService paymentInstrumentServiceMock;
 
@@ -406,6 +407,16 @@ class PaymentInstrumentControllerTest {
   void idpayCode_status_ok() throws Exception {
 
     mvc.perform(MockMvcRequestBuilders.get(BASE_URL + CODE_STATUS_URL)
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .accept(MediaType.APPLICATION_JSON_VALUE))
+        .andExpect(MockMvcResultMatchers.status().isOk())
+        .andReturn();
+  }
+
+  @Test
+  void getSecondFactor_ok() throws Exception {
+
+    mvc.perform(MockMvcRequestBuilders.get(BASE_URL + GET_SECOND_FACTOR_URL)
             .contentType(MediaType.APPLICATION_JSON_VALUE)
             .accept(MediaType.APPLICATION_JSON_VALUE))
         .andExpect(MockMvcResultMatchers.status().isOk())

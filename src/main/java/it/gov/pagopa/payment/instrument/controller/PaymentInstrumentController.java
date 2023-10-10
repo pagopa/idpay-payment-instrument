@@ -63,4 +63,6 @@ public interface PaymentInstrumentController {
   ResponseEntity<VerifyPinBlockDTO> verifyPinBlock(@PathVariable("userId") String userId,
       @Valid @RequestBody PinBlockDTO pinBlockDTO);
 
+  @GetMapping("/code/secondFactor/{userId}")
+  ResponseEntity<SecondFactorDTO> secondFactor(@PathVariable("userId") String userId);
 }
