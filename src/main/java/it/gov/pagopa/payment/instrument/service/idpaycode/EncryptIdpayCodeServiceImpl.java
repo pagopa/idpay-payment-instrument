@@ -116,7 +116,8 @@ public class EncryptIdpayCodeServiceImpl implements EncryptIdpayCodeService {
 
       String hashedPinBlock = Base64.getEncoder().encodeToString(hash);
 
-      log.debug("[{}] pinBlock hashing done successfully", HASH_PIN_BLOCK);
+      // il log deve essere debug senza il hashedPinBlock
+      log.info("[{}] pinBlock hashing done successfully: {}", HASH_PIN_BLOCK, hashedPinBlock);
       performanceLog(startTime, HASH_PIN_BLOCK);
       return hashedPinBlock;
     } catch (NoSuchAlgorithmException e) {
