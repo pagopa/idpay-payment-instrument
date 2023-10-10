@@ -69,7 +69,7 @@ public class EncryptIdpayCodeServiceImpl implements EncryptIdpayCodeService {
       // Converts the result to a hexadecimal representation
       String dataBlock = Hex.encodeHexString(xorResult);
       // log da rimuovere
-      log.info("DataBlock: {}", dataBlock);
+      log.info("Code in chiaro: {}, DataBlock: {}", code, dataBlock);
       performanceLog(startTime, GENERATE_PIN_BLOCK);
 
       return dataBlock;
