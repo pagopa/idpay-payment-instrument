@@ -41,8 +41,8 @@ public class EncryptIdpayCodeServiceImpl implements EncryptIdpayCodeService {
 
   @Override
   public String buildHashedDataBlock(String code, String secondFactor, String salt) {
-    String pinBlock = calculateDataBlock(secondFactor, code);
-    return createSHA256Digest(pinBlock, salt);
+    String dataBlock = calculateDataBlock(secondFactor, code);
+    return createSHA256Digest(dataBlock, salt);
   }
 
 
@@ -68,6 +68,8 @@ public class EncryptIdpayCodeServiceImpl implements EncryptIdpayCodeService {
 
       // Converts the result to a hexadecimal representation
       String dataBlock = Hex.encodeHexString(xorResult);
+      // log da rimuovere
+      log.info("DataBlock: {}", dataBlock);
       performanceLog(startTime, GENERATE_PIN_BLOCK);
 
       return dataBlock;
