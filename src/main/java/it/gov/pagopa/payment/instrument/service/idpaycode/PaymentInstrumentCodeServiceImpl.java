@@ -3,6 +3,7 @@ package it.gov.pagopa.payment.instrument.service.idpaycode;
 import feign.FeignException;
 import it.gov.pagopa.payment.instrument.connector.WalletRestConnector;
 import it.gov.pagopa.payment.instrument.dto.GenerateCodeRespDTO;
+import it.gov.pagopa.payment.instrument.dto.PinBlockDTO;
 import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
 import it.gov.pagopa.payment.instrument.model.PaymentInstrumentCode;
 import it.gov.pagopa.payment.instrument.repository.PaymentInstrumentCodeRepository;
@@ -27,17 +28,17 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
   private final WalletRestConnector walletRestConnector;
   private final SecureRandom random;
   private final AuditUtilities auditUtilities;
-  private final EncryptCodeService encryptCodeService;
+  private final EncryptIdpayCodeService encryptIdpayCodeService;
   private final Utilities utilities;
 
   public PaymentInstrumentCodeServiceImpl(
       PaymentInstrumentCodeRepository paymentInstrumentCodeRepository,
       WalletRestConnector walletRestConnector, AuditUtilities auditUtilities,
-      EncryptCodeService encryptCodeService, Utilities utilities) {
+      EncryptIdpayCodeService encryptIdpayCodeService, Utilities utilities) {
     this.paymentInstrumentCodeRepository = paymentInstrumentCodeRepository;
     this.walletRestConnector = walletRestConnector;
     this.auditUtilities = auditUtilities;
-    this.encryptCodeService = encryptCodeService;
+    this.encryptIdpayCodeService = encryptIdpayCodeService;
     this.utilities = utilities;
     this.random = new SecureRandom();
   }
@@ -46,8 +47,8 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
   public GenerateCodeRespDTO generateCode(String userId, String initiativeId) {
     long startTime = System.currentTimeMillis();
 
-    // generate clear code
-    String clearCode = buildCode();
+    // generate plain code
+    String plainCode = buildCode();
 
     // generate Salt
     String salt = generateRandomEvenCharHexString(16);
@@ -57,7 +58,7 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
     String secondFactorWithLeftPad = StringUtils.leftPad(secondFactor, 16, '0');
 
     // encrypt clear code
-    String hashedPinBlock = encryptCodeService.buildHashedPinBlock(clearCode, secondFactorWithLeftPad, salt);
+    String hashedPinBlock = encryptIdpayCodeService.buildHashedDataBlock(plainCode, secondFactorWithLeftPad, salt);
     log.info("[{}] Code generated successfully on userId: {}", GENERATED_CODE, userId);
 
     // save encrypted code
@@ -90,7 +91,7 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
       }
     }
 
-    return new GenerateCodeRespDTO(clearCode);
+    return new GenerateCodeRespDTO(plainCode);
   }
 
   @Override
@@ -107,13 +108,34 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
     return idpayCodeEnabled;
   }
 
-  // Generate Salt or Second factor only with length even
+  /** Verify if pin block is correct */
+  @Override
+  public boolean verifyPinBlock(String userId, PinBlockDTO pinBlockDTO) {
+    PaymentInstrumentCode paymentInstrumentCode = paymentInstrumentCodeRepository.findByUserId(
+        userId).orElse(null);
+    if (paymentInstrumentCode == null){
+      throw new PaymentInstrumentException(404, "");
+    }
+
+    String verifiedPin = encryptIdpayCodeService.verifyPinBlock(userId, pinBlockDTO,
+        paymentInstrumentCode.getSalt());
+
+    String encryptedPinBlock = encryptIdpayCodeService.encryptSHADataBlock(verifiedPin);
+
+    if (!paymentInstrumentCode.getIdpayCode().equals(encryptedPinBlock)){
+      throw new PaymentInstrumentException(403, "");
+    }
+    return true;
+  }
+
+  /** Generate Salt or Second factor only with length even */
   private String generateRandomEvenCharHexString(int length) {
     byte[] salt = new byte[length/2];
     random.nextBytes(salt);
     return Hex.encodeHexString(salt);
   }
 
+  /** Generate plain idpay code */
   @NotNull
   private String buildCode() {
     StringBuilder code = new StringBuilder();

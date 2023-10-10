@@ -1,18 +1,6 @@
 package it.gov.pagopa.payment.instrument.service.idpaycode;
 
-import com.azure.core.credential.TokenCredential;
-import com.azure.core.management.AzureEnvironment;
-import com.azure.core.management.profile.AzureProfile;
-import com.azure.identity.DefaultAzureCredentialBuilder;
-import com.azure.identity.ManagedIdentityCredentialBuilder;
-import com.azure.resourcemanager.AzureResourceManager;
-import com.azure.security.keyvault.keys.KeyClient;
-import com.azure.security.keyvault.keys.KeyClientBuilder;
-import com.azure.security.keyvault.keys.cryptography.CryptographyClient;
-import com.azure.security.keyvault.keys.cryptography.CryptographyClientBuilder;
-import com.azure.security.keyvault.keys.cryptography.models.EncryptResult;
-import com.azure.security.keyvault.keys.cryptography.models.EncryptionAlgorithm;
-import com.azure.security.keyvault.keys.models.KeyVaultKey;
+import it.gov.pagopa.payment.instrument.dto.PinBlockDTO;
 import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
@@ -27,24 +15,24 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
-public class EncryptCodeServiceImpl implements EncryptCodeService {
+public class EncryptIdpayCodeServiceImpl implements EncryptIdpayCodeService {
 
   public static final String GENERATE_PIN_BLOCK = "GENERATE_PIN_BLOCK";
   public static final String HASH_PIN_BLOCK = "HASH_PIN_BLOCK";
   private final String cipherInstance;
   private final String iv;
 
-  public EncryptCodeServiceImpl(
+  public EncryptIdpayCodeServiceImpl(
       @Value("${util.crypto.aes.cipherInstance}") String cipherInstance,
       @Value("${util.crypto.aes.mode.gcm.iv}") String iv) {
     this.cipherInstance = cipherInstance;
@@ -52,12 +40,14 @@ public class EncryptCodeServiceImpl implements EncryptCodeService {
   }
 
   @Override
-  public String buildHashedPinBlock(String code, String secondFactor, String salt) {
-    String pinBlock = calculatePinBlock(secondFactor, code);
+  public String buildHashedDataBlock(String code, String secondFactor, String salt) {
+    String pinBlock = calculateDataBlock(secondFactor, code);
     return createSHA256Digest(pinBlock, salt);
   }
 
-  private String calculatePinBlock(String secondFactor, String code) {
+
+  /** Calculate Data Block from plain code and second factor */
+  private String calculateDataBlock(String secondFactor, String code) {
     long startTime = System.currentTimeMillis();
     // Control code length, must be 5
     try {
@@ -77,27 +67,50 @@ public class EncryptCodeServiceImpl implements EncryptCodeService {
       }
 
       // Converts the result to a hexadecimal representation
-      String pinBlock = Hex.encodeHexString(xorResult);
+      String dataBlock = Hex.encodeHexString(xorResult);
       performanceLog(startTime, GENERATE_PIN_BLOCK);
 
-      return pinBlock;
+      return dataBlock;
     } catch (DecoderException ex) {
       throw new PaymentInstrumentException(500, "Something went wrong while creating pinBlock");
     }
   }
 
-  public String verifyPinBlock(String encryptedPinBlock, String encryptedKey) {
+  /**
+   * Verify correct Pin Block in three steps
+   * First step: Decrypt symmetric key with Azure API
+   * Second step: Decrypt PinBlock with AES
+   * Third step: Hash decrypted pinBlock with SHA256
+   */
+  @Override
+  public String verifyPinBlock(String userId, PinBlockDTO pinBlockDTO, String salt) {
+    String decryptSymmetricKey = decryptSymmetricKey(pinBlockDTO.getEncryptedKey());
+    // TODO String decryptedPin = decryptPinBlockWithSymmetricKey(pinBlockDTO.getEncryptedPinBlock(), decryptSymmetricKey);
 
-    return decryptPinBlockWithSimetricKey(encryptedPinBlock, encryptedKey);
+    // Change pinBlockDTO.getEncryptedPinBlock() with decryptSymmetricKey variable
+    return createSHA256Digest(pinBlockDTO.getEncryptedPinBlock(), salt);
   }
 
-  // Hashing pinBlock with algorithm SHA-256
-  private String createSHA256Digest(String pinBlock, String salt) {
+  @Override
+  public String encryptSHADataBlock(String dataBlock) {
+    //TODO encrypt sha data block (POC)
+    return dataBlock;
+  }
+
+  @Override
+  public String decryptSymmetricKey(String symmetricKey) {
+    //TODO decrypt symmetric key
+    return symmetricKey;
+  }
+
+  /**  Hashing pinBlock with algorithm SHA-256 */
+  @Override
+  public String createSHA256Digest(String dataBlock, String salt) {
     long startTime = System.currentTimeMillis();
     try {
       MessageDigest md = MessageDigest.getInstance("SHA-256");
       md.update(salt.getBytes(StandardCharsets.UTF_8));
-      byte[] hash = md.digest(pinBlock.getBytes(StandardCharsets.UTF_8));
+      byte[] hash = md.digest(dataBlock.getBytes(StandardCharsets.UTF_8));
 
       String hashedPinBlock = Base64.getEncoder().encodeToString(hash);
 
@@ -109,65 +122,14 @@ public class EncryptCodeServiceImpl implements EncryptCodeService {
     }
   }
 
-  @NotNull
-  private String decryptPinBlockWithSimetricKey(String encryptedPinBlock, String encryptedKey) {
+  /**  Decrypt(AES) PinBlock with symmetric key */
+  @NonNull
+  private String decryptPinBlockWithSymmetricKey(String encryptedPinBlock, String encryptedKey) {
     SecretKeySpec secretKeySpec = new SecretKeySpec(encryptedKey.getBytes(), "AES");
 
     byte[] decryptedBytes = doFinal(secretKeySpec, Base64.getDecoder().decode(encryptedPinBlock));
 
     return new String(decryptedBytes);
-  }
-
-  @Override
-  public String encryptWithAzureAPI(String hashedPinBlock){
-    // URL del tuo Key Vault
-    String keyVaultUrl = "";
-
-    // Nome della chiave crittografica in Key Vault
-    String keyName = "";
-
-    try {
-//      DefaultAzureCredential clientSecretCredential = new DefaultAzureCredentialBuilder()
-//          .managedIdentityClientId("")
-//          .build();
-
-//      ClientSecretCredential clientSecretCredential = new ClientSecretCredentialBuilder()
-//          .clientId("<YOUR_CLIENT_ID>")
-//          .clientSecret("<YOUR_CLIENT_SECRET>")
-//          .tenantId("<YOUR_TENANT_ID>")
-//          .build();
-
-      AzureProfile profile = new AzureProfile(AzureEnvironment.AZURE);
-      TokenCredential credential = new ManagedIdentityCredentialBuilder()
-          .clientId("<YOUR_CLIENT_ID>")
-          .build();
-      AzureResourceManager azureResourceManager = AzureResourceManager
-          .authenticate(credential, profile)
-          .withTenantId("<YOUR_TENANT_ID>")
-          .withDefaultSubscription();
-
-      // Crea un client per le chiavi di Azure Key Vault
-      KeyClient keyClient = new KeyClientBuilder()
-          .vaultUrl(keyVaultUrl)
-          .credential(credential)
-          .buildClient();
-
-      // Ottieni la chiave crittografica dal Key Vault
-      KeyVaultKey key = keyClient.getKey(keyName);
-
-      // Create client with key identifier from Key Vault.
-      CryptographyClient cryptoClient = new CryptographyClientBuilder()
-          .keyIdentifier(key.getId())
-          .credential(new DefaultAzureCredentialBuilder().build())
-          .buildClient();
-
-      // Encrypt pin-block
-      EncryptResult encryptionResult = cryptoClient.encrypt(EncryptionAlgorithm.RSA_OAEP, hashedPinBlock.getBytes(StandardCharsets.UTF_8));
-
-      return  Hex.encodeHexString(encryptionResult.getCipherText());
-    } catch (Exception e) {
-      throw new PaymentInstrumentException(500, "");
-    }
   }
 
   private byte[] doFinal(SecretKey secretKeySpec, byte[] bytes) {
@@ -184,12 +146,8 @@ public class EncryptCodeServiceImpl implements EncryptCodeService {
             | NoSuchPaddingException
             | NoSuchAlgorithmException
             | BadPaddingException e) {
-      throw fail(e);
+      throw new IllegalStateException(e);
     }
-  }
-
-  private IllegalStateException fail(Exception e) {
-    return new IllegalStateException(e);
   }
 
   private void performanceLog(long startTime, String service){

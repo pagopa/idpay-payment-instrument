@@ -1,10 +1,21 @@
 package it.gov.pagopa.payment.instrument.controller;
 
-import it.gov.pagopa.payment.instrument.dto.*;
-import it.gov.pagopa.payment.instrument.service.idpaycode.EncryptCodeService;
-import it.gov.pagopa.payment.instrument.service.idpaycode.PaymentInstrumentCodeService;
+import it.gov.pagopa.payment.instrument.dto.BaseEnrollmentBodyDTO;
+import it.gov.pagopa.payment.instrument.dto.CheckEnrollmentDTO;
+import it.gov.pagopa.payment.instrument.dto.DeactivationBodyDTO;
+import it.gov.pagopa.payment.instrument.dto.EnrollmentBodyDTO;
+import it.gov.pagopa.payment.instrument.dto.GenerateCodeReqDTO;
+import it.gov.pagopa.payment.instrument.dto.GenerateCodeRespDTO;
+import it.gov.pagopa.payment.instrument.dto.HpanGetDTO;
+import it.gov.pagopa.payment.instrument.dto.InstrumentDetailDTO;
+import it.gov.pagopa.payment.instrument.dto.InstrumentFromDiscountDTO;
+import it.gov.pagopa.payment.instrument.dto.InstrumentIssuerDTO;
+import it.gov.pagopa.payment.instrument.dto.PinBlockDTO;
+import it.gov.pagopa.payment.instrument.dto.UnsubscribeBodyDTO;
+import it.gov.pagopa.payment.instrument.dto.VerifyPinBlockDTO;
 import it.gov.pagopa.payment.instrument.service.PaymentInstrumentDiscountService;
 import it.gov.pagopa.payment.instrument.service.PaymentInstrumentService;
+import it.gov.pagopa.payment.instrument.service.idpaycode.PaymentInstrumentCodeService;
 import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
@@ -19,16 +30,13 @@ public class PaymentInstrumentControllerImpl implements PaymentInstrumentControl
   private final PaymentInstrumentService paymentInstrumentService;
   private final PaymentInstrumentDiscountService paymentInstrumentDiscountService;
   private final PaymentInstrumentCodeService paymentInstrumentCodeService;
-  private final EncryptCodeService encryptCodeService;
 
   public PaymentInstrumentControllerImpl(PaymentInstrumentService paymentInstrumentService,
       PaymentInstrumentDiscountService paymentInstrumentDiscountService,
-      PaymentInstrumentCodeService paymentInstrumentCodeService,
-      EncryptCodeService encryptCodeService) {
+      PaymentInstrumentCodeService paymentInstrumentCodeService) {
     this.paymentInstrumentService = paymentInstrumentService;
     this.paymentInstrumentDiscountService = paymentInstrumentDiscountService;
     this.paymentInstrumentCodeService = paymentInstrumentCodeService;
-    this.encryptCodeService = encryptCodeService;
   }
 
   @Override
@@ -119,9 +127,8 @@ public class PaymentInstrumentControllerImpl implements PaymentInstrumentControl
   }
 
   @Override
-  public ResponseEntity<String> encryptWithAzure(String encryptedPinBlock) {
-    String hashedPinBlock = encryptCodeService.encryptWithAzureAPI(encryptedPinBlock);
-    log.info("Passa aqui: {}", hashedPinBlock);
-    return new ResponseEntity<>(hashedPinBlock, HttpStatus.OK);
+  public ResponseEntity<VerifyPinBlockDTO> verifyPinBlock(String userId, PinBlockDTO pinBlockDTO) {
+    boolean pinBlockVerified = paymentInstrumentCodeService.verifyPinBlock(userId, pinBlockDTO);
+    return new ResponseEntity<>(new VerifyPinBlockDTO(pinBlockVerified), HttpStatus.OK);
   }
 }
