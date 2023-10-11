@@ -2,6 +2,7 @@ package it.gov.pagopa.common.azure.keyvault;
 
 import com.azure.security.keyvault.keys.KeyClient;
 import com.azure.security.keyvault.keys.cryptography.CryptographyClient;
+import com.azure.security.keyvault.keys.cryptography.models.EncryptionAlgorithm;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -13,11 +14,12 @@ class AzureEncryptUtilsTestIntegrated {
     @Test
     void test(){
         String plainvalue = "PLAINVALUE";
+        EncryptionAlgorithm encryptionAlgorithm = EncryptionAlgorithm.RSA_OAEP;
 
         KeyClient keyClient = AzureEncryptUtils.getKeyClient("https://cstar-d-idpay-kv.vault.azure.net");
         CryptographyClient cryptographyClient = AzureEncryptUtils.buildCryptographyClient(keyClient.getKey("testIdpayCodeRSA"));
-        String encryptedValue = AzureEncryptUtils.encrypt(plainvalue, cryptographyClient);
-        String decryptedValue = AzureEncryptUtils.decrypt(encryptedValue, cryptographyClient);
+        String encryptedValue = AzureEncryptUtils.encrypt(plainvalue, encryptionAlgorithm, cryptographyClient);
+        String decryptedValue = AzureEncryptUtils.decrypt(encryptedValue, encryptionAlgorithm, cryptographyClient);
         Assertions.assertEquals(plainvalue, decryptedValue);
     }
 }

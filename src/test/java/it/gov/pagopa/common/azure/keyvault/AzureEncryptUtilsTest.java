@@ -15,6 +15,8 @@ import java.nio.charset.StandardCharsets;
 
 class AzureEncryptUtilsTest {
 
+    public static final EncryptionAlgorithm ENCRYPTION_ALGORITHM = EncryptionAlgorithm.RSA_OAEP;
+
     @Test
     void testGetKeyClient(){
         // Given
@@ -52,15 +54,15 @@ class AzureEncryptUtilsTest {
         byte[] cipherValue = "CIPHERVALUE".getBytes(StandardCharsets.UTF_8);
 
         CryptographyClient cryptographyClientMock = Mockito.mock(CryptographyClient.class);
-        Mockito.when(cryptographyClientMock.encrypt(EncryptionAlgorithm.RSA_OAEP, plainvalue.getBytes(StandardCharsets.UTF_8)))
-                .thenReturn(new EncryptResult(cipherValue, EncryptionAlgorithm.RSA_OAEP, keyId));
-        Mockito.when(cryptographyClientMock.decrypt(EncryptionAlgorithm.RSA_OAEP, cipherValue))
-                .thenReturn(new DecryptResult(plainvalue.getBytes(StandardCharsets.UTF_8), EncryptionAlgorithm.RSA_OAEP, keyId));
+        Mockito.when(cryptographyClientMock.encrypt(ENCRYPTION_ALGORITHM, plainvalue.getBytes(StandardCharsets.UTF_8)))
+                .thenReturn(new EncryptResult(cipherValue, ENCRYPTION_ALGORITHM, keyId));
+        Mockito.when(cryptographyClientMock.decrypt(ENCRYPTION_ALGORITHM, cipherValue))
+                .thenReturn(new DecryptResult(plainvalue.getBytes(StandardCharsets.UTF_8), ENCRYPTION_ALGORITHM, keyId));
 
         // When
-        String encryptedValue = AzureEncryptUtils.encrypt(plainvalue, cryptographyClientMock);
+        String encryptedValue = AzureEncryptUtils.encrypt(plainvalue, ENCRYPTION_ALGORITHM, cryptographyClientMock);
         Assertions.assertNotNull(encryptedValue);
-        String decryptedValue = AzureEncryptUtils.decrypt(encryptedValue, cryptographyClientMock);
+        String decryptedValue = AzureEncryptUtils.decrypt(encryptedValue, ENCRYPTION_ALGORITHM, cryptographyClientMock);
 
         // Then
         Assertions.assertEquals(plainvalue, decryptedValue);

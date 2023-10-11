@@ -32,18 +32,18 @@ public class AzureEncryptUtils {
                 .buildClient();
     }
 
-    public static String encrypt(String plainValue, CryptographyClient cryptoClient) {
+    public static String encrypt(String plainValue, EncryptionAlgorithm encryptionAlgorithm, CryptographyClient cryptoClient) {
         // String -> byte[] -> RSA -> Base64
         return Base64.getEncoder()
                 .encodeToString(
-                        cryptoClient.encrypt(EncryptionAlgorithm.RSA_OAEP,
+                        cryptoClient.encrypt(encryptionAlgorithm,
                                 plainValue.getBytes(StandardCharsets.UTF_8)).getCipherText());
     }
 
-    public static String decrypt(String encryptedValue, CryptographyClient cryptoClient) {
+    public static String decrypt(String encryptedValue, EncryptionAlgorithm encryptionAlgorithm, CryptographyClient cryptoClient) {
         // Base64 -> RSA -> byte[] -> String
         return new String(
-                cryptoClient.decrypt(EncryptionAlgorithm.RSA_OAEP,
+                cryptoClient.decrypt(encryptionAlgorithm,
                         Base64.getDecoder().decode(encryptedValue)).getPlainText(), StandardCharsets.UTF_8);
     }
 }
