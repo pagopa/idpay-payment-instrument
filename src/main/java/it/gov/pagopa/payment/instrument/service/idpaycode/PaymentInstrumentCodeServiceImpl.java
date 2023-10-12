@@ -120,13 +120,13 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
       throw new PaymentInstrumentException(404, "");
     }
 
-    String encryptedShaDataBlock = idpayCodeEncryptionService.hashSHADecryptedDataBlock(userId, pinBlockDTO,
+    String inputPlainIdpayCode = idpayCodeEncryptionService.hashSHADecryptedDataBlock(userId, pinBlockDTO,
         paymentInstrumentCode.getSalt());
 
-    String decryptedIdpayCode = idpayCodeEncryptionService.decryptIdpayCode(
+    String expectedPlainIdpayCode = idpayCodeEncryptionService.decryptIdpayCode(
         new EncryptedDataBlock(paymentInstrumentCode.getIdpayCode(), paymentInstrumentCode.getKeyId()));
 
-    if (!encryptedShaDataBlock.equals(decryptedIdpayCode)){
+    if (!inputPlainIdpayCode .equals(expectedPlainIdpayCode )){
       throw new PaymentInstrumentException(403, "");
     }
     return true;
