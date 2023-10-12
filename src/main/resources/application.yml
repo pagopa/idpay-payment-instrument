@@ -277,5 +277,5 @@ crypto:
     key-vault:
       url: ${AZURE_KEYVAULT_URL:https://cstar-d-idpay-kv.vault.azure.net/}
       key-names:
-        data-block: ${AZURE_KEYVAULT_KEYNAMES_DATABLOCK:idpay-mil-key}
-        secret-key: ${AZURE_KEYVAULT_KEYNAMES_SECRETKEY:idpay-pinblock-key}
+        data-block: ${AZURE_KEYVAULT_KEYNAMES_DATABLOCK:idpay-pinblock-key}
+        secret-key: ${AZURE_KEYVAULT_KEYNAMES_SECRETKEY:idpay-mil-key}
