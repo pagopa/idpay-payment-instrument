@@ -100,8 +100,6 @@ microservice-chart:
     PDV_ENCRYPT_API_KEY: pdv-api-key
     PDV_DECRYPT_API_KEY: pdv-api-key
     PM_SERVICE_APIM_KEY: pm-api-key
-    AZURE_KEYVAULT_KEYNAMES_DATABLOCK: azure-key-vault-key-names-datablock
-    AZURE_KEYVAULT_KEYNAMES_SECRETKEY: azure-key-vault-key-names-secretkey
 
   # nodeSelector: {}
 

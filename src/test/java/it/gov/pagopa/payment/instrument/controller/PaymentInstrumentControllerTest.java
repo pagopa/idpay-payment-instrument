@@ -14,6 +14,7 @@ import it.gov.pagopa.payment.instrument.dto.HpanDTO;
 import it.gov.pagopa.payment.instrument.dto.HpanGetDTO;
 import it.gov.pagopa.payment.instrument.dto.InstrumentDetailDTO;
 import it.gov.pagopa.payment.instrument.dto.InstrumentIssuerDTO;
+import it.gov.pagopa.payment.instrument.dto.PinBlockDTO;
 import it.gov.pagopa.payment.instrument.dto.UnsubscribeBodyDTO;
 import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
 import it.gov.pagopa.payment.instrument.service.idpaycode.PaymentInstrumentCodeService;
@@ -88,6 +89,8 @@ class PaymentInstrumentControllerTest {
   private static final String ENROLL_CODE_URL = "/generate-code/" + USER_ID;
   private static final String CODE_STATUS_URL = "/code/status/" + USER_ID;
   private static final String GET_SECOND_FACTOR_URL = "/code/secondFactor/" + USER_ID;
+
+  private static final String VERIFY_PIN_BLOCK_URL = "/code/verify/" + USER_ID;
   @MockBean
   PaymentInstrumentService paymentInstrumentServiceMock;
 
@@ -395,7 +398,6 @@ class PaymentInstrumentControllerTest {
 
   @Test
   void enroll_code_empty_body() throws Exception {
-
     mvc.perform(MockMvcRequestBuilders.post(BASE_URL + ENROLL_CODE_URL)
             .contentType(MediaType.APPLICATION_JSON_VALUE)
             .accept(MediaType.APPLICATION_JSON_VALUE))
@@ -405,7 +407,6 @@ class PaymentInstrumentControllerTest {
 
   @Test
   void idpayCode_status_ok() throws Exception {
-
     mvc.perform(MockMvcRequestBuilders.get(BASE_URL + CODE_STATUS_URL)
             .contentType(MediaType.APPLICATION_JSON_VALUE)
             .accept(MediaType.APPLICATION_JSON_VALUE))
@@ -415,9 +416,20 @@ class PaymentInstrumentControllerTest {
 
   @Test
   void getSecondFactor_ok() throws Exception {
-
     mvc.perform(MockMvcRequestBuilders.get(BASE_URL + GET_SECOND_FACTOR_URL)
             .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .accept(MediaType.APPLICATION_JSON_VALUE))
+        .andExpect(MockMvcResultMatchers.status().isOk())
+        .andReturn();
+  }
+
+  @Test
+  void verify_pinBlock_ok() throws Exception {
+    ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
+
+    mvc.perform(MockMvcRequestBuilders.get(BASE_URL + VERIFY_PIN_BLOCK_URL)
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .content(objectMapper.writeValueAsString(new PinBlockDTO("test", "test")))
             .accept(MediaType.APPLICATION_JSON_VALUE))
         .andExpect(MockMvcResultMatchers.status().isOk())
         .andReturn();

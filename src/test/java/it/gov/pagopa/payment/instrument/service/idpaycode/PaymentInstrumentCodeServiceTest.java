@@ -261,6 +261,15 @@ class PaymentInstrumentCodeServiceTest {
     }
   }
 
+//  @Test
+//  void verifyPinBlock(){
+//    Mockito.when(paymentInstrumentCodeRepository.findByUserId(USERID))
+//        .thenReturn(Optional.ofNullable(any(PaymentInstrumentCode.class)));
+//
+//    Mockito.when(idpayCodeEncryptionService.hashSHADecryptedDataBlock(USERID, new PinBlockDTO("12345", "test-key"), "salt"))
+//        .thenReturn("sha256");
+//  }
+
   private void assertions(GenerateCodeRespDTO generateCodeRespDTO) {
     verify(paymentInstrumentCodeRepository, Mockito.times(1))
         .updateCode(anyString(), anyString(), anyString(), anyString(), anyString(), any());

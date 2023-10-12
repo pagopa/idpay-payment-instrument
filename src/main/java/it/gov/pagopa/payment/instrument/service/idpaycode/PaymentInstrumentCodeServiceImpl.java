@@ -117,7 +117,7 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
     PaymentInstrumentCode paymentInstrumentCode = paymentInstrumentCodeRepository.findByUserId(
         userId).orElse(null);
     if (paymentInstrumentCode == null){
-      throw new PaymentInstrumentException(404, "");
+      throw new PaymentInstrumentException(404, "Instrument not found");
     }
 
     String inputPlainIdpayCode = idpayCodeEncryptionService.hashSHADecryptedDataBlock(userId, pinBlockDTO,
@@ -127,7 +127,7 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
         new EncryptedDataBlock(paymentInstrumentCode.getIdpayCode(), paymentInstrumentCode.getKeyId()));
 
     if (!inputPlainIdpayCode .equals(expectedPlainIdpayCode )){
-      throw new PaymentInstrumentException(403, "");
+      throw new PaymentInstrumentException(403, "IdpayCode is incorrect");
     }
     return true;
   }
