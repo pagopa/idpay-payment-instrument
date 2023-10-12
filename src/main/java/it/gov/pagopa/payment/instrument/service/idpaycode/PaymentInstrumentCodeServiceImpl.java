@@ -2,6 +2,7 @@ package it.gov.pagopa.payment.instrument.service.idpaycode;
 
 import feign.FeignException;
 import it.gov.pagopa.payment.instrument.connector.WalletRestConnector;
+import it.gov.pagopa.payment.instrument.dto.EncryptedDataBlock;
 import it.gov.pagopa.payment.instrument.dto.GenerateCodeRespDTO;
 import it.gov.pagopa.payment.instrument.dto.PinBlockDTO;
 import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
@@ -59,11 +60,12 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
 
     // hash and encrypt plain code
     String hashedDataBlock = idpayCodeEncryptionService.buildHashedDataBlock(plainCode, secondFactorWithLeftPad, salt);
-    String pinBlock = idpayCodeEncryptionService.encryptSHADataBlock(hashedDataBlock);
+    EncryptedDataBlock encryptedDataBlock = idpayCodeEncryptionService.encryptSHADataBlock(hashedDataBlock);
     log.info("[{}] Code generated successfully on userId: {}", GENERATED_CODE, userId);
 
     // save encrypted code
-    paymentInstrumentCodeRepository.updateCode(userId, pinBlock, salt, secondFactorWithLeftPad, LocalDateTime.now());
+    paymentInstrumentCodeRepository.updateCode(userId, encryptedDataBlock.getEncryptedDataBlock(), salt,
+        secondFactorWithLeftPad, encryptedDataBlock.getKeyId(), LocalDateTime.now());
     performanceLog(startTime, GENERATED_CODE, userId, initiativeId);
     auditUtilities.logGeneratedCode(userId, LocalDateTime.now());
 
@@ -118,12 +120,13 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
       throw new PaymentInstrumentException(404, "");
     }
 
-    String verifiedPin = idpayCodeEncryptionService.verifyPinBlock(userId, pinBlockDTO,
+    String encryptedShaDataBlock = idpayCodeEncryptionService.hashSHADecryptedDataBlock(userId, pinBlockDTO,
         paymentInstrumentCode.getSalt());
 
-    String encryptedPinBlock = idpayCodeEncryptionService.encryptSHADataBlock(verifiedPin);
+    String decryptedIdpayCode = idpayCodeEncryptionService.decryptIdpayCode(
+        new EncryptedDataBlock(paymentInstrumentCode.getIdpayCode(), paymentInstrumentCode.getKeyId()));
 
-    if (!paymentInstrumentCode.getIdpayCode().equals(encryptedPinBlock)){
+    if (!encryptedShaDataBlock.equals(decryptedIdpayCode)){
       throw new PaymentInstrumentException(403, "");
     }
     return true;

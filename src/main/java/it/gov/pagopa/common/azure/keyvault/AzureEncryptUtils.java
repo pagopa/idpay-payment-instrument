@@ -26,8 +26,12 @@ public class AzureEncryptUtils {
     }
 
     public static CryptographyClient buildCryptographyClient(KeyVaultKey key){
+        return buildCryptographyClient(key.getId());
+    }
+
+    public static CryptographyClient buildCryptographyClient(String keyId){
         return new CryptographyClientBuilder()
-                .keyIdentifier(key.getId())
+                .keyIdentifier(keyId)
                 .credential(DEFAULT_AZURE_CREDENTIAL)
                 .buildClient();
     }

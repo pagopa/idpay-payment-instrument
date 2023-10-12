@@ -23,6 +23,7 @@ public class PaymentInstrumentCode {
   private String idpayCode;
   private String salt;
   private String secondFactor;
+  private String keyId;
   private int generationCodeCounter;
   private LocalDateTime creationDate;
 

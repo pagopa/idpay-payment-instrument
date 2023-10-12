@@ -1,5 +1,11 @@
 package it.gov.pagopa.payment.instrument.service.idpaycode;
 
+import com.azure.security.keyvault.keys.KeyClient;
+import com.azure.security.keyvault.keys.cryptography.CryptographyClient;
+import com.azure.security.keyvault.keys.cryptography.models.EncryptionAlgorithm;
+import com.azure.security.keyvault.keys.models.KeyVaultKey;
+import it.gov.pagopa.common.azure.keyvault.AzureEncryptUtils;
+import it.gov.pagopa.payment.instrument.dto.EncryptedDataBlock;
 import it.gov.pagopa.payment.instrument.dto.PinBlockDTO;
 import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
 import java.nio.charset.StandardCharsets;
@@ -8,6 +14,8 @@ import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
@@ -31,12 +39,23 @@ public class IdpayCodeEncryptionServiceImpl implements IdpayCodeEncryptionServic
   public static final String HASH_PIN_BLOCK = "HASH_PIN_BLOCK";
   private final String cipherInstance;
   private final String iv;
+  private final String keyName_dataBlock;
+  private final String keyName_secretKey;
+  private final KeyClient keyClient;
+  private final Map<String, CryptographyClient> cryptoClientCache = new ConcurrentHashMap<>();
 
   public IdpayCodeEncryptionServiceImpl(
-      @Value("${util.crypto.aes.cipherInstance}") String cipherInstance,
-      @Value("${util.crypto.aes.mode.gcm.iv}") String iv) {
+      @Value("${crypto.aes.cipherInstance}") String cipherInstance,
+      @Value("${crypto.aes.mode.gcm.iv}") String iv,
+      @Value("${crypto.azure.key-vault.url}") String keyVaultUrl,
+      @Value("${crypto.azure.key-vault.key-names.data-block}") String keyNameDataBlock,
+      @Value("${crypto.azure.key-vault.key-names.secret-key}")String keyNameSecretKey) {
     this.cipherInstance = cipherInstance;
     this.iv = iv;
+    this.keyName_dataBlock = keyNameDataBlock;
+    this.keyName_secretKey = keyNameSecretKey;
+
+    keyClient = AzureEncryptUtils.getKeyClient(keyVaultUrl);
   }
 
   @Override
@@ -79,30 +98,37 @@ public class IdpayCodeEncryptionServiceImpl implements IdpayCodeEncryptionServic
   }
 
   /**
-   * Verify correct Pin Block in three steps
+   * Hash Pin Block that arrives in input in three steps
    * First step: Decrypt symmetric key with Azure API
    * Second step: Decrypt PinBlock with AES
    * Third step: Hash decrypted pinBlock with SHA256
    */
   @Override
-  public String verifyPinBlock(String userId, PinBlockDTO pinBlockDTO, String salt) {
-    String decryptSymmetricKey = decryptSymmetricKey(pinBlockDTO.getEncryptedKey());
-    // TODO String decryptedPin = decryptPinBlockWithSymmetricKey(pinBlockDTO.getEncryptedPinBlock(), decryptSymmetricKey);
+  public String hashSHADecryptedDataBlock(String userId, PinBlockDTO pinBlockDTO, String salt) {
+    String decryptedSymmetricKey = decryptSymmetricKey(pinBlockDTO.getEncryptedKey());
+    String dataBlock = decryptPinBlockWithSymmetricKey(pinBlockDTO.getPinBlock(), decryptedSymmetricKey);
 
-    // Change pinBlockDTO.getEncryptedPinBlock() with decryptSymmetricKey variable
-    return createSHA256Digest(pinBlockDTO.getPinBlock(), salt);
+    return createSHA256Digest(dataBlock, salt);
   }
 
+  /**  Encrypt hashed(SHA256) Data Block with Azure API */
   @Override
-  public String encryptSHADataBlock(String dataBlock) {
-    //TODO encrypt sha data block (POC)
-    return dataBlock;
+  public EncryptedDataBlock encryptSHADataBlock(String dataBlock) {
+    KeyVaultKey key = keyClient.getKey(keyName_dataBlock);
+
+    CryptographyClient cryptographyClient = cryptoClientCache.computeIfAbsent(
+        key.getId(), AzureEncryptUtils::buildCryptographyClient);
+
+    return new EncryptedDataBlock(AzureEncryptUtils.encrypt(dataBlock, EncryptionAlgorithm.RSA_OAEP, cryptographyClient), key.getId());
   }
 
   @Override
   public String decryptSymmetricKey(String symmetricKey) {
-    //TODO decrypt symmetric key
-    return symmetricKey;
+    KeyVaultKey key = keyClient.getKey(keyName_secretKey);
+
+    CryptographyClient cryptographyClient = cryptoClientCache.computeIfAbsent(
+        key.getId(), AzureEncryptUtils::buildCryptographyClient);
+    return AzureEncryptUtils.decrypt(symmetricKey, EncryptionAlgorithm.RSA_OAEP, cryptographyClient);
   }
 
   /**  Hashing pinBlock with algorithm SHA-256 */
@@ -123,6 +149,16 @@ public class IdpayCodeEncryptionServiceImpl implements IdpayCodeEncryptionServic
     } catch (NoSuchAlgorithmException e) {
       throw new PaymentInstrumentException(403, "Something went wrong creating SHA256 digest");
     }
+  }
+
+  @Override
+  public String decryptIdpayCode(EncryptedDataBlock encryptedDataBlock) {
+
+    CryptographyClient cryptographyClient = cryptoClientCache.computeIfAbsent(
+        encryptedDataBlock.getKeyId(), AzureEncryptUtils::buildCryptographyClient);
+
+    return AzureEncryptUtils.decrypt(
+        encryptedDataBlock.getEncryptedDataBlock(), EncryptionAlgorithm.RSA_OAEP, cryptographyClient);
   }
 
   /**  Decrypt(AES) PinBlock with symmetric key */

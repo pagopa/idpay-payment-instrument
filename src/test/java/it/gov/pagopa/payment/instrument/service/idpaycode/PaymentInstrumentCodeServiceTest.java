@@ -14,6 +14,7 @@ import feign.Request;
 import feign.Request.HttpMethod;
 import feign.RequestTemplate;
 import it.gov.pagopa.payment.instrument.connector.WalletRestConnector;
+import it.gov.pagopa.payment.instrument.dto.EncryptedDataBlock;
 import it.gov.pagopa.payment.instrument.dto.GenerateCodeRespDTO;
 import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
 import it.gov.pagopa.payment.instrument.model.PaymentInstrumentCode;
@@ -55,7 +56,11 @@ class PaymentInstrumentCodeServiceTest {
 
   @Test
   void generateCode_initiativeId_not_empty(){
-    Mockito.when(idpayCodeEncryptionService.buildHashedDataBlock(anyString(), anyString(), anyString())).thenReturn("12345");
+    Mockito.when(idpayCodeEncryptionService.buildHashedDataBlock(anyString(), anyString(), anyString()))
+        .thenReturn("12345");
+
+    Mockito.when(idpayCodeEncryptionService.encryptSHADataBlock("12345"))
+        .thenReturn(new EncryptedDataBlock("testDataBlock", "testKeyId"));
 
         GenerateCodeRespDTO generateCodeRespDTO =
         paymentInstrumentCodeService.generateCode(USERID, INITIATIVE_ID);
@@ -65,7 +70,11 @@ class PaymentInstrumentCodeServiceTest {
 
   @Test
   void generateCode_initiativeId_empty(){
-    Mockito.when(idpayCodeEncryptionService.buildHashedDataBlock(anyString(), anyString(), anyString())).thenReturn("12345");
+    Mockito.when(idpayCodeEncryptionService.buildHashedDataBlock(anyString(), anyString(), anyString()))
+        .thenReturn("12345");
+
+    Mockito.when(idpayCodeEncryptionService.encryptSHADataBlock("12345"))
+        .thenReturn(new EncryptedDataBlock("testDataBlock", "testKeyId"));
 
     GenerateCodeRespDTO generateCodeRespDTO =
         paymentInstrumentCodeService.generateCode(USERID, "");
@@ -76,7 +85,11 @@ class PaymentInstrumentCodeServiceTest {
 
   @Test
   void generateCode_initiativeId_null(){
-    Mockito.when(idpayCodeEncryptionService.buildHashedDataBlock(anyString(),anyString(), anyString())).thenReturn("12345");
+    Mockito.when(idpayCodeEncryptionService.buildHashedDataBlock(anyString(),anyString(), anyString()))
+        .thenReturn("12345");
+
+    Mockito.when(idpayCodeEncryptionService.encryptSHADataBlock("12345"))
+        .thenReturn(new EncryptedDataBlock("testDataBlock", "testKeyId"));
 
     GenerateCodeRespDTO generateCodeRespDTO =
         paymentInstrumentCodeService.generateCode(USERID, null);
@@ -87,13 +100,21 @@ class PaymentInstrumentCodeServiceTest {
 
   @Test
   void generateCode_enrollKo_notFound(){
+    Mockito.when(idpayCodeEncryptionService.buildHashedDataBlock(anyString(),anyString(), anyString()))
+        .thenReturn("12345");
+
+    Mockito.when(idpayCodeEncryptionService.encryptSHADataBlock("12345"))
+        .thenReturn(new EncryptedDataBlock("testDataBlock", "testKeyId"));
+
     Mockito.when(paymentInstrumentCodeRepository.deleteInstrument(USERID))
         .thenReturn(new PaymentInstrumentCode());
+
     Request request =
         Request.create(
             HttpMethod.PUT, "url", new HashMap<>(), null, new RequestTemplate());
     Mockito.doThrow(new FeignException.NotFound("Initiative not found", request, new byte[0], null))
         .when(walletRestConnector).enrollInstrumentCode(INITIATIVE_ID, USERID);
+
     try {
       paymentInstrumentCodeService.generateCode(USERID, INITIATIVE_ID);
     }catch (PaymentInstrumentException e){
@@ -105,8 +126,15 @@ class PaymentInstrumentCodeServiceTest {
 
   @Test
   void generateCode_enrollKo_tooManyRequests(){
+    Mockito.when(idpayCodeEncryptionService.buildHashedDataBlock(anyString(),anyString(), anyString()))
+        .thenReturn("12345");
+
+    Mockito.when(idpayCodeEncryptionService.encryptSHADataBlock("12345"))
+        .thenReturn(new EncryptedDataBlock("testDataBlock", "testKeyId"));
+
     Mockito.when(paymentInstrumentCodeRepository.deleteInstrument(USERID))
         .thenReturn(new PaymentInstrumentCode());
+
     Request request =
         Request.create(
             HttpMethod.PUT, "url", new HashMap<>(), null, new RequestTemplate());
@@ -123,8 +151,15 @@ class PaymentInstrumentCodeServiceTest {
 
   @Test
   void generateCode_enrollKo_badRequest(){
+    Mockito.when(idpayCodeEncryptionService.buildHashedDataBlock(anyString(),anyString(), anyString()))
+        .thenReturn("12345");
+
+    Mockito.when(idpayCodeEncryptionService.encryptSHADataBlock("12345"))
+        .thenReturn(new EncryptedDataBlock("testDataBlock", "testKeyId"));
+
     Mockito.when(paymentInstrumentCodeRepository.deleteInstrument(USERID))
         .thenReturn(new PaymentInstrumentCode());
+
     Request request =
         Request.create(
             HttpMethod.PUT, "url", new HashMap<>(), null, new RequestTemplate());
@@ -141,8 +176,15 @@ class PaymentInstrumentCodeServiceTest {
 
   @Test
   void generateCode_enrollKo_internalServerError(){
+    Mockito.when(idpayCodeEncryptionService.buildHashedDataBlock(anyString(),anyString(), anyString()))
+        .thenReturn("12345");
+
+    Mockito.when(idpayCodeEncryptionService.encryptSHADataBlock("12345"))
+        .thenReturn(new EncryptedDataBlock("testDataBlock", "testKeyId"));
+
     Mockito.when(paymentInstrumentCodeRepository.deleteInstrument(USERID))
         .thenReturn(new PaymentInstrumentCode());
+
     Request request =
         Request.create(
             HttpMethod.PUT, "url", new HashMap<>(), null, new RequestTemplate());
@@ -221,7 +263,7 @@ class PaymentInstrumentCodeServiceTest {
 
   private void assertions(GenerateCodeRespDTO generateCodeRespDTO) {
     verify(paymentInstrumentCodeRepository, Mockito.times(1))
-        .updateCode(anyString(), anyString(), anyString(), anyString(), any());
+        .updateCode(anyString(), anyString(), anyString(), anyString(), anyString(), any());
     assertNotNull(generateCodeRespDTO);
     assertEquals(5, generateCodeRespDTO.getIdpayCode().length());
   }
