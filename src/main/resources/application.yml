@@ -272,7 +272,6 @@ app:
 crypto:
   aes:
     cipherInstance: ${CRYPTO_AES_CIPHER_INSTANCE:AES/CBC/PKCS5Padding}
-    mode.gcm.iv: ${CRYPTO_AES_MODE_GCM_IV:0}
   azure:
     key-vault:
       url: ${AZURE_KEYVAULT_URL:https://cstar-d-idpay-kv.vault.azure.net/}

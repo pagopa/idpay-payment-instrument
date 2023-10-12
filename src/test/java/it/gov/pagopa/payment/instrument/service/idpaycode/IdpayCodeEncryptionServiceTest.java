@@ -16,7 +16,6 @@ class IdpayCodeEncryptionServiceTest {
 
   private IdpayCodeEncryptionService idpayCodeEncryptionService;
   private static final String CIPHER_INSTANCE = "AES/GCM/NoPadding";
-  private static final String IV = "IV_SAMPLE";
   private static final String keyVaultUrl = "https://cstar-d-idpay-kv.vault.azure.net/";
   private static final String keyName = "testKeyName";
   private static final String keyNameSecretKey = "testSecretKeyName";
@@ -24,7 +23,7 @@ class IdpayCodeEncryptionServiceTest {
   @BeforeEach
   void setUp() {
 
-    idpayCodeEncryptionService = new IdpayCodeEncryptionServiceImpl(CIPHER_INSTANCE, IV,
+    idpayCodeEncryptionService = new IdpayCodeEncryptionServiceImpl(CIPHER_INSTANCE,
         keyVaultUrl, keyName, keyNameSecretKey);
   }
 

@@ -8,21 +8,6 @@ import it.gov.pagopa.common.azure.keyvault.AzureEncryptUtils;
 import it.gov.pagopa.payment.instrument.dto.EncryptedDataBlock;
 import it.gov.pagopa.payment.instrument.dto.PinBlockDTO;
 import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
-import java.nio.charset.StandardCharsets;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.DecoderException;
@@ -31,6 +16,18 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import javax.crypto.*;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
+import java.nio.charset.StandardCharsets;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 @Service
 @Slf4j
 public class IdpayCodeEncryptionServiceImpl implements IdpayCodeEncryptionService {
@@ -38,7 +35,7 @@ public class IdpayCodeEncryptionServiceImpl implements IdpayCodeEncryptionServic
   public static final String GENERATE_PIN_BLOCK = "GENERATE_PIN_BLOCK";
   public static final String HASH_PIN_BLOCK = "HASH_PIN_BLOCK";
   private final String cipherInstance;
-  private final String iv;
+  private final byte[] iv = new byte[16];
   private final String keyName_dataBlock;
   private final String keyName_secretKey;
   private final KeyClient keyClient;
@@ -46,16 +43,14 @@ public class IdpayCodeEncryptionServiceImpl implements IdpayCodeEncryptionServic
 
   public IdpayCodeEncryptionServiceImpl(
       @Value("${crypto.aes.cipherInstance}") String cipherInstance,
-      @Value("${crypto.aes.mode.gcm.iv}") String iv,
       @Value("${crypto.azure.key-vault.url}") String keyVaultUrl,
       @Value("${crypto.azure.key-vault.key-names.data-block}") String keyNameDataBlock,
       @Value("${crypto.azure.key-vault.key-names.secret-key}")String keyNameSecretKey) {
     this.cipherInstance = cipherInstance;
-    this.iv = iv;
     this.keyName_dataBlock = keyNameDataBlock;
     this.keyName_secretKey = keyNameSecretKey;
 
-    keyClient = AzureEncryptUtils.getKeyClient(keyVaultUrl);
+    this.keyClient = AzureEncryptUtils.getKeyClient(keyVaultUrl);
   }
 
   @Override
@@ -166,15 +161,19 @@ public class IdpayCodeEncryptionServiceImpl implements IdpayCodeEncryptionServic
   private String decryptPinBlockWithSymmetricKey(String encryptedPinBlock, String encryptedKey) {
     SecretKeySpec secretKeySpec = new SecretKeySpec(encryptedKey.getBytes(), "AES");
 
-    byte[] decryptedBytes = decrypt(secretKeySpec, Base64.getDecoder().decode(encryptedPinBlock));
+    try {
+      byte[] decryptedBytes = decrypt(secretKeySpec, Hex.decodeHex(encryptedPinBlock));
 
-    return new String(decryptedBytes);
+      return new String(decryptedBytes);
+    } catch (DecoderException e){
+      throw new IllegalStateException("Something gone wrong while extracting datablock from pinblock", e);
+    }
   }
 
   private byte[] decrypt(SecretKey secretKeySpec, byte[] bytes) {
     try{
       Cipher cipher = Cipher.getInstance(cipherInstance);
-      IvParameterSpec ivParameterSpec = new IvParameterSpec(iv.getBytes());
+      IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
 
       cipher.init(Cipher.DECRYPT_MODE, secretKeySpec, ivParameterSpec);
       return cipher.doFinal(bytes);
