@@ -166,12 +166,12 @@ public class IdpayCodeEncryptionServiceImpl implements IdpayCodeEncryptionServic
   private String decryptPinBlockWithSymmetricKey(String encryptedPinBlock, String encryptedKey) {
     SecretKeySpec secretKeySpec = new SecretKeySpec(encryptedKey.getBytes(), "AES");
 
-    byte[] decryptedBytes = doFinal(secretKeySpec, Base64.getDecoder().decode(encryptedPinBlock));
+    byte[] decryptedBytes = decrypt(secretKeySpec, Base64.getDecoder().decode(encryptedPinBlock));
 
     return new String(decryptedBytes);
   }
 
-  private byte[] doFinal(SecretKey secretKeySpec, byte[] bytes) {
+  private byte[] decrypt(SecretKey secretKeySpec, byte[] bytes) {
     try{
       Cipher cipher = Cipher.getInstance(cipherInstance);
       IvParameterSpec ivParameterSpec = new IvParameterSpec(iv.getBytes());

@@ -114,6 +114,7 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
   /** Verify if pin block is correct */
   @Override
   public boolean verifyPinBlock(String userId, PinBlockDTO pinBlockDTO) {
+    long startTime = System.currentTimeMillis();
     PaymentInstrumentCode paymentInstrumentCode = paymentInstrumentCodeRepository.findByUserId(
         userId).orElse(null);
     if (paymentInstrumentCode == null){
@@ -126,10 +127,8 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
     String expectedPlainIdpayCode = idpayCodeEncryptionService.decryptIdpayCode(
         new EncryptedDataBlock(paymentInstrumentCode.getIdpayCode(), paymentInstrumentCode.getKeyId()));
 
-    if (!inputPlainIdpayCode .equals(expectedPlainIdpayCode )){
-      throw new PaymentInstrumentException(403, "IdpayCode is incorrect");
-    }
-    return true;
+    performanceLog(startTime, "VERIFY_IDPAY_CODE", userId, null);
+    return inputPlainIdpayCode.equals(expectedPlainIdpayCode);
   }
 
   @Override
