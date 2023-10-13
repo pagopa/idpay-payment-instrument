@@ -23,7 +23,7 @@ class PaymentInstrumentCodeRepositoryExtTest {
   @Test
   void updateCode(){
     paymentInstrumentCodeRepositoryExt.updateCode(
-        "USERID", "CODE", "SALT", "SECOND_FACTOR", LocalDateTime.now());
+        "USERID", "CODE", "SALT", "SECOND_FACTOR", "KEY_ID", LocalDateTime.now());
     Mockito.verify(mongoTemplate, Mockito.times(1))
         .upsert(Mockito.any(), Mockito.any(), (Class<?>) Mockito.any());
   }

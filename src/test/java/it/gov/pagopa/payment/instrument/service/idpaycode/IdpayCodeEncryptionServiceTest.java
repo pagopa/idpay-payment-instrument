@@ -12,18 +12,24 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 
 @ExtendWith(MockitoExtension.class)
-class EncryptCodeServiceTest {
+class IdpayCodeEncryptionServiceTest {
 
-  private EncryptCodeService encryptCodeService;
+  private IdpayCodeEncryptionService idpayCodeEncryptionService;
+  private static final String CIPHER_INSTANCE = "AES/GCM/NoPadding";
+  private static final String keyVaultUrl = "https://cstar-d-idpay-kv.vault.azure.net/";
+  private static final String keyName = "testKeyName";
+  private static final String keyNameSecretKey = "testSecretKeyName";
 
   @BeforeEach
   void setUp() {
-    encryptCodeService = new EncryptCodeServiceImpl();
+
+    idpayCodeEncryptionService = new IdpayCodeEncryptionServiceImpl(CIPHER_INSTANCE,
+        keyVaultUrl, keyName, keyNameSecretKey);
   }
 
   @Test
   void encryptIdpayCode(){
-    String idpayCode = encryptCodeService.buildHashedPinBlock(
+    String idpayCode = idpayCodeEncryptionService.buildHashedDataBlock(
         "12345","0000FFFFFFFFFFFF", "salt");
 
     assertNotNull(idpayCode);
@@ -32,7 +38,7 @@ class EncryptCodeServiceTest {
   @Test
   void encryptIdpayCode_ko_code_length(){
     try{
-      encryptCodeService.buildHashedPinBlock(
+      idpayCodeEncryptionService.buildHashedDataBlock(
           "1234","0000FFFFFFFFFFFF", "salt");
       fail();
     }catch (PaymentInstrumentException e){
@@ -44,7 +50,7 @@ class EncryptCodeServiceTest {
   @Test
   void encryptIdpayCode_ko_internalServerError() {
     try{
-      encryptCodeService.buildHashedPinBlock(
+      idpayCodeEncryptionService.buildHashedDataBlock(
           "12345","testError", "salt");
       fail();
     }catch (PaymentInstrumentException e){

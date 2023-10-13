@@ -108,7 +108,16 @@ public class PaymentInstrumentControllerImpl implements PaymentInstrumentControl
 
   @Override
   public ResponseEntity<CheckEnrollmentDTO> codeStatus(String userId) {
-    boolean isIdPayCodeEnabled = paymentInstrumentCodeService.codeStatus(userId);
-    return new ResponseEntity<>(new CheckEnrollmentDTO(isIdPayCodeEnabled), HttpStatus.OK);
+    return new ResponseEntity<>(new CheckEnrollmentDTO(paymentInstrumentCodeService.codeStatus(userId)), HttpStatus.OK);
+  }
+
+  @Override
+  public ResponseEntity<VerifyPinBlockDTO> verifyPinBlock(String userId, PinBlockDTO pinBlockDTO) {
+    return new ResponseEntity<>(new VerifyPinBlockDTO(paymentInstrumentCodeService.verifyPinBlock(userId, pinBlockDTO)), HttpStatus.OK);
+  }
+
+  @Override
+  public ResponseEntity<SecondFactorDTO> secondFactor(String userId) {
+    return new ResponseEntity<>(new SecondFactorDTO(paymentInstrumentCodeService.getSecondFactor(userId)), HttpStatus.OK);
   }
 }

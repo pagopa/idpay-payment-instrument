@@ -16,14 +16,15 @@ public class PaymentInstrumentCodeRepositoryExtImpl implements PaymentInstrument
   }
 
   @Override
-  public void updateCode(String userId, String code, String salt, String secondFactor, LocalDateTime creationDate) {
+  public void updateCode(String userId, String idpayCode, String salt, String secondFactor, String keyId, LocalDateTime creationDate) {
     mongoTemplate.upsert(
         Query.query(Criteria.where(Fields.userId).is(userId)),
         new Update()
             .set(Fields.userId, userId)
-            .set(Fields.idpayCode, code)
+            .set(Fields.idpayCode, idpayCode)
             .set(Fields.salt, salt)
             .set(Fields.secondFactor, secondFactor)
+            .set(Fields.keyId, keyId)
             .set(Fields.creationDate, creationDate)
             .inc(Fields.generationCodeCounter, 1),
         PaymentInstrumentCode.class);
