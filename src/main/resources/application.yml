@@ -266,15 +266,5 @@ spring:
 
 app:
   delete:
-    paginationSize: ${DELETE_PAGINATION_SIZE:100}
-    delayTime: ${DELETE_DELAY_TIME:1000}
-
-crypto:
-  aes:
-    cipherInstance: ${CRYPTO_AES_CIPHER_INSTANCE:AES/CBC/PKCS5Padding}
-  azure:
-    key-vault:
-      url: ${AZURE_KEYVAULT_URL:https://cstar-d-idpay-kv.vault.azure.net/}
-      key-names:
-        data-block: ${AZURE_KEYVAULT_KEYNAMES_DATABLOCK:idpay-pinblock-key}
-        secret-key: ${AZURE_KEYVAULT_KEYNAMES_SECRETKEY:idpay-mil-key}
+    paginationSize: ${DELETE_PAGINATION_SIZE}
+    delayTime: ${DELETE_DELAY_TIME}
