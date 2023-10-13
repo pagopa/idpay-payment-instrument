@@ -34,7 +34,6 @@ microservice-chart:
 
   envSecret:
     aks-api-url: cstar-u-weu-uat01-aks-apiserver-url
-    AZURE_KEYVAULT_URL: cstar-u-key-vault-url
 
   keyvault:
     name: "cstar-u-idpay-kv"
