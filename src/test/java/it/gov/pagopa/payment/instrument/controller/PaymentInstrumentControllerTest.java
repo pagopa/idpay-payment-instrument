@@ -427,7 +427,7 @@ class PaymentInstrumentControllerTest {
   void verify_pinBlock_ok() throws Exception {
     ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
-    mvc.perform(MockMvcRequestBuilders.get(BASE_URL + VERIFY_PIN_BLOCK_URL)
+    mvc.perform(MockMvcRequestBuilders.put(BASE_URL + VERIFY_PIN_BLOCK_URL)
             .contentType(MediaType.APPLICATION_JSON_VALUE)
             .content(objectMapper.writeValueAsString(new PinBlockDTO("test", "test")))
             .accept(MediaType.APPLICATION_JSON_VALUE))
