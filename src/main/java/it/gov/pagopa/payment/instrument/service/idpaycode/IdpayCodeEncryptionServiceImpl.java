@@ -43,14 +43,13 @@ public class IdpayCodeEncryptionServiceImpl implements IdpayCodeEncryptionServic
 
   public IdpayCodeEncryptionServiceImpl(
       @Value("${crypto.aes.cipherInstance}") String cipherInstance,
-      @Value("${crypto.azure.key-vault.url}") String keyVaultUrl,
+      KeyClient keyClient,
       @Value("${crypto.azure.key-vault.key-names.data-block}") String keyNameDataBlock,
       @Value("${crypto.azure.key-vault.key-names.secret-key}")String keyNameSecretKey) {
     this.cipherInstance = cipherInstance;
     this.keyName_dataBlock = keyNameDataBlock;
     this.keyName_secretKey = keyNameSecretKey;
-
-    this.keyClient = AzureEncryptUtils.getKeyClient(keyVaultUrl);
+    this.keyClient = keyClient;
   }
 
   @Override
@@ -158,7 +157,7 @@ public class IdpayCodeEncryptionServiceImpl implements IdpayCodeEncryptionServic
 
   /**  Decrypt(AES) PinBlock with symmetric key */
   @NonNull
-  private String decryptPinBlockWithSymmetricKey(String encryptedPinBlock, String encryptedKey) {
+  public String decryptPinBlockWithSymmetricKey(String encryptedPinBlock, String encryptedKey) {
     SecretKeySpec secretKeySpec = new SecretKeySpec(encryptedKey.getBytes(), "AES");
 
     try {
