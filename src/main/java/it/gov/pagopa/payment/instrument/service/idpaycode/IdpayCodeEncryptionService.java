@@ -12,4 +12,6 @@ public interface IdpayCodeEncryptionService {
   String decryptSymmetricKey(String symmetricKey);
   String decryptIdpayCode(EncryptedDataBlock encryptedDataBlock);
 
+  String decryptPinBlockWithSymmetricKey(String encryptedPinBlock, String encryptedKey);
+
 }
