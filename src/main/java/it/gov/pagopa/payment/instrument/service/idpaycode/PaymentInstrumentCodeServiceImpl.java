@@ -101,7 +101,7 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
   public boolean codeStatus(String userId) {
     long startTime = System.currentTimeMillis();
 
-    PaymentInstrumentCode paymentInstrumentCode = paymentInstrumentCodeRepository.findByUserId(
+    PaymentInstrumentCode paymentInstrumentCode = paymentInstrumentCodeRepository.findById(
         userId).orElse(null);
 
     boolean idpayCodeEnabled = (paymentInstrumentCode != null) && (paymentInstrumentCode.getIdpayCode() != null);
@@ -115,7 +115,7 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
   @Override
   public boolean verifyPinBlock(String userId, PinBlockDTO pinBlockDTO) {
     long startTime = System.currentTimeMillis();
-    PaymentInstrumentCode paymentInstrumentCode = paymentInstrumentCodeRepository.findByUserId(
+    PaymentInstrumentCode paymentInstrumentCode = paymentInstrumentCodeRepository.findById(
         userId).orElse(null);
     if (paymentInstrumentCode == null){
       throw new PaymentInstrumentException(404, "Instrument not found");
@@ -135,7 +135,7 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
   public String getSecondFactor(String userId) {
     long startTime = System.currentTimeMillis();
 
-    PaymentInstrumentCode paymentInstrumentCode = paymentInstrumentCodeRepository.findByUserId(
+    PaymentInstrumentCode paymentInstrumentCode = paymentInstrumentCodeRepository.findById(
         userId).orElse(null);
 
     if (paymentInstrumentCode==null){

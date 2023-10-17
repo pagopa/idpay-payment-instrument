@@ -227,7 +227,7 @@ class PaymentInstrumentCodeServiceTest {
 
   @Test
   void codeStatus_true() {
-    Mockito.when(paymentInstrumentCodeRepository.findByUserId(USERID))
+    Mockito.when(paymentInstrumentCodeRepository.findById(USERID))
         .thenReturn(Optional.of(PAYMENT_INSTRUMENT_CODE));
 
     boolean isIdPayCodeEnabled = paymentInstrumentCodeService.codeStatus(USERID);
@@ -240,7 +240,7 @@ class PaymentInstrumentCodeServiceTest {
     final PaymentInstrumentCode paymentInstrumentCode = PaymentInstrumentCode.builder()
         .userId(USERID)
         .build();
-    Mockito.when(paymentInstrumentCodeRepository.findByUserId(USERID)).thenReturn(Optional.of(paymentInstrumentCode));
+    Mockito.when(paymentInstrumentCodeRepository.findById(USERID)).thenReturn(Optional.of(paymentInstrumentCode));
 
     boolean isIdPayCodeEnabled = paymentInstrumentCodeService.codeStatus(USERID);
 
@@ -249,7 +249,7 @@ class PaymentInstrumentCodeServiceTest {
 
   @Test
   void codeStatus_false() {
-    Mockito.when(paymentInstrumentCodeRepository.findByUserId(USERID))
+    Mockito.when(paymentInstrumentCodeRepository.findById(USERID))
         .thenReturn(Optional.ofNullable(any(PaymentInstrumentCode.class)));
 
     boolean isIdPayCodeEnabled = paymentInstrumentCodeService.codeStatus(USERID);
@@ -259,7 +259,7 @@ class PaymentInstrumentCodeServiceTest {
 
   @Test
   void getSecondFactor_ok() {
-    Mockito.when(paymentInstrumentCodeRepository.findByUserId(USERID))
+    Mockito.when(paymentInstrumentCodeRepository.findById(USERID))
         .thenReturn(Optional.of(PAYMENT_INSTRUMENT_CODE));
 
     String secondFactor = paymentInstrumentCodeService.getSecondFactor(USERID);
@@ -269,7 +269,7 @@ class PaymentInstrumentCodeServiceTest {
 
   @Test
   void getSecondFactor_ko() {
-    Mockito.when(paymentInstrumentCodeRepository.findByUserId(USERID))
+    Mockito.when(paymentInstrumentCodeRepository.findById(USERID))
         .thenReturn(Optional.ofNullable(any(PaymentInstrumentCode.class)));
 
     try {
@@ -282,7 +282,7 @@ class PaymentInstrumentCodeServiceTest {
 
   @Test
   void verifyPinBlock() {
-    Mockito.when(paymentInstrumentCodeRepository.findByUserId(USERID))
+    Mockito.when(paymentInstrumentCodeRepository.findById(USERID))
         .thenReturn(Optional.of(PAYMENT_INSTRUMENT_CODE));
 
     Mockito.when(idpayCodeEncryptionService.hashSHADecryptedDataBlock(
@@ -300,7 +300,7 @@ class PaymentInstrumentCodeServiceTest {
 
   @Test
   void verifyPinBlock_false() {
-    Mockito.when(paymentInstrumentCodeRepository.findByUserId(USERID))
+    Mockito.when(paymentInstrumentCodeRepository.findById(USERID))
         .thenReturn(Optional.of(PAYMENT_INSTRUMENT_CODE));
 
     Mockito.when(idpayCodeEncryptionService.hashSHADecryptedDataBlock(
@@ -318,7 +318,7 @@ class PaymentInstrumentCodeServiceTest {
 
   @Test
   void verifyPinBlock_ko_notFound() {
-    Mockito.when(paymentInstrumentCodeRepository.findByUserId(USERID))
+    Mockito.when(paymentInstrumentCodeRepository.findById(USERID))
         .thenReturn(Optional.ofNullable(any(PaymentInstrumentCode.class)));
 
     try {
