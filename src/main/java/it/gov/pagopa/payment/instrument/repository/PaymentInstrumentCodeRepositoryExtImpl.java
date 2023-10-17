@@ -29,12 +29,4 @@ public class PaymentInstrumentCodeRepositoryExtImpl implements PaymentInstrument
             .inc(Fields.generationCodeCounter, 1),
         PaymentInstrumentCode.class);
   }
-
-  @Override
-  public PaymentInstrumentCode deleteInstrument(String userId) {
-    return mongoTemplate.findAndRemove(
-        Query.query(Criteria.where(Fields.userId).is(userId)),
-        PaymentInstrumentCode.class
-    );
-  }
 }

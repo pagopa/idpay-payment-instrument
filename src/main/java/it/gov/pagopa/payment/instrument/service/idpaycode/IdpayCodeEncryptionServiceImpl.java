@@ -36,8 +36,8 @@ public class IdpayCodeEncryptionServiceImpl implements IdpayCodeEncryptionServic
   public static final String HASH_PIN_BLOCK = "HASH_PIN_BLOCK";
   private final String cipherInstance;
   private final byte[] iv = new byte[16];
-  private final String keyName_dataBlock;
-  private final String keyName_secretKey;
+  private final String keyNameDataBlock;
+  private final String keyNameSecretKey;
   private final KeyClient keyClient;
   private final Map<String, CryptographyClient> cryptoClientCache = new ConcurrentHashMap<>();
 
@@ -47,8 +47,8 @@ public class IdpayCodeEncryptionServiceImpl implements IdpayCodeEncryptionServic
       @Value("${crypto.azure.key-vault.key-names.data-block}") String keyNameDataBlock,
       @Value("${crypto.azure.key-vault.key-names.secret-key}")String keyNameSecretKey) {
     this.cipherInstance = cipherInstance;
-    this.keyName_dataBlock = keyNameDataBlock;
-    this.keyName_secretKey = keyNameSecretKey;
+    this.keyNameDataBlock = keyNameDataBlock;
+    this.keyNameSecretKey = keyNameSecretKey;
     this.keyClient = keyClient;
   }
 
@@ -108,7 +108,7 @@ public class IdpayCodeEncryptionServiceImpl implements IdpayCodeEncryptionServic
   /**  Encrypt hashed(SHA256) Data Block with Azure API */
   @Override
   public EncryptedDataBlock encryptSHADataBlock(String dataBlock) {
-    KeyVaultKey key = keyClient.getKey(keyName_dataBlock);
+    KeyVaultKey key = keyClient.getKey(keyNameDataBlock);
 
     CryptographyClient cryptographyClient = cryptoClientCache.computeIfAbsent(
         key.getId(), AzureEncryptUtils::buildCryptographyClient);
@@ -118,7 +118,7 @@ public class IdpayCodeEncryptionServiceImpl implements IdpayCodeEncryptionServic
 
   @Override
   public String decryptSymmetricKey(String symmetricKey) {
-    KeyVaultKey key = keyClient.getKey(keyName_secretKey);
+    KeyVaultKey key = keyClient.getKey(keyNameSecretKey);
 
     CryptographyClient cryptographyClient = cryptoClientCache.computeIfAbsent(
         key.getId(), AzureEncryptUtils::buildCryptographyClient);
@@ -157,7 +157,7 @@ public class IdpayCodeEncryptionServiceImpl implements IdpayCodeEncryptionServic
 
   /**  Decrypt(AES) PinBlock with symmetric key */
   @NonNull
-  public String decryptPinBlockWithSymmetricKey(String encryptedPinBlock, String encryptedKey) {
+  private String decryptPinBlockWithSymmetricKey(String encryptedPinBlock, String encryptedKey) {
     SecretKeySpec secretKeySpec = new SecretKeySpec(encryptedKey.getBytes(), "AES");
 
     try {
