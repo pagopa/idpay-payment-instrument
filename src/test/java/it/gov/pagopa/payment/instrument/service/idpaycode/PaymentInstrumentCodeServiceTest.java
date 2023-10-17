@@ -128,8 +128,7 @@ class PaymentInstrumentCodeServiceTest {
     Mockito.when(idpayCodeEncryptionService.encryptSHADataBlock(PIN_BLOCK))
         .thenReturn(ENCRYPTED_DATA_BLOCK);
 
-    Mockito.when(paymentInstrumentCodeRepository.deleteInstrument(USERID))
-        .thenReturn(new PaymentInstrumentCode());
+    Mockito.doNothing().when(paymentInstrumentCodeRepository).deleteById(USERID);
 
     Request request =
         Request.create(
@@ -143,7 +142,7 @@ class PaymentInstrumentCodeServiceTest {
       assertEquals(HttpStatus.NOT_FOUND.value(), e.getCode());
     }
     verify(paymentInstrumentCodeRepository, Mockito.times(1))
-        .deleteInstrument(USERID);
+        .deleteById(USERID);
   }
 
   @Test
@@ -155,8 +154,7 @@ class PaymentInstrumentCodeServiceTest {
     Mockito.when(idpayCodeEncryptionService.encryptSHADataBlock(PIN_BLOCK))
         .thenReturn(ENCRYPTED_DATA_BLOCK);
 
-    Mockito.when(paymentInstrumentCodeRepository.deleteInstrument(USERID))
-        .thenReturn(new PaymentInstrumentCode());
+    Mockito.doNothing().when(paymentInstrumentCodeRepository).deleteById(USERID);
 
     Request request =
         Request.create(
@@ -169,7 +167,7 @@ class PaymentInstrumentCodeServiceTest {
       assertEquals(HttpStatus.TOO_MANY_REQUESTS.value(), e.getCode());
     }
     verify(paymentInstrumentCodeRepository, Mockito.times(1))
-        .deleteInstrument(USERID);
+        .deleteById(USERID);
   }
 
   @Test
@@ -181,8 +179,7 @@ class PaymentInstrumentCodeServiceTest {
     Mockito.when(idpayCodeEncryptionService.encryptSHADataBlock(PIN_BLOCK))
         .thenReturn(ENCRYPTED_DATA_BLOCK);
 
-    Mockito.when(paymentInstrumentCodeRepository.deleteInstrument(USERID))
-        .thenReturn(new PaymentInstrumentCode());
+    Mockito.doNothing().when(paymentInstrumentCodeRepository).deleteById(USERID);
 
     Request request =
         Request.create(
@@ -195,7 +192,7 @@ class PaymentInstrumentCodeServiceTest {
       assertEquals(HttpStatus.BAD_REQUEST.value(), e.getCode());
     }
     verify(paymentInstrumentCodeRepository, Mockito.times(1))
-        .deleteInstrument(USERID);
+        .deleteById(USERID);
   }
 
   @Test
@@ -207,8 +204,7 @@ class PaymentInstrumentCodeServiceTest {
     Mockito.when(idpayCodeEncryptionService.encryptSHADataBlock(PIN_BLOCK))
         .thenReturn(ENCRYPTED_DATA_BLOCK);
 
-    Mockito.when(paymentInstrumentCodeRepository.deleteInstrument(USERID))
-        .thenReturn(new PaymentInstrumentCode());
+    Mockito.doNothing().when(paymentInstrumentCodeRepository).deleteById(USERID);
 
     Request request =
         Request.create(
@@ -222,7 +218,7 @@ class PaymentInstrumentCodeServiceTest {
       assertEquals("An error occurred in the microservice wallet", e.getMessage());
     }
     verify(paymentInstrumentCodeRepository, Mockito.times(1))
-        .deleteInstrument(USERID);
+        .deleteById(USERID);
   }
 
   @Test
