@@ -28,7 +28,7 @@ class InstrumentFromDiscountDTO2PaymentInstrumentMapperTest {
       Assertions.assertEquals(instrumentFromDiscountDTO.getInitiativeId(),
           result.getInitiativeId());
       Assertions.assertEquals(instrumentFromDiscountDTO.getUserId(), result.getUserId());
-      Assertions.assertEquals(PaymentInstrumentConstants.INSTRUMENT_TYPE_COUPON_PAYMENT, result.getInstrumentType());
+      Assertions.assertEquals(PaymentInstrumentConstants.INSTRUMENT_TYPE_APP_IO_PAYMENT, result.getInstrumentType());
       Assertions.assertEquals(PaymentInstrumentConstants.IDPAY_PAYMENT, result.getChannel());
       Assertions.assertEquals(
           PaymentInstrumentConstants.IDPAY_PAYMENT_FAKE_INSTRUMENT_PREFIX.formatted(
