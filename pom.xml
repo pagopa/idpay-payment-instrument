@@ -11,7 +11,7 @@
   </parent>
   <groupId>it.gov.pagopa.payment.instrument</groupId>
   <artifactId>idpay-payment-instrument</artifactId>
-  <version>1.1.0</version>
+  <version>1.2.1</version>
   <name>idpay-payment-instrument</name>
   <description>Payment Instrument Microservice</description>
   <properties>
