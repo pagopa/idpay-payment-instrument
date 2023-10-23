@@ -321,8 +321,8 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
           PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_NOT_FOUND);
     }
 
-    if(instrument.getInstrumentType().equals(PaymentInstrumentConstants.INSTRUMENT_TYPE_QRCODE)){
-      throw new PaymentInstrumentException(403, "It's not possible to delete an instrument of QRCODE type");
+    if(instrument.getInstrumentType().equals(PaymentInstrumentConstants.INSTRUMENT_TYPE_APP_IO_PAYMENT)){
+      throw new PaymentInstrumentException(403, "It's not possible to delete an instrument of AppIO payment types");
     }
 
     if (instrument.getStatus().equals(PaymentInstrumentConstants.STATUS_ACTIVE)) {

@@ -18,7 +18,7 @@ public class InstrumentFromDiscountDTO2PaymentInstrumentMapper implements
         .userId(instrumentFromDiscountDTO.getUserId())
         .activationDate(LocalDateTime.now())
         .consent(true)
-        .instrumentType(PaymentInstrumentConstants.INSTRUMENT_TYPE_QRCODE)
+        .instrumentType(PaymentInstrumentConstants.INSTRUMENT_TYPE_APP_IO_PAYMENT)
         .hpan(PaymentInstrumentConstants.IDPAY_PAYMENT_FAKE_INSTRUMENT_PREFIX.formatted(instrumentFromDiscountDTO.getUserId()))
         .creationDate(LocalDateTime.now())
         .updateDate(LocalDateTime.now())
