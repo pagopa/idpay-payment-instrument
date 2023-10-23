@@ -757,7 +757,7 @@ class PaymentInstrumentServiceTest {
     void deactivateInstrument_ko_qrCode() {
         TEST_INSTRUMENT.setStatus(PaymentInstrumentConstants.STATUS_ACTIVE);
         TEST_INSTRUMENT.setDeactivationDate(null);
-        TEST_INSTRUMENT.setInstrumentType("QRCODE");
+        TEST_INSTRUMENT.setInstrumentType(PaymentInstrumentConstants.INSTRUMENT_TYPE_APP_IO_PAYMENT);
         Mockito.when(
                 paymentInstrumentRepositoryMock.findByInitiativeIdAndUserIdAndId(INITIATIVE_ID,
                     USER_ID, INSTRUMENT_ID))
@@ -767,7 +767,7 @@ class PaymentInstrumentServiceTest {
             paymentInstrumentService.deactivateInstrument(INITIATIVE_ID, USER_ID, INSTRUMENT_ID);
         }catch (PaymentInstrumentException e){
             assertEquals(HttpStatus.FORBIDDEN.value(), e.getCode());
-            assertEquals("It's not possible to delete an instrument of QRCODE type", e.getMessage());
+            assertEquals("It's not possible to delete an instrument of AppIO payment types", e.getMessage());
         }
     }
     
