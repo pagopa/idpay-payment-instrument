@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -82,7 +82,7 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
             ENROLL_CODE_AFTER_CODE_GENERATED, userId, initiativeId);
 
         // delete code if enrollment have failed
-        paymentInstrumentCodeRepository.deleteInstrument(userId);
+        paymentInstrumentCodeRepository.deleteById(userId);
 
         switch (e.status()) {
           case 429 -> throw new PaymentInstrumentException(HttpStatus.TOO_MANY_REQUESTS.value(), utilities.exceptionConverter(e));
@@ -101,8 +101,7 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
   public boolean codeStatus(String userId) {
     long startTime = System.currentTimeMillis();
 
-    PaymentInstrumentCode paymentInstrumentCode = paymentInstrumentCodeRepository.findByUserId(
-        userId).orElse(null);
+    PaymentInstrumentCode paymentInstrumentCode = findById(userId);
 
     boolean idpayCodeEnabled = (paymentInstrumentCode != null) && (paymentInstrumentCode.getIdpayCode() != null);
 
@@ -115,8 +114,8 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
   @Override
   public boolean verifyPinBlock(String userId, PinBlockDTO pinBlockDTO) {
     long startTime = System.currentTimeMillis();
-    PaymentInstrumentCode paymentInstrumentCode = paymentInstrumentCodeRepository.findByUserId(
-        userId).orElse(null);
+
+    PaymentInstrumentCode paymentInstrumentCode = findById(userId);
     if (paymentInstrumentCode == null){
       throw new PaymentInstrumentException(404, "Instrument not found");
     }
@@ -135,8 +134,7 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
   public String getSecondFactor(String userId) {
     long startTime = System.currentTimeMillis();
 
-    PaymentInstrumentCode paymentInstrumentCode = paymentInstrumentCodeRepository.findByUserId(
-        userId).orElse(null);
+    PaymentInstrumentCode paymentInstrumentCode = findById(userId);
 
     if (paymentInstrumentCode==null){
       throw new PaymentInstrumentException(404, String.format("There is not a idpaycode for the userId: %s", userId));
@@ -154,7 +152,6 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
   }
 
   /** Generate plain idpay code */
-  @NotNull
   private String buildCode() {
     StringBuilder code = new StringBuilder();
     int lastDigit = -2;
@@ -177,6 +174,11 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
       }
     }
     return code.toString();
+  }
+
+  @Nullable
+  private PaymentInstrumentCode findById(String userId) {
+    return paymentInstrumentCodeRepository.findById(userId).orElse(null);
   }
 
   private void performanceLog(long startTime, String service, String userId, String initiativeId){

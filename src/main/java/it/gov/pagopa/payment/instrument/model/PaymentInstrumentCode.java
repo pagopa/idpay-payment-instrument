@@ -18,7 +18,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class PaymentInstrumentCode {
 
   @Id
-  private String id;
   private String userId;
   private String idpayCode;
   private String salt;

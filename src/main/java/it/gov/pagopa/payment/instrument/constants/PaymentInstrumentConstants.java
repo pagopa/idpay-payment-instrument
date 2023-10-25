@@ -41,7 +41,7 @@ public final class PaymentInstrumentConstants {
 
   //region instrument type
   public static final String INSTRUMENT_TYPE_CARD = "CARD";
-  public static final String INSTRUMENT_TYPE_QRCODE = "QRCODE";
+  public static final String INSTRUMENT_TYPE_APP_IO_PAYMENT = "APP_IO_PAYMENT";
   public static final String INSTRUMENT_TYPE_IDPAYCODE = "IDPAYCODE";
   //endregion
 

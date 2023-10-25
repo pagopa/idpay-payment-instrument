@@ -27,12 +27,4 @@ class PaymentInstrumentCodeRepositoryExtTest {
     Mockito.verify(mongoTemplate, Mockito.times(1))
         .upsert(Mockito.any(), Mockito.any(), (Class<?>) Mockito.any());
   }
-
-  @Test
-  void deleteInstrument(){
-    paymentInstrumentCodeRepositoryExt.deleteInstrument("USERID");
-    Mockito.verify(mongoTemplate, Mockito.times(1))
-        .findAndRemove(Mockito.any(), (Class<?>) Mockito.any());
-  }
-
 }
