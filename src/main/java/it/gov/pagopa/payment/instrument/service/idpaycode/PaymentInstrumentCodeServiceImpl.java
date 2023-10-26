@@ -2,7 +2,9 @@ package it.gov.pagopa.payment.instrument.service.idpaycode;
 
 import feign.FeignException;
 import it.gov.pagopa.payment.instrument.connector.WalletRestConnector;
+import it.gov.pagopa.payment.instrument.dto.EncryptedDataBlock;
 import it.gov.pagopa.payment.instrument.dto.GenerateCodeRespDTO;
+import it.gov.pagopa.payment.instrument.dto.PinBlockDTO;
 import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
 import it.gov.pagopa.payment.instrument.model.PaymentInstrumentCode;
 import it.gov.pagopa.payment.instrument.repository.PaymentInstrumentCodeRepository;
@@ -11,8 +13,9 @@ import it.gov.pagopa.payment.instrument.utils.Utilities;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -26,17 +29,17 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
   private final WalletRestConnector walletRestConnector;
   private final SecureRandom random;
   private final AuditUtilities auditUtilities;
-  private final EncryptCodeService encryptCodeService;
+  private final IdpayCodeEncryptionService idpayCodeEncryptionService;
   private final Utilities utilities;
 
   public PaymentInstrumentCodeServiceImpl(
       PaymentInstrumentCodeRepository paymentInstrumentCodeRepository,
       WalletRestConnector walletRestConnector, AuditUtilities auditUtilities,
-      EncryptCodeService encryptCodeService, Utilities utilities) {
+      IdpayCodeEncryptionService idpayCodeEncryptionService, Utilities utilities) {
     this.paymentInstrumentCodeRepository = paymentInstrumentCodeRepository;
     this.walletRestConnector = walletRestConnector;
     this.auditUtilities = auditUtilities;
-    this.encryptCodeService = encryptCodeService;
+    this.idpayCodeEncryptionService = idpayCodeEncryptionService;
     this.utilities = utilities;
     this.random = new SecureRandom();
   }
@@ -45,15 +48,24 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
   public GenerateCodeRespDTO generateCode(String userId, String initiativeId) {
     long startTime = System.currentTimeMillis();
 
-    // generate clear code
-    String clearCode = buildCode();
+    // generate plain code
+    String plainCode = buildCode();
 
-    // encrypt clear code
-    String idpayCode = encryptCodeService.encryptIdpayCode(clearCode);
+    // generate Salt
+    String salt = generateRandomEvenCharHexString(16);
+
+    // generate secondFactor and add left pad
+    String secondFactor = generateRandomEvenCharHexString(12);
+    String secondFactorWithLeftPad = StringUtils.leftPad(secondFactor, 16, '0');
+
+    // hash and encrypt plain code
+    String hashedDataBlock = idpayCodeEncryptionService.buildHashedDataBlock(plainCode, secondFactorWithLeftPad, salt);
+    EncryptedDataBlock encryptedDataBlock = idpayCodeEncryptionService.encryptSHADataBlock(hashedDataBlock);
     log.info("[{}] Code generated successfully on userId: {}", GENERATED_CODE, userId);
 
     // save encrypted code
-    paymentInstrumentCodeRepository.updateCode(userId, idpayCode, LocalDateTime.now());
+    paymentInstrumentCodeRepository.updateCode(userId, encryptedDataBlock.getEncryptedDataBlock(), salt,
+        secondFactorWithLeftPad, encryptedDataBlock.getKeyId(), LocalDateTime.now());
     performanceLog(startTime, GENERATED_CODE, userId, initiativeId);
     auditUtilities.logGeneratedCode(userId, LocalDateTime.now());
 
@@ -70,7 +82,7 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
             ENROLL_CODE_AFTER_CODE_GENERATED, userId, initiativeId);
 
         // delete code if enrollment have failed
-        paymentInstrumentCodeRepository.deleteInstrument(userId);
+        paymentInstrumentCodeRepository.deleteById(userId);
 
         switch (e.status()) {
           case 429 -> throw new PaymentInstrumentException(HttpStatus.TOO_MANY_REQUESTS.value(), utilities.exceptionConverter(e));
@@ -82,15 +94,14 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
       }
     }
 
-    return new GenerateCodeRespDTO(idpayCode);
+    return new GenerateCodeRespDTO(plainCode);
   }
 
   @Override
   public boolean codeStatus(String userId) {
     long startTime = System.currentTimeMillis();
 
-    PaymentInstrumentCode paymentInstrumentCode = paymentInstrumentCodeRepository.findByUserId(
-        userId).orElse(null);
+    PaymentInstrumentCode paymentInstrumentCode = findById(userId);
 
     boolean idpayCodeEnabled = (paymentInstrumentCode != null) && (paymentInstrumentCode.getIdpayCode() != null);
 
@@ -99,7 +110,48 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
     return idpayCodeEnabled;
   }
 
-  @NotNull
+  /** Verify if pin block is correct */
+  @Override
+  public boolean verifyPinBlock(String userId, PinBlockDTO pinBlockDTO) {
+    long startTime = System.currentTimeMillis();
+
+    PaymentInstrumentCode paymentInstrumentCode = findById(userId);
+    if (paymentInstrumentCode == null){
+      throw new PaymentInstrumentException(404, "Instrument not found");
+    }
+
+    String inputPlainIdpayCode = idpayCodeEncryptionService.hashSHADecryptedDataBlock(userId, pinBlockDTO,
+        paymentInstrumentCode.getSalt());
+
+    String expectedPlainIdpayCode = idpayCodeEncryptionService.decryptIdpayCode(
+        new EncryptedDataBlock(paymentInstrumentCode.getIdpayCode(), paymentInstrumentCode.getKeyId()));
+
+    performanceLog(startTime, "VERIFY_IDPAY_CODE", userId, null);
+    return inputPlainIdpayCode.equals(expectedPlainIdpayCode);
+  }
+
+  @Override
+  public String getSecondFactor(String userId) {
+    long startTime = System.currentTimeMillis();
+
+    PaymentInstrumentCode paymentInstrumentCode = findById(userId);
+
+    if (paymentInstrumentCode==null){
+      throw new PaymentInstrumentException(404, String.format("There is not a idpaycode for the userId: %s", userId));
+    }
+    String secondFactor = paymentInstrumentCode.getSecondFactor();
+    performanceLog(startTime, "IDPAY_CODE_SECOND_FACTOR", userId, null);
+    return secondFactor;
+  }
+
+  /** Generate Salt or Second factor only with length even */
+  private String generateRandomEvenCharHexString(int length) {
+    byte[] salt = new byte[length/2];
+    random.nextBytes(salt);
+    return Hex.encodeHexString(salt);
+  }
+
+  /** Generate plain idpay code */
   private String buildCode() {
     StringBuilder code = new StringBuilder();
     int lastDigit = -2;
@@ -122,6 +174,11 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
       }
     }
     return code.toString();
+  }
+
+  @Nullable
+  private PaymentInstrumentCode findById(String userId) {
+    return paymentInstrumentCodeRepository.findById(userId).orElse(null);
   }
 
   private void performanceLog(long startTime, String service, String userId, String initiativeId){

@@ -22,16 +22,9 @@ class PaymentInstrumentCodeRepositoryExtTest {
 
   @Test
   void updateCode(){
-    paymentInstrumentCodeRepositoryExt.updateCode("USERID", "CODE", LocalDateTime.now());
+    paymentInstrumentCodeRepositoryExt.updateCode(
+        "USERID", "CODE", "SALT", "SECOND_FACTOR", "KEY_ID", LocalDateTime.now());
     Mockito.verify(mongoTemplate, Mockito.times(1))
         .upsert(Mockito.any(), Mockito.any(), (Class<?>) Mockito.any());
   }
-
-  @Test
-  void deleteInstrument(){
-    paymentInstrumentCodeRepositoryExt.deleteInstrument("USERID");
-    Mockito.verify(mongoTemplate, Mockito.times(1))
-        .findAndRemove(Mockito.any(), (Class<?>) Mockito.any());
-  }
-
 }

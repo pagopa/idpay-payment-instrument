@@ -58,4 +58,11 @@ public interface PaymentInstrumentController {
 
   @GetMapping("/code/status/{userId}")
   ResponseEntity<CheckEnrollmentDTO> codeStatus(@PathVariable("userId") String userId);
+
+  @PutMapping("/code/verify/{userId}")
+  ResponseEntity<VerifyPinBlockDTO> verifyPinBlock(@PathVariable("userId") String userId,
+      @Valid @RequestBody PinBlockDTO pinBlockDTO);
+
+  @GetMapping("/code/secondFactor/{userId}")
+  ResponseEntity<SecondFactorDTO> secondFactor(@PathVariable("userId") String userId);
 }
