@@ -81,8 +81,6 @@ public class IdpayCodeEncryptionServiceImpl implements IdpayCodeEncryptionServic
 
       // Converts the result to a hexadecimal representation
       String dataBlock = Hex.encodeHexString(xorResult);
-      // log to be deleted
-      log.info("Code in chiaro: {}, DataBlock: {}", code, dataBlock);
       performanceLog(startTime, GENERATE_PIN_BLOCK);
 
       return dataBlock;
@@ -136,8 +134,7 @@ public class IdpayCodeEncryptionServiceImpl implements IdpayCodeEncryptionServic
 
       String hashedPinBlock = Base64.getEncoder().encodeToString(hash);
 
-      // this log must be of type debug and without hashedPinBlock
-      log.info("[{}] pinBlock hashing done successfully: {}", HASH_PIN_BLOCK, hashedPinBlock);
+      log.debug("[{}] pinBlock hashing done successfully", HASH_PIN_BLOCK);
       performanceLog(startTime, HASH_PIN_BLOCK);
       return hashedPinBlock;
     } catch (NoSuchAlgorithmException e) {
