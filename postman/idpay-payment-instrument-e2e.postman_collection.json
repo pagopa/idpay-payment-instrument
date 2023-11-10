@@ -1,9 +1,9 @@
 {
 	"info": {
-		"_postman_id": "2c4396e0-33fb-4e68-b734-fadee1d0008a",
+		"_postman_id": "7aca5057-7c4d-4987-a190-4acf48d67097",
 		"name": "Payment Instrument - e2e",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "21721440"
+		"_exporter_id": "15747968"
 	},
 	"item": [
 		{
@@ -32,7 +32,7 @@
 						"header": [
 							{
 								"key": "Ocp-Apim-Subscription-Key",
-								"value": "",
+								"value": "{{genericSubscriptionKey}}",
 								"type": "default"
 							},
 							{
@@ -42,15 +42,13 @@
 							}
 						],
 						"url": {
-							"raw": "{{baseUrl}}/bpd/pagopa/api/v1/login?fiscalCode=AAAAAA00A00A000A",
+							"raw": "{{baseUrl}}/rtd/mock-io/login?fiscalCode=AAAAAA00A00A000A",
 							"host": [
 								"{{baseUrl}}"
 							],
 							"path": [
-								"bpd",
-								"pagopa",
-								"api",
-								"v1",
+								"rtd",
+								"mock-io",
 								"login"
 							],
 							"query": [
@@ -139,9 +137,9 @@
 							"script": {
 								"exec": [
 									"pm.test(\"Get HpanList KO\", function () {\r",
-									"    let jsonStatus = pm.response.json()\r",
-									"    pm.expect(jsonStatus.code).equals(404);\r",
-									"    pm.expect(jsonStatus.message).equals(\"It doesn't exist payment instrument for such initiative and user\");\r",
+									"    pm.response.to.have.status(200);\r",
+									"    let jsonResponse = pm.response.json()\r",
+									"    pm.expect(jsonResponse.instrumentList.length).equals(0);\r",
 									"});"
 								],
 								"type": "text/javascript"
