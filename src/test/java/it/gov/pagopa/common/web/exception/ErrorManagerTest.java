@@ -54,7 +54,7 @@ class ErrorManagerTest {
   @Test
   void handleExceptionClientExceptionWithBody() throws Exception {
     Mockito.doThrow(
-                    new ClientExceptionWithBody(HttpStatus.BAD_REQUEST, 0, "Error ClientExceptionWithBody"))
+                    new ClientExceptionWithBody(HttpStatus.BAD_REQUEST, "Error", "Error ClientExceptionWithBody"))
             .when(testControllerSpy).testEndpoint();
 
     mockMvc.perform(MockMvcRequestBuilders.get("/test")
@@ -64,7 +64,7 @@ class ErrorManagerTest {
                     .json("{\"code\":0,\"message\":\"Error ClientExceptionWithBody\"}"));
 
     Mockito.doThrow(
-                    new ClientExceptionWithBody(HttpStatus.BAD_REQUEST, 1, "Error ClientExceptionWithBody",
+                    new ClientExceptionWithBody(HttpStatus.BAD_REQUEST, "Error", "Error ClientExceptionWithBody",
                             new Exception()))
             .when(testControllerSpy).testEndpoint();
 

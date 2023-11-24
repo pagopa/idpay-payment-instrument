@@ -19,6 +19,7 @@ import it.gov.pagopa.payment.instrument.event.producer.ErrorProducer;
 import it.gov.pagopa.payment.instrument.event.producer.RTDProducer;
 import it.gov.pagopa.payment.instrument.event.producer.RuleEngineProducer;
 import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
+import it.gov.pagopa.payment.instrument.exception.custom.UserNotAllowedException;
 import it.gov.pagopa.payment.instrument.model.PaymentInstrument;
 import it.gov.pagopa.payment.instrument.repository.PaymentInstrumentRepository;
 
@@ -36,6 +37,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+
+
+import static it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants.ExceptionCode.*;
+import static it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants.ExceptionMessage.*;
 
 @Slf4j
 @Service
@@ -108,11 +113,10 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       log.error(
           "[ENROLL_INSTRUMENT] The Payment Instrument is already associated to another citizen.");
       auditUtilities.logEnrollInstrumentKO(
-          PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_ALREADY_ASSOCIATED, idWallet,
+          PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_ALREADY_ASSOCIATED_AUDIT, idWallet,
           channel);
       performanceLog(startTime, ENROLL_INSTRUMENT);
-      throw new PaymentInstrumentException(HttpStatus.FORBIDDEN.value(),
-          PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_ALREADY_ASSOCIATED);
+      throw new UserNotAllowedException(ERROR_INSTRUMENT_ALREADY_ASSOCIATED_MSG);
     }
 
     RTDHpanListDTO hpanListDTO = new RTDHpanListDTO();
@@ -666,11 +670,11 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       log.error(
           "[ENROLL_FROM_ISSUER] The Payment Instrument is already associated to another citizen.");
       auditUtilities.logEnrollInstrFromIssuerKO(
-          PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_ALREADY_ASSOCIATED, body.getHpan(),
+          PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_ALREADY_ASSOCIATED_AUDIT, body.getHpan(),
           body.getChannel());
       performanceLog(startTime, ENROLL_FROM_ISSUER);
       throw new PaymentInstrumentException(HttpStatus.FORBIDDEN.value(),
-          PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_ALREADY_ASSOCIATED);
+          PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_ALREADY_ASSOCIATED_AUDIT);
     }
 
     for (PaymentInstrument pi : instrumentList) {

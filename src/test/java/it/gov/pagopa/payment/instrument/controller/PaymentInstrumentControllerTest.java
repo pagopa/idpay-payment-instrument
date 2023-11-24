@@ -139,7 +139,7 @@ class PaymentInstrumentControllerTest {
     ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
     Mockito.doThrow(new PaymentInstrumentException(HttpStatus.FORBIDDEN.value(),
-            PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_ALREADY_ASSOCIATED))
+            PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_ALREADY_ASSOCIATED_AUDIT))
         .when(paymentInstrumentServiceMock)
         .enrollInstrument(INITIATIVE_ID, USER_ID, ID_WALLET, CHANNEL, INSTRUMENT_TYPE);
 
@@ -152,7 +152,7 @@ class PaymentInstrumentControllerTest {
     ErrorDTO error = objectMapper.readValue(res.getResponse().getContentAsString(), ErrorDTO.class);
 
     assertEquals(HttpStatus.FORBIDDEN.value(), error.getCode());
-    assertEquals(PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_ALREADY_ASSOCIATED,
+    assertEquals(PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_ALREADY_ASSOCIATED_AUDIT,
         error.getMessage());
   }
 
@@ -290,7 +290,7 @@ class PaymentInstrumentControllerTest {
     ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
     Mockito.doThrow(new PaymentInstrumentException(HttpStatus.FORBIDDEN.value(),
-            PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_ALREADY_ASSOCIATED))
+            PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_ALREADY_ASSOCIATED_AUDIT))
         .when(paymentInstrumentServiceMock)
         .enrollFromIssuer(Mockito.any());
 
@@ -303,7 +303,7 @@ class PaymentInstrumentControllerTest {
     ErrorDTO error = objectMapper.readValue(res.getResponse().getContentAsString(), ErrorDTO.class);
 
     assertEquals(HttpStatus.FORBIDDEN.value(), error.getCode());
-    assertEquals(PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_ALREADY_ASSOCIATED,
+    assertEquals(PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_ALREADY_ASSOCIATED_AUDIT,
         error.getMessage());
   }
 

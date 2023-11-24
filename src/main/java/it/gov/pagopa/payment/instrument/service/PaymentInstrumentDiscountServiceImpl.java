@@ -10,17 +10,20 @@ import it.gov.pagopa.payment.instrument.dto.mapper.MessageMapper;
 import it.gov.pagopa.payment.instrument.dto.pm.PaymentMethodInfoList;
 import it.gov.pagopa.payment.instrument.event.producer.ErrorProducer;
 import it.gov.pagopa.payment.instrument.event.producer.RuleEngineProducer;
-import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
+import it.gov.pagopa.payment.instrument.exception.custom.IDPayCodeNotFoundException;
 import it.gov.pagopa.payment.instrument.model.PaymentInstrument;
 import it.gov.pagopa.payment.instrument.repository.PaymentInstrumentRepository;
 import it.gov.pagopa.payment.instrument.service.idpaycode.PaymentInstrumentCodeService;
 import it.gov.pagopa.payment.instrument.utils.AuditUtilities;
-import java.time.LocalDateTime;
-import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+import static it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants.ExceptionMessage.ERROR_IDPAYCODE_NOT_FOUND_MSG;
 
 @Slf4j
 @Service
@@ -85,7 +88,7 @@ public class PaymentInstrumentDiscountServiceImpl implements
     log.info("[IDPAY_CODE_STATUS] The userId {} has code with status {}", body.getUserId(), idayCodeEnabled);
 
     if(!idayCodeEnabled){
-      throw new PaymentInstrumentException(403, "IdpayCode must be generated");
+      throw new IDPayCodeNotFoundException(ERROR_IDPAYCODE_NOT_FOUND_MSG);
     }
 
     log.info("[ENROLL_INSTRUMENT_CODE] Processing IDPayCode enrollment request of the user {} for the initiative {}",
