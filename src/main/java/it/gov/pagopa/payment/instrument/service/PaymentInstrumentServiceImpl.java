@@ -19,7 +19,7 @@ import it.gov.pagopa.payment.instrument.event.producer.ErrorProducer;
 import it.gov.pagopa.payment.instrument.event.producer.RTDProducer;
 import it.gov.pagopa.payment.instrument.event.producer.RuleEngineProducer;
 import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
-import it.gov.pagopa.payment.instrument.exception.custom.UserNotAllowedException;
+import it.gov.pagopa.payment.instrument.exception.custom.*;
 import it.gov.pagopa.payment.instrument.model.PaymentInstrument;
 import it.gov.pagopa.payment.instrument.repository.PaymentInstrumentRepository;
 
@@ -159,7 +159,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       auditUtilities.logEnrollInstrumentKO(e.getMessage(), newInstrument.getIdWallet(), channel);
       paymentInstrumentRepository.delete(newInstrument);
       performanceLog(startTime, ENROLL_INSTRUMENT);
-      throw new PaymentInstrumentException(HttpStatus.BAD_REQUEST.value(), e.getMessage());
+      throw new InternalServerErrorException(ERROR_SEND_INSTRUMENT_NOTIFY_MSG);
     }
     auditUtilities.logEnrollInstrumentComplete(newInstrument.getIdWallet(),
         newInstrument.getChannel());
@@ -181,7 +181,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
           "[ENROLL_INSTRUMENT] Couldn't send to RTD: resetting the Payment Instrument.");
       auditUtilities.logEnrollInstrumentKO(e.getMessage(), instrument.getIdWallet(), channel);
       paymentInstrumentRepository.delete(instrument);
-      throw new PaymentInstrumentException(HttpStatus.BAD_REQUEST.value(), e.getMessage());
+      throw new InternalServerErrorException(ERROR_SEND_INSTRUMENT_NOTIFY_MSG);
     }
     auditUtilities.logEnrollInstrumentComplete(instrument.getIdWallet(), channel);
   }
@@ -210,19 +210,15 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       List<PaymentMethodInfoList> paymentMethodInfoList) {
     PaymentMethodInfoList infoList = new PaymentMethodInfoList();
     WalletV2ListResponse walletV2ListResponse;
-    try {
-      DecryptCfDTO decryptedCfDTO = decryptRestConnector.getPiiByToken(userId);
-      Instant start = Instant.now();
-      log.debug("Calling PM service at: " + start);
-      walletV2ListResponse = pmRestClientConnector.getWalletList(decryptedCfDTO.getPii());
-      log.info(walletV2ListResponse.toString());
-      Instant finish = Instant.now();
-      long time = Duration.between(start, finish).toMillis();
-      log.info("PM's call finished at: " + finish + " The PM service took: " + time + "ms");
-    } catch (FeignException e) {
-      throw new PaymentInstrumentException(e.status(),
-          e.getMessage());
-    }
+
+    DecryptCfDTO decryptedCfDTO = decryptRestConnector.getPiiByToken(userId);
+    Instant start = Instant.now();
+    log.debug("Calling PM service at: " + start);
+    walletV2ListResponse = pmRestClientConnector.getWalletList(decryptedCfDTO.getPii());
+    log.info(walletV2ListResponse.toString());
+    Instant finish = Instant.now();
+    long time = Duration.between(start, finish).toMillis();
+    log.info("PM's call finished at: " + finish + " The PM service took: " + time + "ms");
 
     int countIdWallet = 0;
 
@@ -261,8 +257,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     }
 
     if (countIdWallet == walletV2ListResponse.getData().size()) {
-      throw new PaymentInstrumentException(HttpStatus.NOT_FOUND.value(),
-          PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_NOT_FOUND);
+      throw new PaymentInstrumentNotFoundException(ERROR_INSTRUMENT_NOT_FOUND_MSG);
     }
     return infoList;
   }
@@ -300,7 +295,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     } catch (Exception e) {
       this.rollback(initiativeId, userId);
       performanceLog(startTime, "DEACTIVATE_ALL_INSTRUMENTS");
-      throw new PaymentInstrumentException(HttpStatus.BAD_REQUEST.value(), e.getMessage());
+      throw new RewardCalculatorInvocationException(ERROR_INVOCATION_REWARD_MSG);
     }
     if (!PaymentInstrumentConstants.IDPAY_PAYMENT.equals(
         paymentInstrumentList.get(0).getChannel())) {
@@ -321,12 +316,11 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
         initiativeId, userId, instrumentId).orElse(null);
 
     if (instrument == null) {
-      throw new PaymentInstrumentException(HttpStatus.NOT_FOUND.value(),
-          PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_NOT_FOUND);
+      throw new PaymentInstrumentNotFoundException(ERROR_INSTRUMENT_NOT_FOUND_MSG);
     }
 
     if(instrument.getInstrumentType().equals(PaymentInstrumentConstants.INSTRUMENT_TYPE_APP_IO_PAYMENT)){
-      throw new PaymentInstrumentException(403, "It's not possible to delete an instrument of AppIO payment types");
+      throw new InstrumentDeleteNotAllowedException(ERROR_DELETE_NOT_ALLOWED_MSG);
     }
 
     if (instrument.getStatus().equals(PaymentInstrumentConstants.STATUS_ACTIVE)) {
