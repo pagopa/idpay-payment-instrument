@@ -7,7 +7,9 @@ import com.azure.security.keyvault.keys.models.KeyVaultKey;
 import it.gov.pagopa.common.azure.keyvault.AzureEncryptUtils;
 import it.gov.pagopa.payment.instrument.dto.EncryptedDataBlock;
 import it.gov.pagopa.payment.instrument.dto.PinBlockDTO;
-import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
+import it.gov.pagopa.payment.instrument.exception.custom.IdpayCodeEncryptOrDecryptException;
+import it.gov.pagopa.payment.instrument.exception.custom.PinBlockException;
+import it.gov.pagopa.payment.instrument.exception.custom.PinBlockSizeException;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.DecoderException;
@@ -27,6 +29,10 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
+import static it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants.ExceptionCode.DECRYPTION_ERROR;
+import static it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants.ExceptionCode.ENCRYPTION_ERROR;
+import static it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants.ExceptionMessage.*;
 
 @Service
 @Slf4j
@@ -65,7 +71,7 @@ public class IdpayCodeEncryptionServiceImpl implements IdpayCodeEncryptionServic
     // Control code length, must be at least 5
     try {
       if (code.length() < 5) {
-        throw new PaymentInstrumentException(400, "Pin length is not valid");
+        throw new PinBlockSizeException(ERROR_PIN_LENGTH_NOT_VALID_MSG);
       }
 
       // Standardizes code (adds padding with "F" to reach 16 digits)
@@ -85,7 +91,7 @@ public class IdpayCodeEncryptionServiceImpl implements IdpayCodeEncryptionServic
 
       return dataBlock;
     } catch (DecoderException ex) {
-      throw new PaymentInstrumentException(500, "Something went wrong while creating pinBlock");
+      throw new PinBlockException(ERROR_CREATING_PINBLOCK_MSG);
     }
   }
 
@@ -138,7 +144,7 @@ public class IdpayCodeEncryptionServiceImpl implements IdpayCodeEncryptionServic
       performanceLog(startTime, HASH_PIN_BLOCK);
       return hashedPinBlock;
     } catch (NoSuchAlgorithmException e) {
-      throw new PaymentInstrumentException(403, "Something went wrong creating SHA256 digest");
+      throw new IdpayCodeEncryptOrDecryptException(ENCRYPTION_ERROR, ENCRYPTION_ERROR_MSG, e);
     }
   }
 
@@ -161,8 +167,9 @@ public class IdpayCodeEncryptionServiceImpl implements IdpayCodeEncryptionServic
       byte[] decryptedBytes = decrypt(secretKeySpec, Hex.decodeHex(encryptedPinBlock));
 
       return new String(decryptedBytes);
-    } catch (DecoderException e){
-      throw new IllegalStateException("Something gone wrong while extracting datablock from pinblock", e);
+    } catch (DecoderException
+             | IllegalStateException e){
+      throw new IdpayCodeEncryptOrDecryptException(DECRYPTION_ERROR, DECRYPTION_ERROR_MSG, e);
     }
   }
 

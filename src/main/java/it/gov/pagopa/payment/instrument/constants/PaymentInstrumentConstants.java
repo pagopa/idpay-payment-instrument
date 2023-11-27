@@ -68,7 +68,7 @@ public final class PaymentInstrumentConstants {
     public static final String ERROR_DELETE_NOT_ALLOWED_MSG = "It's not possible to delete an instrument of AppIO payment types";
     public static final String ENCRYPTION_ERROR_MSG = "Something went wrong creating SHA256 digest";
     public static final String DECRYPTION_ERROR_MSG = "Something gone wrong while extracting datablock from pinblock";
-    public static final String ERROR_ENROLL_NOT_ALLOWED_FOR_REFUND_INITIATIVE_MSG = "It is not possible to enroll a idpayCode for a refund type initiative";
+    public static final String ERROR_ENROLL_NOT_ALLOWED_FOR_REFUND_INITIATIVE_MSG = "It is not possible to enroll a idpayCode for a refund type initiative [%s]";
     public static final String ERROR_INITIATIVE_ENDED_MSG = "The operation is not allowed because the initiative [%s] has already ended";
     public static final String ERROR_USER_UNSUBSCRIBED_MSG = "The user has unsubscribed from initiative [%s]";
     public static final String ERROR_INSTRUMENT_NOT_FOUND_MSG = "The selected payment instrument has not been found for the current user";

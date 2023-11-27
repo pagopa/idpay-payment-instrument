@@ -1,6 +1,5 @@
 package it.gov.pagopa.payment.instrument.service;
 
-import feign.FeignException;
 import it.gov.pagopa.payment.instrument.connector.*;
 import it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants;
 import it.gov.pagopa.payment.instrument.dto.*;
@@ -9,37 +8,29 @@ import it.gov.pagopa.payment.instrument.dto.mapper.MessageMapper;
 import it.gov.pagopa.payment.instrument.dto.pm.PaymentMethodInfoList;
 import it.gov.pagopa.payment.instrument.dto.pm.WalletV2;
 import it.gov.pagopa.payment.instrument.dto.pm.WalletV2ListResponse;
-import it.gov.pagopa.payment.instrument.dto.rtd.RTDEnrollAckDTO;
-import it.gov.pagopa.payment.instrument.dto.rtd.RTDEventsDTO;
-import it.gov.pagopa.payment.instrument.dto.rtd.RTDHpanListDTO;
-import it.gov.pagopa.payment.instrument.dto.rtd.RTDMessage;
-import it.gov.pagopa.payment.instrument.dto.rtd.RTDOperationDTO;
-import it.gov.pagopa.payment.instrument.dto.rtd.RTDRevokeCardDTO;
+import it.gov.pagopa.payment.instrument.dto.rtd.*;
 import it.gov.pagopa.payment.instrument.event.producer.ErrorProducer;
 import it.gov.pagopa.payment.instrument.event.producer.RTDProducer;
 import it.gov.pagopa.payment.instrument.event.producer.RuleEngineProducer;
-import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
 import it.gov.pagopa.payment.instrument.exception.custom.*;
 import it.gov.pagopa.payment.instrument.model.PaymentInstrument;
 import it.gov.pagopa.payment.instrument.repository.PaymentInstrumentRepository;
-
-import java.time.Duration;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.util.*;
-
 import it.gov.pagopa.payment.instrument.repository.PaymentInstrumentRepositoryExtended;
 import it.gov.pagopa.payment.instrument.utils.AuditUtilities;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
-import static it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants.ExceptionCode.*;
+import static it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants.ExceptionCode.GENERIC_ERROR;
 import static it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants.ExceptionMessage.*;
 
 @Slf4j
@@ -159,7 +150,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       auditUtilities.logEnrollInstrumentKO(e.getMessage(), newInstrument.getIdWallet(), channel);
       paymentInstrumentRepository.delete(newInstrument);
       performanceLog(startTime, ENROLL_INSTRUMENT);
-      throw new InternalServerErrorException(ERROR_SEND_INSTRUMENT_NOTIFY_MSG);
+      throw new InternalServerErrorException(GENERIC_ERROR, ERROR_SEND_INSTRUMENT_NOTIFY_MSG, e);
     }
     auditUtilities.logEnrollInstrumentComplete(newInstrument.getIdWallet(),
         newInstrument.getChannel());
@@ -181,7 +172,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
           "[ENROLL_INSTRUMENT] Couldn't send to RTD: resetting the Payment Instrument.");
       auditUtilities.logEnrollInstrumentKO(e.getMessage(), instrument.getIdWallet(), channel);
       paymentInstrumentRepository.delete(instrument);
-      throw new InternalServerErrorException(ERROR_SEND_INSTRUMENT_NOTIFY_MSG);
+      throw new InternalServerErrorException(GENERIC_ERROR, ERROR_SEND_INSTRUMENT_NOTIFY_MSG, e);
     }
     auditUtilities.logEnrollInstrumentComplete(instrument.getIdWallet(), channel);
   }
@@ -343,7 +334,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
         instrument.setStatus(PaymentInstrumentConstants.STATUS_ACTIVE);
         paymentInstrumentRepository.save(instrument);
         performanceLog(startTime, "DEACTIVATE_INSTRUMENT");
-        throw new PaymentInstrumentException(HttpStatus.BAD_REQUEST.value(), e.getMessage());
+        throw new InternalServerErrorException(ERROR_DEACTIVATE_INSTRUMENT_NOTIFY_MSG);
       }
     }
     performanceLog(startTime, "DEACTIVATE_INSTRUMENT");
@@ -587,8 +578,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
         rtdProducer.sendInstrument(rtdOperationDTO);
       } catch (Exception exception) {
         if (operation.equals(PaymentInstrumentConstants.OPERATION_ADD)) {
-          throw new PaymentInstrumentException(HttpStatus.BAD_REQUEST.value(),
-              exception.getMessage());
+          throw exception;
         }
         final MessageBuilder<?> errorMessage = MessageBuilder.withPayload(rtdOperationDTO);
         this.sendToQueueError(exception, errorMessage, rtdServer, rtdTopic);
@@ -667,8 +657,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
           PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_ALREADY_ASSOCIATED_AUDIT, body.getHpan(),
           body.getChannel());
       performanceLog(startTime, ENROLL_FROM_ISSUER);
-      throw new PaymentInstrumentException(HttpStatus.FORBIDDEN.value(),
-          PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_ALREADY_ASSOCIATED_AUDIT);
+      throw new UserNotAllowedException(ERROR_INSTRUMENT_ALREADY_ASSOCIATED_MSG);
     }
 
     for (PaymentInstrument pi : instrumentList) {
@@ -707,7 +696,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
           newInstrument.getChannel());
       paymentInstrumentRepository.delete(newInstrument);
       performanceLog(startTime, ENROLL_FROM_ISSUER);
-      throw new PaymentInstrumentException(HttpStatus.BAD_REQUEST.value(), e.getMessage());
+      throw new InternalServerErrorException(GENERIC_ERROR, ERROR_SEND_INSTRUMENT_NOTIFY_MSG, e);
     }
     auditUtilities.logEnrollInstrFromIssuerComplete(newInstrument.getHpan(),
         newInstrument.getChannel());
@@ -774,8 +763,12 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
           LocalDateTime.now());
       if(PaymentInstrumentConstants.INSTRUMENT_TYPE_CARD.equals(instrument.getInstrumentType())){
         log.info("[PROCESS_ACK_DEACTIVATE] Deactivation OK: sending to RTD.");
-        sendToRtd(List.of(hpanListDTO), ruleEngineAckDTO.getOperationType(),
+        try{
+          sendToRtd(List.of(hpanListDTO), ruleEngineAckDTO.getOperationType(),
             instrument.getInitiativeId());
+        } catch (Exception e) {
+          throw new InternalServerErrorException(GENERIC_ERROR, ERROR_SEND_INSTRUMENT_NOTIFY_MSG, e);
+        }
       }
     }
 

@@ -1,30 +1,17 @@
 package it.gov.pagopa.payment.instrument.controller;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import it.gov.pagopa.common.web.dto.ErrorDTO;
 import it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants;
-import it.gov.pagopa.payment.instrument.dto.BaseEnrollmentBodyDTO;
-import it.gov.pagopa.payment.instrument.dto.DeactivationBodyDTO;
-import it.gov.pagopa.payment.instrument.dto.EnrollmentBodyDTO;
-import it.gov.pagopa.payment.instrument.dto.HpanDTO;
-import it.gov.pagopa.payment.instrument.dto.HpanGetDTO;
-import it.gov.pagopa.payment.instrument.dto.InstrumentDetailDTO;
-import it.gov.pagopa.payment.instrument.dto.InstrumentIssuerDTO;
-import it.gov.pagopa.payment.instrument.dto.PinBlockDTO;
-import it.gov.pagopa.payment.instrument.dto.UnsubscribeBodyDTO;
-import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
-import it.gov.pagopa.payment.instrument.service.idpaycode.PaymentInstrumentCodeService;
+import it.gov.pagopa.payment.instrument.dto.*;
+import it.gov.pagopa.payment.instrument.exception.custom.PaymentInstrumentNotFoundException;
+import it.gov.pagopa.payment.instrument.exception.custom.UserNotAllowedException;
 import it.gov.pagopa.payment.instrument.service.PaymentInstrumentDiscountService;
 import it.gov.pagopa.payment.instrument.service.PaymentInstrumentService;
+import it.gov.pagopa.payment.instrument.service.idpaycode.PaymentInstrumentCodeService;
 import it.gov.pagopa.payment.instrument.test.fakers.GenerateCodeReqDTO;
 import it.gov.pagopa.payment.instrument.test.fakers.InstrumentFromDiscountDTOFaker;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
@@ -39,6 +26,17 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+import static it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants.ExceptionCode.INSTRUMENT_ALREADY_ASSOCIATED;
+import static it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants.ExceptionCode.INSTRUMENT_NOT_FOUND;
+import static it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants.ExceptionMessage.ERROR_INSTRUMENT_ALREADY_ASSOCIATED_MSG;
+import static it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants.ExceptionMessage.ERROR_INSTRUMENT_NOT_FOUND_MSG;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(MockitoExtension.class)
 @WebMvcTest(value = {
@@ -138,8 +136,7 @@ class PaymentInstrumentControllerTest {
   void enroll_already_active() throws Exception {
     ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
-    Mockito.doThrow(new PaymentInstrumentException(HttpStatus.FORBIDDEN.value(),
-            PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_ALREADY_ASSOCIATED_AUDIT))
+    Mockito.doThrow(new UserNotAllowedException(ERROR_INSTRUMENT_ALREADY_ASSOCIATED_MSG))
         .when(paymentInstrumentServiceMock)
         .enrollInstrument(INITIATIVE_ID, USER_ID, ID_WALLET, CHANNEL, INSTRUMENT_TYPE);
 
@@ -149,11 +146,10 @@ class PaymentInstrumentControllerTest {
             .accept(MediaType.APPLICATION_JSON_VALUE))
         .andExpect(MockMvcResultMatchers.status().isForbidden()).andReturn();
 
-    ErrorDTO error = objectMapper.readValue(res.getResponse().getContentAsString(), ErrorDTO.class);
+    ErrorDTO errorResult = objectMapper.readValue(res.getResponse().getContentAsString(), ErrorDTO.class);
 
-    assertEquals(HttpStatus.FORBIDDEN.value(), error.getCode());
-    assertEquals(PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_ALREADY_ASSOCIATED_AUDIT,
-        error.getMessage());
+    assertEquals(new ErrorDTO(INSTRUMENT_ALREADY_ASSOCIATED,ERROR_INSTRUMENT_ALREADY_ASSOCIATED_MSG), errorResult);
+
   }
 
   @Test
@@ -188,8 +184,7 @@ class PaymentInstrumentControllerTest {
   void deactivate_not_found() throws Exception {
     ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
-    Mockito.doThrow(new PaymentInstrumentException(HttpStatus.NOT_FOUND.value(),
-            PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_NOT_FOUND))
+    Mockito.doThrow(new PaymentInstrumentNotFoundException(ERROR_INSTRUMENT_NOT_FOUND_MSG))
         .when(paymentInstrumentServiceMock)
         .deactivateInstrument(INITIATIVE_ID, USER_ID, INSTRUMENT_ID);
 
@@ -201,8 +196,7 @@ class PaymentInstrumentControllerTest {
 
     ErrorDTO error = objectMapper.readValue(res.getResponse().getContentAsString(), ErrorDTO.class);
 
-    assertEquals(HttpStatus.NOT_FOUND.value(), error.getCode());
-    assertEquals(PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_NOT_FOUND, error.getMessage());
+    assertEquals(new ErrorDTO(INSTRUMENT_NOT_FOUND, ERROR_INSTRUMENT_NOT_FOUND_MSG), error);
   }
 
   @Test
@@ -289,8 +283,7 @@ class PaymentInstrumentControllerTest {
   void enroll_issuer_already_active() throws Exception {
     ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
-    Mockito.doThrow(new PaymentInstrumentException(HttpStatus.FORBIDDEN.value(),
-            PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_ALREADY_ASSOCIATED_AUDIT))
+    Mockito.doThrow(new UserNotAllowedException(ERROR_INSTRUMENT_ALREADY_ASSOCIATED_MSG))
         .when(paymentInstrumentServiceMock)
         .enrollFromIssuer(Mockito.any());
 
@@ -302,9 +295,7 @@ class PaymentInstrumentControllerTest {
 
     ErrorDTO error = objectMapper.readValue(res.getResponse().getContentAsString(), ErrorDTO.class);
 
-    assertEquals(HttpStatus.FORBIDDEN.value(), error.getCode());
-    assertEquals(PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_ALREADY_ASSOCIATED_AUDIT,
-        error.getMessage());
+    assertEquals(new ErrorDTO(INSTRUMENT_ALREADY_ASSOCIATED, ERROR_INSTRUMENT_ALREADY_ASSOCIATED_MSG), error);
   }
 
   @Test

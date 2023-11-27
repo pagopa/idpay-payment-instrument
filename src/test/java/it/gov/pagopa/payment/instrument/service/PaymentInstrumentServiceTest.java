@@ -1,5 +1,7 @@
 package it.gov.pagopa.payment.instrument.service;
 
+import static it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants.ExceptionCode.INSTRUMENT_NOT_FOUND;
+import static it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants.ExceptionMessage.ERROR_INSTRUMENT_NOT_FOUND_MSG;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -50,7 +52,7 @@ import it.gov.pagopa.payment.instrument.dto.rtd.RTDRevokeCardDTO;
 import it.gov.pagopa.payment.instrument.event.producer.ErrorProducer;
 import it.gov.pagopa.payment.instrument.event.producer.RTDProducer;
 import it.gov.pagopa.payment.instrument.event.producer.RuleEngineProducer;
-import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
+import it.gov.pagopa.payment.instrument.exception.custom.PaymentInstrumentNotFoundException;
 import it.gov.pagopa.payment.instrument.model.PaymentInstrument;
 import it.gov.pagopa.payment.instrument.repository.PaymentInstrumentRepository;
 import it.gov.pagopa.payment.instrument.repository.PaymentInstrumentRepositoryExtended;
@@ -360,12 +362,12 @@ class PaymentInstrumentServiceTest {
         Mockito.when(decryptRestConnector.getPiiByToken(USER_ID)).thenReturn(DECRYPT_CF_DTO);
         Mockito.when(
                 pmRestClientConnector.getWalletList(USER_ID)).thenReturn(WALLET_V_2_LIST_RESPONSE_CARD);
-        try {
-            paymentInstrumentService.enrollInstrument(INITIATIVE_ID, USER_ID, ID_WALLET, CHANNEL, PaymentInstrumentConstants.INSTRUMENT_TYPE_CARD
-            );
-        } catch (PaymentInstrumentException e) {
-            fail();
-        }
+
+        paymentInstrumentService.enrollInstrument(INITIATIVE_ID, USER_ID, ID_WALLET, CHANNEL, PaymentInstrumentConstants.INSTRUMENT_TYPE_CARD);
+
+        Mockito.verify(paymentInstrumentRepositoryMock, Mockito.times(1)).findByHpan(Mockito.any());
+        Mockito.verify(decryptRestConnector, Mockito.times(1)).getPiiByToken(Mockito.any());
+        Mockito.verify(pmRestClientConnector, Mockito.times(1)).getWalletList(Mockito.any());
     }
 
     @Test
@@ -375,13 +377,12 @@ class PaymentInstrumentServiceTest {
         Mockito.when(decryptRestConnector.getPiiByToken(USER_ID)).thenReturn(DECRYPT_CF_DTO);
         Mockito.when(
                 pmRestClientConnector.getWalletList(USER_ID)).thenReturn(WALLET_V_2_LIST_RESPONSE_CARD);
-        
-        try {
-            paymentInstrumentService.enrollInstrument(INITIATIVE_ID, USER_ID, ID_WALLET, CHANNEL, PaymentInstrumentConstants.INSTRUMENT_TYPE_CARD
-            );
-        } catch (PaymentInstrumentException e) {
-            fail();
-        }
+
+        paymentInstrumentService.enrollInstrument(INITIATIVE_ID, USER_ID, ID_WALLET, CHANNEL, PaymentInstrumentConstants.INSTRUMENT_TYPE_CARD);
+
+        Mockito.verify(paymentInstrumentRepositoryMock, Mockito.times(1)).findByHpan(Mockito.any());
+        Mockito.verify(decryptRestConnector, Mockito.times(1)).getPiiByToken(Mockito.any());
+        Mockito.verify(pmRestClientConnector, Mockito.times(1)).getWalletList(Mockito.any());
     }
 
     @Test
@@ -395,8 +396,9 @@ class PaymentInstrumentServiceTest {
         try {
             paymentInstrumentService.enrollInstrument(INITIATIVE_ID, USER_ID, ID_WALLET, CHANNEL, PaymentInstrumentConstants.INSTRUMENT_TYPE_CARD);
             fail();
-        } catch (PaymentInstrumentException e) {
-            assertEquals(HttpStatus.NOT_FOUND.value(), e.getCode());
+        } catch (PaymentInstrumentNotFoundException e) {
+            assertEquals(INSTRUMENT_NOT_FOUND, e.getCode());
+            assertEquals(ERROR_INSTRUMENT_NOT_FOUND_MSG, e.getMessage());
         }
     }
 
@@ -410,12 +412,11 @@ class PaymentInstrumentServiceTest {
         Mockito.when(
                 pmRestClientConnector.getWalletList(USER_ID)).thenReturn(WALLET_V_2_LIST_RESPONSE_SATISPAY);
         
-        try {
-            paymentInstrumentService.enrollInstrument(INITIATIVE_ID, USER_ID, ID_WALLET, CHANNEL, PaymentInstrumentConstants.INSTRUMENT_TYPE_CARD
-            );
-        } catch (PaymentInstrumentException e) {
-            fail();
-        }
+        paymentInstrumentService.enrollInstrument(INITIATIVE_ID, USER_ID, ID_WALLET, CHANNEL, PaymentInstrumentConstants.INSTRUMENT_TYPE_CARD);
+
+        Mockito.verify(paymentInstrumentRepositoryMock, Mockito.times(1)).findByHpan(Mockito.any());
+        Mockito.verify(decryptRestConnector, Mockito.times(1)).getPiiByToken(Mockito.any());
+        Mockito.verify(pmRestClientConnector, Mockito.times(1)).getWalletList(Mockito.any());
     }
     
     @Test

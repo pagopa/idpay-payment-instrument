@@ -1,23 +1,26 @@
 package it.gov.pagopa.payment.instrument.service.idpaycode;
 
 import feign.FeignException;
+import it.gov.pagopa.common.web.dto.ErrorDTO;
 import it.gov.pagopa.payment.instrument.connector.WalletRestConnector;
 import it.gov.pagopa.payment.instrument.dto.EncryptedDataBlock;
 import it.gov.pagopa.payment.instrument.dto.GenerateCodeRespDTO;
 import it.gov.pagopa.payment.instrument.dto.PinBlockDTO;
-import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
+import it.gov.pagopa.payment.instrument.exception.custom.*;
 import it.gov.pagopa.payment.instrument.model.PaymentInstrumentCode;
 import it.gov.pagopa.payment.instrument.repository.PaymentInstrumentCodeRepository;
 import it.gov.pagopa.payment.instrument.utils.AuditUtilities;
 import it.gov.pagopa.payment.instrument.utils.Utilities;
-import java.security.SecureRandom;
-import java.time.LocalDateTime;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+
+import java.security.SecureRandom;
+import java.time.LocalDateTime;
+
+import static it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants.ExceptionMessage.*;
 
 @Slf4j
 @Service
@@ -25,6 +28,11 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
 
   public static final String GENERATED_CODE = "GENERATED_CODE";
   public static final String ENROLL_CODE_AFTER_CODE_GENERATED = "ENROLL_CODE_AFTER_CODE_GENERATED";
+  public static final String  WALLET_TOO_MANY_REQUESTS = "WALLET_TOO_MANY_REQUESTS";
+  public static final String WALLET_USER_NOT_ONBOARDED = "WALLET_USER_NOT_ONBOARDED";
+  public static final String WALLET_ENROLL_INSTRUMENT_NOT_ALLOW_FOR_REFUND_INITIATIVE = "WALLET_ENROLL_INSTRUMENT_NOT_ALLOW_FOR_REFUND_INITIATIVE";
+  public static final String WALLET_USER_UNSUBSCRIBED = "WALLET_USER_UNSUBSCRIBED";
+  public static final String WALLET_INITIATIVE_ENDED = "WALLET_INITIATIVE_ENDED";
   private final PaymentInstrumentCodeRepository paymentInstrumentCodeRepository;
   private final WalletRestConnector walletRestConnector;
   private final SecureRandom random;
@@ -84,12 +92,14 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
         // delete code if enrollment have failed
         paymentInstrumentCodeRepository.deleteById(userId);
 
-        switch (e.status()) {
-          case 429 -> throw new PaymentInstrumentException(HttpStatus.TOO_MANY_REQUESTS.value(), utilities.exceptionConverter(e));
-          case 400 -> throw new PaymentInstrumentException(HttpStatus.BAD_REQUEST.value(), utilities.exceptionConverter(e));
-          case 404 -> throw new PaymentInstrumentException(HttpStatus.NOT_FOUND.value(), utilities.exceptionConverter(e));
-          default -> throw new PaymentInstrumentException(HttpStatus.INTERNAL_SERVER_ERROR.value(),
-              "An error occurred in the microservice wallet");
+        ErrorDTO errorDTO = utilities.exceptionErrorDTOConverter(e);
+        switch (errorDTO.getCode()) {
+          case WALLET_TOO_MANY_REQUESTS -> throw new TooManyRequestsException(ERROR_TOO_MANY_REQUESTS_WALLET_MSG);
+          case WALLET_USER_NOT_ONBOARDED -> throw new UserNotOnboardedException(String.format(ERROR_USER_NOT_ONBOARDED_MSG, initiativeId));
+          case WALLET_ENROLL_INSTRUMENT_NOT_ALLOW_FOR_REFUND_INITIATIVE -> throw new EnrollmentNotAllowedException(String.format(ERROR_ENROLL_NOT_ALLOWED_FOR_REFUND_INITIATIVE_MSG, initiativeId));
+          case WALLET_USER_UNSUBSCRIBED -> throw new UserUnsubscribedException(String.format(ERROR_USER_UNSUBSCRIBED_MSG, initiativeId));
+          case WALLET_INITIATIVE_ENDED -> throw new InitiativeInvalidException(String.format(ERROR_INITIATIVE_ENDED_MSG, initiativeId));
+          default -> throw new WalletInvocationException(ERROR_INVOCATION_WALLET_MSG);
         }
       }
     }
@@ -117,7 +127,7 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
 
     PaymentInstrumentCode paymentInstrumentCode = findById(userId);
     if (paymentInstrumentCode == null){
-      throw new PaymentInstrumentException(404, "Instrument not found");
+      throw new IDPayCodeNotFoundException(ERROR_IDPAYCODE_NOT_FOUND_MSG);
     }
 
     String inputPlainIdpayCode = idpayCodeEncryptionService.hashSHADecryptedDataBlock(userId, pinBlockDTO,
@@ -137,7 +147,7 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
     PaymentInstrumentCode paymentInstrumentCode = findById(userId);
 
     if (paymentInstrumentCode==null){
-      throw new PaymentInstrumentException(404, String.format("There is not a idpaycode for the userId: %s", userId));
+      throw new IDPayCodeNotFoundException(ERROR_IDPAYCODE_NOT_FOUND_MSG);
     }
     String secondFactor = paymentInstrumentCode.getSecondFactor();
     performanceLog(startTime, "IDPAY_CODE_SECOND_FACTOR", userId, null);

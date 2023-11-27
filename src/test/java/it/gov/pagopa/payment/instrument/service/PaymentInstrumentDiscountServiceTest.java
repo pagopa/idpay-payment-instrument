@@ -1,5 +1,7 @@
 package it.gov.pagopa.payment.instrument.service;
 
+import static it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants.ExceptionCode.IDPAYCODE_NOT_FOUND;
+import static it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants.ExceptionMessage.ERROR_IDPAYCODE_NOT_FOUND_MSG;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
@@ -18,7 +20,7 @@ import it.gov.pagopa.payment.instrument.dto.mapper.InstrumentFromDiscountDTO2Pay
 import it.gov.pagopa.payment.instrument.dto.mapper.MessageMapper;
 import it.gov.pagopa.payment.instrument.event.producer.ErrorProducer;
 import it.gov.pagopa.payment.instrument.event.producer.RuleEngineProducer;
-import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
+import it.gov.pagopa.payment.instrument.exception.custom.IDPayCodeNotFoundException;
 import it.gov.pagopa.payment.instrument.model.PaymentInstrument;
 import it.gov.pagopa.payment.instrument.repository.PaymentInstrumentRepository;
 import it.gov.pagopa.payment.instrument.service.idpaycode.PaymentInstrumentCodeService;
@@ -93,8 +95,10 @@ class PaymentInstrumentDiscountServiceTest {
 
     when(instrumentFromDiscountDTO2PaymentInstrumentMapper.apply(any())).thenReturn(
         paymentInstrument);
-    doThrow(new PaymentInstrumentException(HttpStatus.BAD_REQUEST.value(), "")).when(
+
+    doThrow(new Exception("DUMMY_EXCEPTION")).when(
         ruleEngineProducer).sendInstruments(any());
+
     when(messageMapper.apply(any())).thenReturn(
         MessageBuilder.withPayload(new RuleEngineRequestDTO(
         )).build());
@@ -168,7 +172,7 @@ class PaymentInstrumentDiscountServiceTest {
     when(baseEnrollmentBodyDTO2PaymentInstrument.apply(any(), anyString()))
             .thenReturn(paymentInstrument);
 
-    doThrow(new PaymentInstrumentException(HttpStatus.BAD_REQUEST.value(), "")).when(
+    doThrow(new Exception("DUMMY_EXCEPTION")).when(
             ruleEngineProducer).sendInstruments(any());
 
     when(messageMapper.apply(any())).thenReturn(
@@ -192,9 +196,9 @@ class PaymentInstrumentDiscountServiceTest {
     try{
       paymentInstrumentDiscountService.enrollInstrumentCode(enrollmentRequest);
       fail();
-    }catch (PaymentInstrumentException e){
-      assertEquals(403, e.getCode());
-      assertEquals("IdpayCode must be generated", e.getMessage());
+    }catch (IDPayCodeNotFoundException e){
+      assertEquals(IDPAYCODE_NOT_FOUND, e.getCode());
+      assertEquals(ERROR_IDPAYCODE_NOT_FOUND_MSG, e.getMessage());
     }
   }
 }

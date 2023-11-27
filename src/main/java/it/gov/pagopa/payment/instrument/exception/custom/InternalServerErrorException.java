@@ -14,6 +14,10 @@ public class InternalServerErrorException extends ServiceException {
         this(code, message, false, null);
     }
 
+    public InternalServerErrorException(String code, String message, Throwable ex) {
+        this(code, message, false, ex);
+    }
+
     public InternalServerErrorException(String code, String message, boolean printStackTrace, Throwable ex) {
         super(code, message, printStackTrace, ex);
     }
