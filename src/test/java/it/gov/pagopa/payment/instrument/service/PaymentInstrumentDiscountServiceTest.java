@@ -96,7 +96,7 @@ class PaymentInstrumentDiscountServiceTest {
     when(instrumentFromDiscountDTO2PaymentInstrumentMapper.apply(any())).thenReturn(
         paymentInstrument);
 
-    doThrow(new Exception("DUMMY_EXCEPTION")).when(
+    doThrow(new RuntimeException("DUMMY_EXCEPTION")).when(
         ruleEngineProducer).sendInstruments(any());
 
     when(messageMapper.apply(any())).thenReturn(
@@ -172,7 +172,7 @@ class PaymentInstrumentDiscountServiceTest {
     when(baseEnrollmentBodyDTO2PaymentInstrument.apply(any(), anyString()))
             .thenReturn(paymentInstrument);
 
-    doThrow(new Exception("DUMMY_EXCEPTION")).when(
+    doThrow(new RuntimeException("DUMMY_EXCEPTION")).when(
             ruleEngineProducer).sendInstruments(any());
 
     when(messageMapper.apply(any())).thenReturn(

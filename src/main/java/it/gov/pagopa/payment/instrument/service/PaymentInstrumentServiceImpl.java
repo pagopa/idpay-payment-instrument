@@ -448,7 +448,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
 
     EncryptedCfDTO encryptedCfDTO = new EncryptedCfDTO();
 
-    try { //TODO check with test
+    try { //TODO check with test errore PDV ignorato
       encryptedCfDTO = encryptRestConnector.upsertToken(
           new CFDTO(rtdMessage.getFiscalCode()));
     } catch (Exception e) {
