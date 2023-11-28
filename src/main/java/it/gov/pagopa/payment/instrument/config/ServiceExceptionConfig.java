@@ -25,12 +25,16 @@ public class ServiceExceptionConfig {
         exceptionMap.put(IdpayCodeEncryptOrDecryptException.class, HttpStatus.FORBIDDEN);
         exceptionMap.put(InitiativeInvalidException.class, HttpStatus.FORBIDDEN);
         exceptionMap.put(UserUnsubscribedException.class, HttpStatus.FORBIDDEN);
+        exceptionMap.put(EnrollmentNotAllowedException.class, HttpStatus.FORBIDDEN);
 
 
         // NotFound
         exceptionMap.put(UserNotOnboardedException.class, HttpStatus.NOT_FOUND);
         exceptionMap.put(PaymentInstrumentNotFoundException.class, HttpStatus.NOT_FOUND);
         exceptionMap.put(IDPayCodeNotFoundException.class, HttpStatus.NOT_FOUND);
+
+        // TooManyRequests
+        exceptionMap.put(TooManyRequestsException.class, HttpStatus.TOO_MANY_REQUESTS);
 
         // InternalServerError
         exceptionMap.put(RewardCalculatorInvocationException.class, HttpStatus.INTERNAL_SERVER_ERROR);

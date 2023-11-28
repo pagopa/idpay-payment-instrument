@@ -3,6 +3,7 @@ package it.gov.pagopa.payment.instrument.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import it.gov.pagopa.common.web.dto.ErrorDTO;
+import it.gov.pagopa.payment.instrument.config.ServiceExceptionConfig;
 import it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants;
 import it.gov.pagopa.payment.instrument.dto.*;
 import it.gov.pagopa.payment.instrument.exception.custom.PaymentInstrumentNotFoundException;
@@ -20,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -31,8 +33,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import static it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants.ExceptionCode.INSTRUMENT_ALREADY_ASSOCIATED;
-import static it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants.ExceptionCode.INSTRUMENT_NOT_FOUND;
+import static it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants.ExceptionCode.*;
 import static it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants.ExceptionMessage.ERROR_INSTRUMENT_ALREADY_ASSOCIATED_MSG;
 import static it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants.ExceptionMessage.ERROR_INSTRUMENT_NOT_FOUND_MSG;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -41,6 +42,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @ExtendWith(MockitoExtension.class)
 @WebMvcTest(value = {
     PaymentInstrumentController.class}, excludeAutoConfiguration = SecurityAutoConfiguration.class)
+@Import(ServiceExceptionConfig.class)
 class PaymentInstrumentControllerTest {
 
   private static final String BASE_URL = "http://localhost:8080/idpay/instrument";
@@ -128,7 +130,7 @@ class PaymentInstrumentControllerTest {
 
     ErrorDTO error = objectMapper.readValue(res.getResponse().getContentAsString(), ErrorDTO.class);
 
-    assertEquals(HttpStatus.BAD_REQUEST.value(), error.getCode());
+    assertEquals(INVALID_REQUEST, error.getCode());
     assertTrue(error.getMessage().contains(PaymentInstrumentConstants.ERROR_MANDATORY_FIELD));
   }
 
@@ -176,7 +178,7 @@ class PaymentInstrumentControllerTest {
 
     ErrorDTO error = objectMapper.readValue(res.getResponse().getContentAsString(), ErrorDTO.class);
 
-    assertEquals(HttpStatus.BAD_REQUEST.value(), error.getCode());
+    assertEquals(INVALID_REQUEST, error.getCode());
     assertTrue(error.getMessage().contains(PaymentInstrumentConstants.ERROR_MANDATORY_FIELD));
   }
 
@@ -275,7 +277,7 @@ class PaymentInstrumentControllerTest {
 
     ErrorDTO error = objectMapper.readValue(res.getResponse().getContentAsString(), ErrorDTO.class);
 
-    assertEquals(HttpStatus.BAD_REQUEST.value(), error.getCode());
+    assertEquals(INVALID_REQUEST, error.getCode());
     assertTrue(error.getMessage().contains(PaymentInstrumentConstants.ERROR_MANDATORY_FIELD));
   }
 
@@ -370,7 +372,7 @@ class PaymentInstrumentControllerTest {
 
     ErrorDTO error = objectMapper.readValue(result.getResponse().getContentAsString(), ErrorDTO.class);
 
-    assertEquals(HttpStatus.BAD_REQUEST.value(), error.getCode());
+    assertEquals(INVALID_REQUEST, error.getCode());
     assertTrue(error.getMessage().contains(PaymentInstrumentConstants.ERROR_MANDATORY_FIELD));
 
   }

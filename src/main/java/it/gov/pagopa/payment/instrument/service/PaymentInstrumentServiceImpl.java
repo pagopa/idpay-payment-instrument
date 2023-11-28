@@ -448,7 +448,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
 
     EncryptedCfDTO encryptedCfDTO = new EncryptedCfDTO();
 
-    try {
+    try { //TODO check with test
       encryptedCfDTO = encryptRestConnector.upsertToken(
           new CFDTO(rtdMessage.getFiscalCode()));
     } catch (Exception e) {
@@ -662,7 +662,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
 
     for (PaymentInstrument pi : instrumentList) {
       if (pi.getInitiativeId().equals(body.getInitiativeId())
-          && !pi.getStatus().equals(PaymentInstrumentConstants.STATUS_INACTIVE)) {
+          && !pi.getStatus().equals(PaymentInstrumentConstants.STATUS_INACTIVE)) { //TODO da controllare nelle casistiche di stato FAILED it.gov.pagopa.payment.instrument.service.PaymentInstrumentServiceTest.enrollIssuer_ok_status_faild_ko_re
         log.info(
             "[ENROLL_FROM_ISSUER] The Payment Instrument is already active, or there is a pending request on it.");
         auditUtilities.logEnrollInstrFromIssuerKO("already active or in pending", body.getHpan(),

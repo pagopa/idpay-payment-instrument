@@ -61,7 +61,7 @@ class ErrorManagerTest {
                     .contentType(MediaType.APPLICATION_JSON))
             .andExpect(MockMvcResultMatchers.status().isBadRequest())
             .andExpect(MockMvcResultMatchers.content()
-                    .json("{\"code\":0,\"message\":\"Error ClientExceptionWithBody\"}"));
+                    .json("{\"code\":\"Error\",\"message\":\"Error ClientExceptionWithBody\"}"));
 
     Mockito.doThrow(
                     new ClientExceptionWithBody(HttpStatus.BAD_REQUEST, "Error", "Error ClientExceptionWithBody",
@@ -72,7 +72,7 @@ class ErrorManagerTest {
                     .contentType(MediaType.APPLICATION_JSON))
             .andExpect(MockMvcResultMatchers.status().isBadRequest())
             .andExpect(MockMvcResultMatchers.content()
-                    .json("{\"code\":1,\"message\":\"Error ClientExceptionWithBody\"}"));
+                    .json("{\"code\":\"Error\",\"message\":\"Error ClientExceptionWithBody\"}"));
   }
 
   @Test
@@ -85,7 +85,7 @@ class ErrorManagerTest {
                     .contentType(MediaType.APPLICATION_JSON))
             .andExpect(MockMvcResultMatchers.status().isInternalServerError())
             .andExpect(MockMvcResultMatchers.content()
-                    .json("{\"code\":500,\"message\":\"Something gone wrong\"}"));
+                    .json("{\"code\":\"PAYMENT_INSTRUMENT_GENERIC_ERROR\",\"message\":\"Something gone wrong\"}"));
 
     Mockito.doThrow(
                     new ClientException(HttpStatus.BAD_REQUEST, "ClientException with httpStatus and message"))
@@ -95,7 +95,7 @@ class ErrorManagerTest {
                     .contentType(MediaType.APPLICATION_JSON))
             .andExpect(MockMvcResultMatchers.status().isInternalServerError())
             .andExpect(MockMvcResultMatchers.content()
-                    .json("{\"code\":500,\"message\":\"Something gone wrong\"}"));
+                    .json("{\"code\":\"PAYMENT_INSTRUMENT_GENERIC_ERROR\",\"message\":\"Something gone wrong\"}"));
 
     Mockito.doThrow(new ClientException(HttpStatus.BAD_REQUEST,
                     "ClientException with httpStatus, message and throwable", new Throwable()))
@@ -105,7 +105,7 @@ class ErrorManagerTest {
                     .contentType(MediaType.APPLICATION_JSON))
             .andExpect(MockMvcResultMatchers.status().isInternalServerError())
             .andExpect(MockMvcResultMatchers.content()
-                    .json("{\"code\":500,\"message\":\"Something gone wrong\"}"));
+                    .json("{\"code\":\"PAYMENT_INSTRUMENT_GENERIC_ERROR\",\"message\":\"Something gone wrong\"}"));
   }
 
   @Test
@@ -117,6 +117,6 @@ class ErrorManagerTest {
                     .contentType(MediaType.APPLICATION_JSON))
             .andExpect(MockMvcResultMatchers.status().isInternalServerError())
             .andExpect(MockMvcResultMatchers.content()
-                    .json("{\"code\":500,\"message\":\"Something gone wrong\"}"));
+                    .json("{\"code\":\"PAYMENT_INSTRUMENT_GENERIC_ERROR\",\"message\":\"Something gone wrong\"}"));
   }
 }
