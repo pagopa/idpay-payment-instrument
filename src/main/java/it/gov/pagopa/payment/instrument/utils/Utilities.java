@@ -19,8 +19,7 @@ public class Utilities {
     try {
       errorDTO = objectMapper.readValue(e.contentUTF8(), ErrorDTO.class);
     } catch (JsonProcessingException ex) {
-      errorDTO = new ErrorDTO(GENERIC_ERROR, null);
-    }
+      errorDTO = new ErrorDTO(GENERIC_ERROR, null);}
     return errorDTO;
   }
 
