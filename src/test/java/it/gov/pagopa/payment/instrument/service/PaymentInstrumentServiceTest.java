@@ -1149,6 +1149,31 @@ class PaymentInstrumentServiceTest {
     }
 
     @Test
+    void rollback_ko_reward_calculator() {
+        List<PaymentInstrument> paymentInstrumentList = new ArrayList<>();
+        paymentInstrumentList.add(TEST_INSTRUMENT);
+        TEST_INSTRUMENT.setStatus(PaymentInstrumentConstants.STATUS_INACTIVE);
+        TEST_INSTRUMENT.setDeactivationDate(LocalDateTime.now());
+        Mockito.when(
+                        paymentInstrumentRepositoryMock.findByInitiativeIdAndUserIdAndStatus(INITIATIVE_ID, USER_ID,
+                                PaymentInstrumentConstants.STATUS_INACTIVE))
+                .thenReturn(paymentInstrumentList);
+        Mockito.doThrow(new FeignException.InternalServerError("",
+                        Request.create(Request.HttpMethod.PUT, "url", new HashMap<>(), null, new RequestTemplate()), new byte[0], null))
+                .when(rewardCalculatorConnector).enableUserInitiativeInstruments(anyString(), anyString());
+        try {
+            paymentInstrumentService.rollback(INITIATIVE_ID, USER_ID);
+            fail();
+        } catch (RewardCalculatorInvocationException e) {
+            assertNull(TEST_INSTRUMENT.getDeactivationDate());
+            assertNotEquals(PaymentInstrumentConstants.STATUS_INACTIVE, TEST_INSTRUMENT.getStatus());
+
+            assertEquals(GENERIC_ERROR, e.getCode());
+            assertEquals(ERROR_INVOCATION_REWARD_MSG, e.getMessage());
+        }
+    }
+
+    @Test
     void deactivateInstrument_PM_KO_NotFound() {
         TEST_INSTRUMENT.setStatus(PaymentInstrumentConstants.STATUS_ACTIVE);
         TEST_INSTRUMENT.setDeactivationDate(null);
@@ -1206,6 +1231,59 @@ class PaymentInstrumentServiceTest {
                 TEST_PENDING_DEACTIVATION_INSTRUMENT.getStatus());
         Mockito.verify(paymentInstrumentRepositoryMock, Mockito.times(1))
                 .save(Mockito.any(PaymentInstrument.class));
+    }
+
+    @Test
+    void processAck_deactivation_ok_rtd() {
+        final RuleEngineAckDTO dto = new RuleEngineAckDTO(INITIATIVE_ID, USER_ID,
+                PaymentInstrumentConstants.OPERATION_DELETE, List.of(HPAN), List.of(), LocalDateTime.now());
+
+        Mockito.when(paymentInstrumentRepositoryMock.findByInitiativeIdAndUserIdAndHpanAndStatus(INITIATIVE_ID,
+                        USER_ID, HPAN, PaymentInstrumentConstants.STATUS_PENDING_DEACTIVATION_REQUEST))
+                .thenReturn(Optional.of(TEST_PENDING_DEACTIVATION_INSTRUMENT));
+
+        Mockito.when(paymentInstrumentRepositoryMock.countByHpanAndStatusIn(HPAN,
+                List.of(PaymentInstrumentConstants.STATUS_ACTIVE,
+                        PaymentInstrumentConstants.STATUS_PENDING_DEACTIVATION_REQUEST))).thenReturn(1);
+        TEST_PENDING_DEACTIVATION_INSTRUMENT.setInstrumentType(PaymentInstrumentConstants.INSTRUMENT_TYPE_CARD);
+        paymentInstrumentService.processAck(dto);
+
+        assertEquals(dto.getTimestamp(), TEST_PENDING_DEACTIVATION_INSTRUMENT.getDeactivationDate());
+        assertEquals(PaymentInstrumentConstants.STATUS_INACTIVE,
+                TEST_PENDING_DEACTIVATION_INSTRUMENT.getStatus());
+        Mockito.verify(paymentInstrumentRepositoryMock, Mockito.times(1))
+                .save(Mockito.any(PaymentInstrument.class));
+    }
+
+    @Test
+    void processAck_deactivation_ok_rtd_exception() {
+        final RuleEngineAckDTO dto = new RuleEngineAckDTO(INITIATIVE_ID, USER_ID,
+                PaymentInstrumentConstants.OPERATION_DELETE, List.of(HPAN), List.of(), LocalDateTime.now());
+
+        Mockito.when(paymentInstrumentRepositoryMock.findByInitiativeIdAndUserIdAndHpanAndStatus(INITIATIVE_ID,
+                        USER_ID, HPAN, PaymentInstrumentConstants.STATUS_PENDING_DEACTIVATION_REQUEST))
+                .thenReturn(Optional.of(TEST_PENDING_DEACTIVATION_INSTRUMENT));
+
+        Mockito.when(paymentInstrumentRepositoryMock.countByHpanAndStatusIn(HPAN,
+                List.of(PaymentInstrumentConstants.STATUS_ACTIVE,
+                        PaymentInstrumentConstants.STATUS_PENDING_DEACTIVATION_REQUEST))).thenReturn(1);
+        TEST_PENDING_DEACTIVATION_INSTRUMENT.setInstrumentType(PaymentInstrumentConstants.INSTRUMENT_TYPE_CARD);
+
+        Mockito.doThrow(new RuntimeException("DUMMY_EXCEPTION")).when(rtdProducer)
+                .sendInstrument(Mockito.any());
+        try {
+            paymentInstrumentService.processAck(dto);
+        }catch (InternalServerErrorException e){
+            assertEquals(dto.getTimestamp(), TEST_PENDING_DEACTIVATION_INSTRUMENT.getDeactivationDate());
+            assertEquals(PaymentInstrumentConstants.STATUS_INACTIVE,
+                    TEST_PENDING_DEACTIVATION_INSTRUMENT.getStatus());
+            assertEquals(GENERIC_ERROR, e.getCode());
+            assertEquals(ERROR_SEND_INSTRUMENT_NOTIFY_MSG,
+                    e.getMessage());
+
+        }
+
+
     }
 
     @Test

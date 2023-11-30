@@ -957,7 +957,11 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     log.info("[ROLLBACK_INSTRUMENTS] Instrument rollbacked: {}", paymentInstrumentList.size());
     performanceLog(startTime, "ROLLBACK_INSTRUMENTS");
 
-    rewardCalculatorConnector.enableUserInitiativeInstruments(userId, initiativeId);
+    try{
+      rewardCalculatorConnector.enableUserInitiativeInstruments(userId, initiativeId);
+    }catch (Exception e) {
+      throw new RewardCalculatorInvocationException(ERROR_INVOCATION_REWARD_MSG);
+    }
   }
 
   @Override
