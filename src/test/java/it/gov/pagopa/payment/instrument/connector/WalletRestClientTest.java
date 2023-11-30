@@ -93,6 +93,19 @@ class WalletRestClientTest {
   }
 
   @Test
+  void updateWallet_ko_feignException() {
+    Mockito.doThrow(new FeignException
+            .InternalServerError("", Request.create(Request.HttpMethod.PUT, "url", new HashMap<>(), null, new RequestTemplate()), new byte[0], null))
+            .when(walletRestClient).updateWallet(WALLET_CALL_DTO);
+
+    try {
+      walletRestConnector.updateWallet(WALLET_CALL_DTO);
+    } catch (WalletInvocationException e) {
+      Assertions.assertEquals(GENERIC_ERROR, e.getCode());
+      Assertions.assertEquals(ERROR_INVOCATION_WALLET_MSG, e.getMessage());
+    }
+  }
+  @Test
   void processAck() {
 
     WALLET_DTO_LIST.add(WALLET_DTO);

@@ -248,6 +248,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     }
 
     if (countIdWallet == walletV2ListResponse.getData().size()) {
+      log.error("[PAYMENT_METHOD_INFO] The selected payment instrument has not been found for the user {}", userId);
       throw new PaymentInstrumentNotFoundException(ERROR_INSTRUMENT_NOT_FOUND_MSG);
     }
     return infoList;
@@ -285,6 +286,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       rewardCalculatorConnector.disableUserInitiativeInstruments(userId, initiativeId);
     } catch (Exception e) {
       this.rollback(initiativeId, userId);
+      log.error("[DISABLE_USER_INITIATIVE_INSTRUMENTS] An error occurred in the microservice reward-calculator");
       performanceLog(startTime, "DEACTIVATE_ALL_INSTRUMENTS");
       throw new RewardCalculatorInvocationException(ERROR_INVOCATION_REWARD_MSG);
     }
@@ -307,10 +309,12 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
         initiativeId, userId, instrumentId).orElse(null);
 
     if (instrument == null) {
+      log.error("[DEACTIVATE_INSTRUMENT] The selected payment instrument has not been found for the user {}", userId);
       throw new PaymentInstrumentNotFoundException(ERROR_INSTRUMENT_NOT_FOUND_MSG);
     }
 
     if(instrument.getInstrumentType().equals(PaymentInstrumentConstants.INSTRUMENT_TYPE_APP_IO_PAYMENT)){
+      log.info("[DEACTIVATE_INSTRUMENT] It's not possible to delete an instrument of AppIO payment types");
       throw new InstrumentDeleteNotAllowedException(ERROR_DELETE_NOT_ALLOWED_MSG);
     }
 
@@ -767,6 +771,8 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
           sendToRtd(List.of(hpanListDTO), ruleEngineAckDTO.getOperationType(),
             instrument.getInitiativeId());
         } catch (Exception e) {
+          log.info(
+                  "[ENROLL_INSTRUMENT] Couldn't send to RTD: resetting the Instrument.");
           throw new InternalServerErrorException(GENERIC_ERROR, ERROR_SEND_INSTRUMENT_NOTIFY_MSG, e);
         }
       }
@@ -960,6 +966,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     try{
       rewardCalculatorConnector.enableUserInitiativeInstruments(userId, initiativeId);
     }catch (Exception e) {
+      log.error("[ENABLE_USER_INITIATIVE_INSTRUMENTS] An error occurred in the microservice reward-calculator");
       throw new RewardCalculatorInvocationException(ERROR_INVOCATION_REWARD_MSG);
     }
   }

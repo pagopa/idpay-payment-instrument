@@ -1329,6 +1329,7 @@ class PaymentInstrumentServiceTest {
         paymentInstrumentService.processRtdMessage(dto);
 
         assertNotNull(TEST_INSTRUMENT.getActivationDate());
+        assertNotNull(TEST_INSTRUMENT.getRtdAckDate());
     }
 
     @Test

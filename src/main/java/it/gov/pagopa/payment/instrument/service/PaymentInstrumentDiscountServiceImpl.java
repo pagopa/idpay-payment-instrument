@@ -88,6 +88,7 @@ public class PaymentInstrumentDiscountServiceImpl implements
     log.info("[IDPAY_CODE_STATUS] The userId {} has code with status {}", body.getUserId(), idayCodeEnabled);
 
     if(!idayCodeEnabled){
+      performanceLog(startTime, FLOW_ENROLL_INSTRUMENT_CODE);
       throw new IDPayCodeNotFoundException(ERROR_IDPAYCODE_NOT_FOUND_MSG);
     }
 

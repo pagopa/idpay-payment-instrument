@@ -91,6 +91,7 @@ public class IdpayCodeEncryptionServiceImpl implements IdpayCodeEncryptionServic
 
       return dataBlock;
     } catch (DecoderException ex) {
+      log.error("[GENERATE_PIN_BLOCK] Something went wrong while creating pinBlock");
       throw new PinBlockException(ERROR_CREATING_PINBLOCK_MSG);
     }
   }
@@ -144,6 +145,8 @@ public class IdpayCodeEncryptionServiceImpl implements IdpayCodeEncryptionServic
       performanceLog(startTime, HASH_PIN_BLOCK);
       return hashedPinBlock;
     } catch (NoSuchAlgorithmException e) {
+      performanceLog(startTime, HASH_PIN_BLOCK);
+      log.error("[{}] Something went wrong creating SHA256 digest", HASH_PIN_BLOCK);
       throw new IdpayCodeEncryptOrDecryptException(ENCRYPTION_ERROR, ENCRYPTION_ERROR_MSG, e);
     }
   }
