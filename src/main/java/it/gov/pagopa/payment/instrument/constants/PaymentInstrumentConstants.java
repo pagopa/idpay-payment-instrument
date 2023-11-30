@@ -12,7 +12,6 @@ public final class PaymentInstrumentConstants {
   public static final String OPERATION_ADD = "ADD_INSTRUMENT";
   public static final String OPERATION_DELETE = "DELETE_INSTRUMENT";
   public static final String ERROR_MANDATORY_FIELD = "The field is mandatory!";
-  public static final String ERROR_PAYMENT_INSTRUMENT_NOT_FOUND = "The selected payment instrument is not active for such user and initiative.";
   public static final String ERROR_PAYMENT_INSTRUMENT_ALREADY_ASSOCIATED_AUDIT = "Payment instrument already associated to another user";
 
   public static final String ERROR_MSG_HEADER_SRC_TYPE = "srcType";
@@ -75,7 +74,6 @@ public final class PaymentInstrumentConstants {
     public static final String ERROR_IDPAYCODE_NOT_FOUND_MSG = "idpayCode is not found for the current user";
     public static final String ERROR_USER_NOT_ONBOARDED_MSG = "The current user is not onboarded on initiative [%s]";
     public static final String ERROR_TOO_MANY_REQUESTS_WALLET_MSG = "Too many requests on the ms wallet";
-    public static final String ERROR_TOO_MANY_REQUESTS_INSTRUMENT_MSG = "Too many requests on the ms Payment Instrument";
     public static final String ERROR_INVOCATION_REWARD_MSG = "An error occurred in the microservice reward-calculator";
     public static final String ERROR_INVOCATION_WALLET_MSG = "An error occurred in the microservice wallet";
     public static final String ERROR_DEACTIVATE_INSTRUMENT_NOTIFY_MSG = "Something gone wrong while deactivate instrument notify";
