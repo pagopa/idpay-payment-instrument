@@ -8,7 +8,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import static it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants.ExceptionMessage.ERROR_INVOCATION_PDV_DECRYPT_MSG;
 import static it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants.ExceptionMessage.ERROR_INVOCATION_PDV_ENCRYPT_MSG;
 
 @Service
@@ -29,7 +28,7 @@ public class EncryptRestConnectorImpl implements EncryptRestConnector {
     try {
       encryptedCfDTO = encryptRest.upsertToken(cfdto,apikey);
     } catch (FeignException e) {
-      log.error("[GET_TOKEN_BY_PII] PDV: something went wrong when invoking the PDV API.");
+      log.error("[UPSERT_TOKEN] PDV: something went wrong when invoking the PDV API.");
       throw new PDVInvocationException(ERROR_INVOCATION_PDV_ENCRYPT_MSG);
     }
     return encryptedCfDTO;

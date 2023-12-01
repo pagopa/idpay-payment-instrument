@@ -772,7 +772,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
             instrument.getInitiativeId());
         } catch (Exception e) {
           log.info(
-                  "[ENROLL_INSTRUMENT] Couldn't send to RTD: resetting the Instrument.");
+                  "[PROCESS_ACK_DEACTIVATE] Couldn't send to RTD: resetting the Instrument.");
           throw new InternalServerErrorException(GENERIC_ERROR, ERROR_SEND_INSTRUMENT_NOTIFY_MSG, e);
         }
       }
