@@ -3,6 +3,7 @@ package it.gov.pagopa.payment.instrument.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import it.gov.pagopa.common.web.dto.ErrorDTO;
+import it.gov.pagopa.common.web.exception.ServiceException;
 import it.gov.pagopa.payment.instrument.config.ServiceExceptionConfig;
 import it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants;
 import it.gov.pagopa.payment.instrument.dto.*;
@@ -199,6 +200,25 @@ class PaymentInstrumentControllerTest {
     ErrorDTO error = objectMapper.readValue(res.getResponse().getContentAsString(), ErrorDTO.class);
 
     assertEquals(new ErrorDTO(INSTRUMENT_NOT_FOUND, ERROR_INSTRUMENT_NOT_FOUND_MSG), error);
+  }
+
+  @Test
+  void deactivate_ko_serviceException() throws Exception {
+    ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
+
+    Mockito.doThrow(new ServiceException("DUMMY_EXCEPTION_CODE", "DUMMY_EXCEPTION_MESSAGE"))
+            .when(paymentInstrumentServiceMock)
+            .deactivateInstrument(INITIATIVE_ID, USER_ID, INSTRUMENT_ID);
+
+    MvcResult res = mvc.perform(MockMvcRequestBuilders.delete(BASE_URL + DEACTIVATE_URL)
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .content(objectMapper.writeValueAsString(DEACTIVATION_BODY_DTO))
+                    .accept(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(MockMvcResultMatchers.status().isInternalServerError()).andReturn();
+
+    ErrorDTO error = objectMapper.readValue(res.getResponse().getContentAsString(), ErrorDTO.class);
+
+    assertEquals(new ErrorDTO("DUMMY_EXCEPTION_CODE", "DUMMY_EXCEPTION_MESSAGE"), error);
   }
 
   @Test
