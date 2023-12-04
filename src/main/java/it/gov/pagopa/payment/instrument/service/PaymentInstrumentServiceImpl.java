@@ -18,7 +18,6 @@ import it.gov.pagopa.payment.instrument.repository.PaymentInstrumentRepository;
 import it.gov.pagopa.payment.instrument.repository.PaymentInstrumentRepositoryExtended;
 import it.gov.pagopa.payment.instrument.utils.AuditUtilities;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -41,48 +40,69 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
   public static final String ENROLL_FROM_ISSUER = "ENROLL_FROM_ISSUER";
   public static final String ENROLL_INSTRUMENT = "ENROLL_INSTRUMENT";
 
-  @Autowired
-  private PaymentInstrumentRepository paymentInstrumentRepository;
-  @Autowired
-  RuleEngineProducer ruleEngineProducer;
-  @Autowired
-  RTDProducer rtdProducer;
-  @Autowired
-  MessageMapper messageMapper;
-  @Autowired
-  ErrorProducer errorProducer;
-  @Autowired
-  PMRestClientConnector pmRestClientConnector;
-  @Autowired
-  DecryptRestConnector decryptRestConnector;
-  @Autowired
-  RewardCalculatorConnector rewardCalculatorConnector;
-  @Autowired
-  private EncryptRestConnector encryptRestConnector;
-  @Autowired
-  private WalletRestConnector walletRestConnector;
-  @Autowired
-  private AckMapper ackMapper;
-  @Autowired
-  AuditUtilities auditUtilities;
-  @Autowired
-  PaymentInstrumentRepositoryExtended paymentInstrumentRepositoryExtended;
+  private final PaymentInstrumentRepository paymentInstrumentRepository;
+  private final RuleEngineProducer ruleEngineProducer;
+  private final RTDProducer rtdProducer;
+  private final MessageMapper messageMapper;
+  private final ErrorProducer errorProducer;
+  private final PMRestClientConnector pmRestClientConnector;
+  private final DecryptRestConnector decryptRestConnector;
+  private final RewardCalculatorConnector rewardCalculatorConnector;
+  private final EncryptRestConnector encryptRestConnector;
+  private final WalletRestConnector walletRestConnector;
+  private final AckMapper ackMapper;
+  private final AuditUtilities auditUtilities;
+  private final PaymentInstrumentRepositoryExtended paymentInstrumentRepositoryExtended;
 
-  @Value(
-      "${spring.cloud.stream.binders.kafka-rtd.environment.spring.cloud.stream.kafka.binder.brokers}")
-  String rtdServer;
-  @Value("${spring.cloud.stream.bindings.paymentInstrumentQueue-out-1.destination}")
-  String rtdTopic;
-  @Value(
-      "${spring.cloud.stream.binders.kafka-re.environment.spring.cloud.stream.kafka.binder.brokers}")
-  String ruleEngineServer;
-  @Value("${spring.cloud.stream.bindings.paymentInstrumentQueue-out-0.destination}")
-  String ruleEngineTopic;
-  @Value("${app.delete.paginationSize}")
-  private int pageSize;
+  private final String rtdServer;
+  private final String rtdTopic;
+  private final String ruleEngineServer;
+  private final String ruleEngineTopic;
 
-  @Value("${app.delete.delayTime}")
-  private long delay;
+  private final int pageSize;
+
+
+  private final long delay;
+
+  public PaymentInstrumentServiceImpl(PaymentInstrumentRepository paymentInstrumentRepository,
+                                      RuleEngineProducer ruleEngineProducer,
+                                      RTDProducer rtdProducer,
+                                      MessageMapper messageMapper,
+                                      ErrorProducer errorProducer,
+                                      PMRestClientConnector pmRestClientConnector,
+                                      DecryptRestConnector decryptRestConnector,
+                                      RewardCalculatorConnector rewardCalculatorConnector,
+                                      EncryptRestConnector encryptRestConnector,
+                                      WalletRestConnector walletRestConnector,
+                                      AckMapper ackMapper,
+                                      AuditUtilities auditUtilities,
+                                      PaymentInstrumentRepositoryExtended paymentInstrumentRepositoryExtended,
+                                      @Value("${spring.cloud.stream.binders.kafka-rtd.environment.spring.cloud.stream.kafka.binder.brokers}") String rtdServer,
+                                      @Value("${spring.cloud.stream.bindings.paymentInstrumentQueue-out-1.destination}") String rtdTopic,
+                                      @Value("${spring.cloud.stream.binders.kafka-re.environment.spring.cloud.stream.kafka.binder.brokers}") String ruleEngineServer,
+                                      @Value("${spring.cloud.stream.bindings.paymentInstrumentQueue-out-0.destination}") String ruleEngineTopic,
+                                      @Value("${app.delete.paginationSize}") int pageSize,
+                                      @Value("${app.delete.delayTime}") long delay) {
+    this.paymentInstrumentRepository = paymentInstrumentRepository;
+    this.ruleEngineProducer = ruleEngineProducer;
+    this.rtdProducer = rtdProducer;
+    this.messageMapper = messageMapper;
+    this.errorProducer = errorProducer;
+    this.pmRestClientConnector = pmRestClientConnector;
+    this.decryptRestConnector = decryptRestConnector;
+    this.rewardCalculatorConnector = rewardCalculatorConnector;
+    this.encryptRestConnector = encryptRestConnector;
+    this.walletRestConnector = walletRestConnector;
+    this.ackMapper = ackMapper;
+    this.auditUtilities = auditUtilities;
+    this.paymentInstrumentRepositoryExtended = paymentInstrumentRepositoryExtended;
+    this.rtdServer = rtdServer;
+    this.rtdTopic = rtdTopic;
+    this.ruleEngineServer = ruleEngineServer;
+    this.ruleEngineTopic = ruleEngineTopic;
+    this.pageSize = pageSize;
+    this.delay = delay;
+  }
 
 
   @Override
