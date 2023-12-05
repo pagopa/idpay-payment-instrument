@@ -1,36 +1,38 @@
 package it.gov.pagopa.payment.instrument.service.idpaycode;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-
+import com.fasterxml.jackson.core.JsonProcessingException;
 import feign.FeignException;
 import feign.Request;
 import feign.Request.HttpMethod;
 import feign.RequestTemplate;
+import it.gov.pagopa.common.web.dto.ErrorDTO;
 import it.gov.pagopa.payment.instrument.connector.WalletRestConnector;
 import it.gov.pagopa.payment.instrument.dto.EncryptedDataBlock;
 import it.gov.pagopa.payment.instrument.dto.GenerateCodeRespDTO;
 import it.gov.pagopa.payment.instrument.dto.PinBlockDTO;
-import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
+import it.gov.pagopa.payment.instrument.exception.custom.*;
 import it.gov.pagopa.payment.instrument.model.PaymentInstrumentCode;
 import it.gov.pagopa.payment.instrument.repository.PaymentInstrumentCodeRepository;
 import it.gov.pagopa.payment.instrument.utils.AuditUtilities;
 import it.gov.pagopa.payment.instrument.utils.Utilities;
-import java.util.HashMap;
-import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpStatus;
+
+import java.util.HashMap;
+import java.util.Optional;
+
+import static it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants.ExceptionCode.*;
+import static it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants.ExceptionMessage.*;
+import static it.gov.pagopa.payment.instrument.service.idpaycode.PaymentInstrumentCodeServiceImpl.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class PaymentInstrumentCodeServiceTest {
@@ -120,7 +122,7 @@ class PaymentInstrumentCodeServiceTest {
   }
 
   @Test
-  void generateCode_enrollKo_notFound() {
+  void generateCode_enrollKo_notFound(){
     Mockito.when(
             idpayCodeEncryptionService.buildHashedDataBlock(anyString(), anyString(), anyString()))
         .thenReturn(PIN_BLOCK);
@@ -133,13 +135,18 @@ class PaymentInstrumentCodeServiceTest {
     Request request =
         Request.create(
             HttpMethod.PUT, "url", new HashMap<>(), null, new RequestTemplate());
+
     Mockito.doThrow(new FeignException.NotFound("Initiative not found", request, new byte[0], null))
         .when(walletRestConnector).enrollInstrumentCode(INITIATIVE_ID, USERID);
 
+    ErrorDTO errorDTOExpected = new ErrorDTO("WALLET_USER_NOT_ONBOARDED", "initiative not found");
+    Mockito.when(utilities.exceptionErrorDTOConverter(Mockito.any())).thenReturn(errorDTOExpected);
+
     try {
       paymentInstrumentCodeService.generateCode(USERID, INITIATIVE_ID);
-    } catch (PaymentInstrumentException e) {
-      assertEquals(HttpStatus.NOT_FOUND.value(), e.getCode());
+    } catch (UserNotOnboardedException e) {
+      assertEquals(USER_NOT_ONBOARDED, e.getCode());
+      assertEquals(String.format(ERROR_USER_NOT_ONBOARDED_MSG, INITIATIVE_ID), e.getMessage());
     }
     verify(paymentInstrumentCodeRepository, Mockito.times(1))
         .deleteById(USERID);
@@ -161,35 +168,14 @@ class PaymentInstrumentCodeServiceTest {
             HttpMethod.PUT, "url", new HashMap<>(), null, new RequestTemplate());
     Mockito.doThrow(new FeignException.TooManyRequests("", request, new byte[0], null))
         .when(walletRestConnector).enrollInstrumentCode(INITIATIVE_ID, USERID);
+
+    ErrorDTO errorDTOExpected = new ErrorDTO("WALLET_TOO_MANY_REQUESTS", "too many request");
+    Mockito.when(utilities.exceptionErrorDTOConverter(Mockito.any())).thenReturn(errorDTOExpected);
     try {
       paymentInstrumentCodeService.generateCode(USERID, INITIATIVE_ID);
-    } catch (PaymentInstrumentException e) {
-      assertEquals(HttpStatus.TOO_MANY_REQUESTS.value(), e.getCode());
-    }
-    verify(paymentInstrumentCodeRepository, Mockito.times(1))
-        .deleteById(USERID);
-  }
-
-  @Test
-  void generateCode_enrollKo_badRequest() {
-    Mockito.when(
-            idpayCodeEncryptionService.buildHashedDataBlock(anyString(), anyString(), anyString()))
-        .thenReturn(PIN_BLOCK);
-
-    Mockito.when(idpayCodeEncryptionService.encryptSHADataBlock(PIN_BLOCK))
-        .thenReturn(ENCRYPTED_DATA_BLOCK);
-
-    Mockito.doNothing().when(paymentInstrumentCodeRepository).deleteById(USERID);
-
-    Request request =
-        Request.create(
-            HttpMethod.PUT, "url", new HashMap<>(), null, new RequestTemplate());
-    Mockito.doThrow(new FeignException.BadRequest("", request, new byte[0], null))
-        .when(walletRestConnector).enrollInstrumentCode(INITIATIVE_ID, USERID);
-    try {
-      paymentInstrumentCodeService.generateCode(USERID, INITIATIVE_ID);
-    } catch (PaymentInstrumentException e) {
-      assertEquals(HttpStatus.BAD_REQUEST.value(), e.getCode());
+    } catch (TooManyRequestsException e) {
+      assertEquals(TOO_MANY_REQUESTS, e.getCode());
+      assertEquals(ERROR_TOO_MANY_REQUESTS_WALLET_MSG, e.getMessage());
     }
     verify(paymentInstrumentCodeRepository, Mockito.times(1))
         .deleteById(USERID);
@@ -211,14 +197,111 @@ class PaymentInstrumentCodeServiceTest {
             HttpMethod.PUT, "url", new HashMap<>(), null, new RequestTemplate());
     Mockito.doThrow(new FeignException.InternalServerError("", request, new byte[0], null))
         .when(walletRestConnector).enrollInstrumentCode(INITIATIVE_ID, USERID);
+
+    ErrorDTO errorDTOExpected = new ErrorDTO("WALLET_GENERIC_ERROR", "generic error");
+    Mockito.when(utilities.exceptionErrorDTOConverter(Mockito.any())).thenReturn(errorDTOExpected);
+
     try {
       paymentInstrumentCodeService.generateCode(USERID, INITIATIVE_ID);
-    } catch (PaymentInstrumentException e) {
-      assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getCode());
-      assertEquals("An error occurred in the microservice wallet", e.getMessage());
+    } catch (WalletInvocationException e) {
+      assertEquals(GENERIC_ERROR, e.getCode());
+      assertEquals(ERROR_INVOCATION_WALLET_MSG, e.getMessage());
     }
     verify(paymentInstrumentCodeRepository, Mockito.times(1))
         .deleteById(USERID);
+  }
+
+  @Test
+  void generateCode_enrollKo_instrumentNotAllowForRefundInitiative(){
+    Mockito.when(
+                    idpayCodeEncryptionService.buildHashedDataBlock(anyString(), anyString(), anyString()))
+            .thenReturn(PIN_BLOCK);
+
+    Mockito.when(idpayCodeEncryptionService.encryptSHADataBlock(PIN_BLOCK))
+            .thenReturn(ENCRYPTED_DATA_BLOCK);
+
+    Mockito.doNothing().when(paymentInstrumentCodeRepository).deleteById(USERID);
+
+    Request request =
+            Request.create(
+                    HttpMethod.PUT, "url", new HashMap<>(), null, new RequestTemplate());
+    Mockito.doThrow(new FeignException.InternalServerError("", request, new byte[0], null))
+            .when(walletRestConnector).enrollInstrumentCode(INITIATIVE_ID, USERID);
+
+    ErrorDTO errorDTOExpected = new ErrorDTO(WALLET_ENROLL_INSTRUMENT_NOT_ALLOW_FOR_REFUND_INITIATIVE, "DUMMY_MESSAGES");
+    Mockito.when(utilities.exceptionErrorDTOConverter(Mockito.any())).thenReturn(errorDTOExpected);
+
+    try {
+      paymentInstrumentCodeService.generateCode(USERID, INITIATIVE_ID);
+      fail();
+    } catch (EnrollmentNotAllowedException e) {
+      assertEquals(ENROLL_NOT_ALLOWED_FOR_REFUND_INITIATIVE, e.getCode());
+      assertEquals(String.format(ERROR_ENROLL_NOT_ALLOWED_FOR_REFUND_INITIATIVE_MSG, INITIATIVE_ID), e.getMessage());
+    }
+    verify(paymentInstrumentCodeRepository, Mockito.times(1))
+            .deleteById(USERID);
+  }
+
+  @Test
+  void generateCode_enrollKo_userUnsubscribe(){
+    Mockito.when(
+                    idpayCodeEncryptionService.buildHashedDataBlock(anyString(), anyString(), anyString()))
+            .thenReturn(PIN_BLOCK);
+
+    Mockito.when(idpayCodeEncryptionService.encryptSHADataBlock(PIN_BLOCK))
+            .thenReturn(ENCRYPTED_DATA_BLOCK);
+
+    Mockito.doNothing().when(paymentInstrumentCodeRepository).deleteById(USERID);
+
+    Request request =
+            Request.create(
+                    HttpMethod.PUT, "url", new HashMap<>(), null, new RequestTemplate());
+    Mockito.doThrow(new FeignException.InternalServerError("", request, new byte[0], null))
+            .when(walletRestConnector).enrollInstrumentCode(INITIATIVE_ID, USERID);
+
+    ErrorDTO errorDTOExpected = new ErrorDTO(WALLET_USER_UNSUBSCRIBED, "DUMMY_MESSAGES");
+    Mockito.when(utilities.exceptionErrorDTOConverter(Mockito.any())).thenReturn(errorDTOExpected);
+
+    try {
+      paymentInstrumentCodeService.generateCode(USERID, INITIATIVE_ID);
+      fail();
+    } catch (UserUnsubscribedException e) {
+      assertEquals(USER_UNSUBSCRIBED, e.getCode());
+      assertEquals(String.format(ERROR_USER_UNSUBSCRIBED_MSG, INITIATIVE_ID), e.getMessage());
+    }
+    verify(paymentInstrumentCodeRepository, Mockito.times(1))
+            .deleteById(USERID);
+  }
+
+  @Test
+  void generateCode_enrollKo_initiativeEnded(){
+    Mockito.when(
+                    idpayCodeEncryptionService.buildHashedDataBlock(anyString(), anyString(), anyString()))
+            .thenReturn(PIN_BLOCK);
+
+    Mockito.when(idpayCodeEncryptionService.encryptSHADataBlock(PIN_BLOCK))
+            .thenReturn(ENCRYPTED_DATA_BLOCK);
+
+    Mockito.doNothing().when(paymentInstrumentCodeRepository).deleteById(USERID);
+
+    Request request =
+            Request.create(
+                    HttpMethod.PUT, "url", new HashMap<>(), null, new RequestTemplate());
+    Mockito.doThrow(new FeignException.InternalServerError("", request, new byte[0], null))
+            .when(walletRestConnector).enrollInstrumentCode(INITIATIVE_ID, USERID);
+
+    ErrorDTO errorDTOExpected = new ErrorDTO(WALLET_INITIATIVE_ENDED, "DUMMY_MESSAGES");
+    Mockito.when(utilities.exceptionErrorDTOConverter(Mockito.any())).thenReturn(errorDTOExpected);
+
+    try {
+      paymentInstrumentCodeService.generateCode(USERID, INITIATIVE_ID);
+      fail();
+    } catch (InitiativeInvalidException e) {
+      assertEquals(INITIATIVE_ENDED, e.getCode());
+      assertEquals(String.format(ERROR_INITIATIVE_ENDED_MSG, INITIATIVE_ID), e.getMessage());
+    }
+    verify(paymentInstrumentCodeRepository, Mockito.times(1))
+            .deleteById(USERID);
   }
 
   @Test
@@ -270,9 +353,9 @@ class PaymentInstrumentCodeServiceTest {
 
     try {
       paymentInstrumentCodeService.getSecondFactor(USERID);
-    } catch (PaymentInstrumentException e) {
-      assertEquals(HttpStatus.NOT_FOUND.value(), e.getCode());
-      assertEquals("There is not a idpaycode for the userId: " + USERID, e.getMessage());
+    } catch (IDPayCodeNotFoundException e) {
+      assertEquals(IDPAYCODE_NOT_FOUND, e.getCode());
+      assertEquals(ERROR_IDPAYCODE_NOT_FOUND_MSG, e.getMessage());
     }
   }
 
@@ -319,9 +402,9 @@ class PaymentInstrumentCodeServiceTest {
 
     try {
       paymentInstrumentCodeService.verifyPinBlock(USERID, new PinBlockDTO(PIN_BLOCK, ENCRYPTED_KEY));
-    } catch (PaymentInstrumentException e) {
-      assertEquals(HttpStatus.NOT_FOUND.value(), e.getCode());
-      assertEquals("Instrument not found", e.getMessage());
+    } catch (IDPayCodeNotFoundException e) {
+      assertEquals(IDPAYCODE_NOT_FOUND, e.getCode());
+      assertEquals(ERROR_IDPAYCODE_NOT_FOUND_MSG, e.getMessage());
     }
   }
 

@@ -1,16 +1,12 @@
 package it.gov.pagopa.payment.instrument.utils;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import feign.FeignException;
 import feign.Request;
 import feign.RequestTemplate;
 import it.gov.pagopa.common.web.dto.ErrorDTO;
-import java.util.HashMap;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
@@ -19,6 +15,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+import java.util.HashMap;
+
+import static it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants.ExceptionCode.GENERIC_ERROR;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 
 @ExtendWith({SpringExtension.class, MockitoExtension.class})
 @ContextConfiguration(classes = Utilities.class)
@@ -31,7 +34,6 @@ class UtilitiesTest {
     ObjectMapper objectMapper;
 
     private static final String BAD_REQUEST = "BAD REQUEST";
-    private static final String MESSAGE = "test";
 
     @Test
     void exceptionConverter_ok() throws JsonProcessingException {
@@ -39,39 +41,29 @@ class UtilitiesTest {
                 Request.create(Request.HttpMethod.PUT, "url", new HashMap<>(), null, new RequestTemplate());
         FeignException.BadRequest e = new FeignException.BadRequest(BAD_REQUEST, request, new byte[0], null);
 
-        ErrorDTO errorDTO = new ErrorDTO(400, MESSAGE);
-        Mockito.when(objectMapper.readValue(anyString(), (Class<ErrorDTO>) any())).thenReturn(errorDTO);
+        ErrorDTO errorDTO = new ErrorDTO("DUMMY_CODE", "DUMMY_MESSAGE");
+        Mockito.when(objectMapper.readValue(anyString(), (Class<ErrorDTO>) any()))
+                .thenReturn(errorDTO);
 
-        String error = utilities.exceptionConverter(e);
+        ErrorDTO error = utilities.exceptionErrorDTOConverter(e);
 
-        assertEquals(MESSAGE, error);
-        
+        assertEquals(errorDTO, error);
+
     }
 
+    @SneakyThrows
     @Test
-    void exceptionConverter_ok_DTOMessageNull() throws JsonProcessingException {
+    void exceptionConverter_JsonProcessingException(){
         Request request =
                 Request.create(Request.HttpMethod.PUT, "url", new HashMap<>(), null, new RequestTemplate());
         FeignException.BadRequest e = new FeignException.BadRequest(BAD_REQUEST, request, new byte[0], null);
 
-        ErrorDTO errorDTO = new ErrorDTO(400, null);
-        Mockito.when(objectMapper.readValue(anyString(), (Class<ErrorDTO>) any())).thenReturn(errorDTO);
+        Mockito.when(objectMapper.readValue(anyString(), (Class<ErrorDTO>) any()))
+                .thenThrow(JsonProcessingException.class);
 
-        String error = utilities.exceptionConverter(e);
+        ErrorDTO error = utilities.exceptionErrorDTOConverter(e);
 
-        assertEquals(BAD_REQUEST, error);
-
-    }
-
-    @Test
-    void exceptionConverter_exception(){
-        Request request =
-                Request.create(Request.HttpMethod.PUT, "url", new HashMap<>(), null, new RequestTemplate());
-        FeignException.BadRequest e = new FeignException.BadRequest(BAD_REQUEST, request, new byte[0], null);
-
-        String error = utilities.exceptionConverter(e);
-
-        assertEquals(BAD_REQUEST, error);
+        assertEquals(new ErrorDTO(GENERIC_ERROR, null), error);
 
     }
 }

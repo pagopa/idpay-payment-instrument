@@ -1,18 +1,22 @@
 package it.gov.pagopa.payment.instrument.connector;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
+import feign.FeignException;
+import feign.Request;
+import feign.RequestTemplate;
 import it.gov.pagopa.payment.instrument.config.RestConnectorConfig;
 import it.gov.pagopa.payment.instrument.dto.CFDTO;
 import it.gov.pagopa.payment.instrument.dto.EncryptedCfDTO;
+import it.gov.pagopa.payment.instrument.exception.custom.PDVInvocationException;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.http.HttpMessageConvertersAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.cloud.openfeign.FeignAutoConfiguration;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -21,6 +25,13 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.support.TestPropertySourceUtils;
+
+import java.util.HashMap;
+
+import static it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants.ExceptionCode.GENERIC_ERROR;
+import static it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants.ExceptionMessage.ERROR_INVOCATION_PDV_ENCRYPT_MSG;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 
 @ExtendWith(SpringExtension.class)
@@ -41,7 +52,7 @@ class EncryptRestClientTest {
   private static final String TOKEN = "TEST_TOKEN";
   private static final CFDTO CFDTO = new CFDTO(FISCAL_CODE);
 
-  @Autowired
+  @SpyBean
   private EncryptRest encryptRest;
 
   @Autowired
@@ -54,6 +65,19 @@ class EncryptRestClientTest {
 
     assertNotNull(actualResponse);
     assertEquals(TOKEN, actualResponse.getToken());
+  }
+
+  @Test
+  void upsertToken_ko_feignException() {
+    Mockito.doThrow(new FeignException
+                    .InternalServerError("", Request.create(Request.HttpMethod.PUT, "url", new HashMap<>(), null, new RequestTemplate()), new byte[0], null))
+            .when(encryptRest).upsertToken(Mockito.any(), Mockito.any());
+    try {
+      restConnector.upsertToken(CFDTO);
+    } catch (PDVInvocationException e) {
+      Assertions.assertEquals(GENERIC_ERROR,e.getCode());
+      Assertions.assertEquals(ERROR_INVOCATION_PDV_ENCRYPT_MSG, e.getMessage());
+    }
   }
 
   public static class WireMockInitializer
