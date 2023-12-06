@@ -13,7 +13,7 @@
   <artifactId>idpay-payment-instrument</artifactId>
   <name>idpay-payment-instrument</name>
   <description>Payment Instrument Microservice</description>
-  <version>1.3.0</version>
+  <version>1.4.0</version>
 
   <properties>
     <java.version>17</java.version>
