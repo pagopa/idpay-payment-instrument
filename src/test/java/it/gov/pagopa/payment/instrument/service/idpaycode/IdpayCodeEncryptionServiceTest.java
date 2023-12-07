@@ -1,9 +1,5 @@
 package it.gov.pagopa.payment.instrument.service.idpaycode;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.fail;
-
 import com.azure.security.keyvault.keys.KeyClient;
 import com.azure.security.keyvault.keys.cryptography.CryptographyClient;
 import com.azure.security.keyvault.keys.cryptography.models.DecryptResult;
@@ -11,20 +7,26 @@ import com.azure.security.keyvault.keys.cryptography.models.EncryptResult;
 import com.azure.security.keyvault.keys.cryptography.models.EncryptionAlgorithm;
 import com.azure.security.keyvault.keys.models.KeyVaultKey;
 import it.gov.pagopa.payment.instrument.dto.EncryptedDataBlock;
-import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
-import java.lang.reflect.Field;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-import java.util.Map;
-import org.junit.jupiter.api.Assertions;
+import it.gov.pagopa.payment.instrument.exception.custom.PinBlockException;
+import it.gov.pagopa.payment.instrument.exception.custom.PinBlockSizeException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpStatus;
 import org.springframework.util.ReflectionUtils;
+
+import java.lang.reflect.Field;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+import java.util.Map;
+
+import static it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants.ExceptionCode.GENERIC_ERROR;
+import static it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants.ExceptionCode.PIN_LENGTH_NOT_VALID;
+import static it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants.ExceptionMessage.ERROR_CREATING_PINBLOCK_MSG;
+import static it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants.ExceptionMessage.ERROR_PIN_LENGTH_NOT_VALID_MSG;
+import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
 class IdpayCodeEncryptionServiceTest {
@@ -86,9 +88,9 @@ class IdpayCodeEncryptionServiceTest {
       idpayCodeEncryptionService.buildHashedDataBlock(
           "1234","0000FFFFFFFFFFFF", "salt");
       fail();
-    }catch (PaymentInstrumentException e){
-      assertEquals(HttpStatus.BAD_REQUEST.value(), e.getCode());
-      assertEquals("Pin length is not valid", e.getMessage());
+    }catch (PinBlockSizeException e){
+      assertEquals(PIN_LENGTH_NOT_VALID, e.getCode());
+      assertEquals(ERROR_PIN_LENGTH_NOT_VALID_MSG, e.getMessage());
     }
   }
 
@@ -98,9 +100,9 @@ class IdpayCodeEncryptionServiceTest {
       idpayCodeEncryptionService.buildHashedDataBlock(
           "12345","testError", "salt");
       fail();
-    }catch (PaymentInstrumentException e){
-      assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getCode());
-      assertEquals("Something went wrong while creating pinBlock", e.getMessage());
+    }catch (PinBlockException e){
+      assertEquals(GENERIC_ERROR, e.getCode());
+      assertEquals(ERROR_CREATING_PINBLOCK_MSG, e.getMessage());
     }
   }
   @Test
@@ -117,7 +119,7 @@ class IdpayCodeEncryptionServiceTest {
     String decryptedValue = idpayCodeEncryptionService.decryptSymmetricKey(cipherValueEncoded);
 
     // Then
-    Assertions.assertEquals(plainValue, decryptedValue);
+    assertEquals(plainValue, decryptedValue);
   }
 
   @Test
@@ -134,7 +136,7 @@ class IdpayCodeEncryptionServiceTest {
     EncryptedDataBlock encryptedDataBlock = idpayCodeEncryptionService.encryptSHADataBlock(plainValue);
 
     // Then
-    Assertions.assertEquals(encodedPlainValue, encryptedDataBlock.getEncryptedDataBlock());
+    assertEquals(encodedPlainValue, encryptedDataBlock.getEncryptedDataBlock());
 
   }
 
@@ -152,7 +154,7 @@ class IdpayCodeEncryptionServiceTest {
     String decryptedValue = idpayCodeEncryptionService.decryptIdpayCode(new EncryptedDataBlock(cipherValueEncoded, DATA_BLOCK_KEY_ID));
 
     // Then
-    Assertions.assertEquals(plainValue, decryptedValue);
+    assertEquals(plainValue, decryptedValue);
   }
 
 }

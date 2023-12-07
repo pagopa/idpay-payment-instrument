@@ -3,6 +3,7 @@ package it.gov.pagopa.common.web.exception;
 import it.gov.pagopa.common.mongo.retry.MongoRequestRateTooLargeRetryer;
 import it.gov.pagopa.common.mongo.retry.exception.MongoRequestRateTooLargeRetryExpiredException;
 import it.gov.pagopa.common.web.dto.ErrorDTO;
+import it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.Ordered;
@@ -15,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.ResponseEntity.BodyBuilder;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants.ExceptionCode;
 
 @RestControllerAdvice
 @Slf4j
@@ -66,7 +68,7 @@ public class MongoExceptionHandler {
     }
 
     return bodyBuilder
-            .body(new ErrorDTO(HttpStatus.TOO_MANY_REQUESTS.value(), "TOO_MANY_REQUESTS"));
+            .body(new ErrorDTO(ExceptionCode.TOO_MANY_REQUESTS, "TOO_MANY_REQUESTS"));
   }
 
 }

@@ -1,6 +1,5 @@
 package it.gov.pagopa.payment.instrument.service;
 
-import feign.FeignException;
 import it.gov.pagopa.payment.instrument.connector.*;
 import it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants;
 import it.gov.pagopa.payment.instrument.dto.*;
@@ -9,33 +8,29 @@ import it.gov.pagopa.payment.instrument.dto.mapper.MessageMapper;
 import it.gov.pagopa.payment.instrument.dto.pm.PaymentMethodInfoList;
 import it.gov.pagopa.payment.instrument.dto.pm.WalletV2;
 import it.gov.pagopa.payment.instrument.dto.pm.WalletV2ListResponse;
-import it.gov.pagopa.payment.instrument.dto.rtd.RTDEnrollAckDTO;
-import it.gov.pagopa.payment.instrument.dto.rtd.RTDEventsDTO;
-import it.gov.pagopa.payment.instrument.dto.rtd.RTDHpanListDTO;
-import it.gov.pagopa.payment.instrument.dto.rtd.RTDMessage;
-import it.gov.pagopa.payment.instrument.dto.rtd.RTDOperationDTO;
-import it.gov.pagopa.payment.instrument.dto.rtd.RTDRevokeCardDTO;
+import it.gov.pagopa.payment.instrument.dto.rtd.*;
 import it.gov.pagopa.payment.instrument.event.producer.ErrorProducer;
 import it.gov.pagopa.payment.instrument.event.producer.RTDProducer;
 import it.gov.pagopa.payment.instrument.event.producer.RuleEngineProducer;
-import it.gov.pagopa.payment.instrument.exception.PaymentInstrumentException;
+import it.gov.pagopa.payment.instrument.exception.custom.*;
 import it.gov.pagopa.payment.instrument.model.PaymentInstrument;
 import it.gov.pagopa.payment.instrument.repository.PaymentInstrumentRepository;
+import it.gov.pagopa.payment.instrument.repository.PaymentInstrumentRepositoryExtended;
+import it.gov.pagopa.payment.instrument.utils.AuditUtilities;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
-import it.gov.pagopa.payment.instrument.repository.PaymentInstrumentRepositoryExtended;
-import it.gov.pagopa.payment.instrument.utils.AuditUtilities;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
-import org.springframework.messaging.support.MessageBuilder;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
+import static it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants.ExceptionCode.GENERIC_ERROR;
+import static it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants.ExceptionMessage.*;
 
 @Slf4j
 @Service
@@ -45,48 +40,69 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
   public static final String ENROLL_FROM_ISSUER = "ENROLL_FROM_ISSUER";
   public static final String ENROLL_INSTRUMENT = "ENROLL_INSTRUMENT";
 
-  @Autowired
-  private PaymentInstrumentRepository paymentInstrumentRepository;
-  @Autowired
-  RuleEngineProducer ruleEngineProducer;
-  @Autowired
-  RTDProducer rtdProducer;
-  @Autowired
-  MessageMapper messageMapper;
-  @Autowired
-  ErrorProducer errorProducer;
-  @Autowired
-  PMRestClientConnector pmRestClientConnector;
-  @Autowired
-  DecryptRestConnector decryptRestConnector;
-  @Autowired
-  RewardCalculatorConnector rewardCalculatorConnector;
-  @Autowired
-  private EncryptRestConnector encryptRestConnector;
-  @Autowired
-  private WalletRestConnector walletRestConnector;
-  @Autowired
-  private AckMapper ackMapper;
-  @Autowired
-  AuditUtilities auditUtilities;
-  @Autowired
-  PaymentInstrumentRepositoryExtended paymentInstrumentRepositoryExtended;
+  private final PaymentInstrumentRepository paymentInstrumentRepository;
+  private final RuleEngineProducer ruleEngineProducer;
+  private final RTDProducer rtdProducer;
+  private final MessageMapper messageMapper;
+  private final ErrorProducer errorProducer;
+  private final PMRestClientConnector pmRestClientConnector;
+  private final DecryptRestConnector decryptRestConnector;
+  private final RewardCalculatorConnector rewardCalculatorConnector;
+  private final EncryptRestConnector encryptRestConnector;
+  private final WalletRestConnector walletRestConnector;
+  private final AckMapper ackMapper;
+  private final AuditUtilities auditUtilities;
+  private final PaymentInstrumentRepositoryExtended paymentInstrumentRepositoryExtended;
 
-  @Value(
-      "${spring.cloud.stream.binders.kafka-rtd.environment.spring.cloud.stream.kafka.binder.brokers}")
-  String rtdServer;
-  @Value("${spring.cloud.stream.bindings.paymentInstrumentQueue-out-1.destination}")
-  String rtdTopic;
-  @Value(
-      "${spring.cloud.stream.binders.kafka-re.environment.spring.cloud.stream.kafka.binder.brokers}")
-  String ruleEngineServer;
-  @Value("${spring.cloud.stream.bindings.paymentInstrumentQueue-out-0.destination}")
-  String ruleEngineTopic;
-  @Value("${app.delete.paginationSize}")
-  private int pageSize;
+  private final String rtdServer;
+  private final String rtdTopic;
+  private final String ruleEngineServer;
+  private final String ruleEngineTopic;
 
-  @Value("${app.delete.delayTime}")
-  private long delay;
+  private final int pageSize;
+
+
+  private final long delay;
+
+  public PaymentInstrumentServiceImpl(PaymentInstrumentRepository paymentInstrumentRepository,
+                                      RuleEngineProducer ruleEngineProducer,
+                                      RTDProducer rtdProducer,
+                                      MessageMapper messageMapper,
+                                      ErrorProducer errorProducer,
+                                      PMRestClientConnector pmRestClientConnector,
+                                      DecryptRestConnector decryptRestConnector,
+                                      RewardCalculatorConnector rewardCalculatorConnector,
+                                      EncryptRestConnector encryptRestConnector,
+                                      WalletRestConnector walletRestConnector,
+                                      AckMapper ackMapper,
+                                      AuditUtilities auditUtilities,
+                                      PaymentInstrumentRepositoryExtended paymentInstrumentRepositoryExtended,
+                                      @Value("${spring.cloud.stream.binders.kafka-rtd.environment.spring.cloud.stream.kafka.binder.brokers}") String rtdServer,
+                                      @Value("${spring.cloud.stream.bindings.paymentInstrumentQueue-out-1.destination}") String rtdTopic,
+                                      @Value("${spring.cloud.stream.binders.kafka-re.environment.spring.cloud.stream.kafka.binder.brokers}") String ruleEngineServer,
+                                      @Value("${spring.cloud.stream.bindings.paymentInstrumentQueue-out-0.destination}") String ruleEngineTopic,
+                                      @Value("${app.delete.paginationSize}") int pageSize,
+                                      @Value("${app.delete.delayTime}") long delay) {
+    this.paymentInstrumentRepository = paymentInstrumentRepository;
+    this.ruleEngineProducer = ruleEngineProducer;
+    this.rtdProducer = rtdProducer;
+    this.messageMapper = messageMapper;
+    this.errorProducer = errorProducer;
+    this.pmRestClientConnector = pmRestClientConnector;
+    this.decryptRestConnector = decryptRestConnector;
+    this.rewardCalculatorConnector = rewardCalculatorConnector;
+    this.encryptRestConnector = encryptRestConnector;
+    this.walletRestConnector = walletRestConnector;
+    this.ackMapper = ackMapper;
+    this.auditUtilities = auditUtilities;
+    this.paymentInstrumentRepositoryExtended = paymentInstrumentRepositoryExtended;
+    this.rtdServer = rtdServer;
+    this.rtdTopic = rtdTopic;
+    this.ruleEngineServer = ruleEngineServer;
+    this.ruleEngineTopic = ruleEngineTopic;
+    this.pageSize = pageSize;
+    this.delay = delay;
+  }
 
 
   @Override
@@ -108,11 +124,10 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       log.error(
           "[ENROLL_INSTRUMENT] The Payment Instrument is already associated to another citizen.");
       auditUtilities.logEnrollInstrumentKO(
-          PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_ALREADY_ASSOCIATED, idWallet,
+          PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_ALREADY_ASSOCIATED_AUDIT, idWallet,
           channel);
       performanceLog(startTime, ENROLL_INSTRUMENT);
-      throw new PaymentInstrumentException(HttpStatus.FORBIDDEN.value(),
-          PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_ALREADY_ASSOCIATED);
+      throw new UserNotAllowedException(ERROR_INSTRUMENT_ALREADY_ASSOCIATED_MSG);
     }
 
     RTDHpanListDTO hpanListDTO = new RTDHpanListDTO();
@@ -155,7 +170,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       auditUtilities.logEnrollInstrumentKO(e.getMessage(), newInstrument.getIdWallet(), channel);
       paymentInstrumentRepository.delete(newInstrument);
       performanceLog(startTime, ENROLL_INSTRUMENT);
-      throw new PaymentInstrumentException(HttpStatus.BAD_REQUEST.value(), e.getMessage());
+      throw new InternalServerErrorException(GENERIC_ERROR, ERROR_SEND_INSTRUMENT_NOTIFY_MSG, e);
     }
     auditUtilities.logEnrollInstrumentComplete(newInstrument.getIdWallet(),
         newInstrument.getChannel());
@@ -177,7 +192,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
           "[ENROLL_INSTRUMENT] Couldn't send to RTD: resetting the Payment Instrument.");
       auditUtilities.logEnrollInstrumentKO(e.getMessage(), instrument.getIdWallet(), channel);
       paymentInstrumentRepository.delete(instrument);
-      throw new PaymentInstrumentException(HttpStatus.BAD_REQUEST.value(), e.getMessage());
+      throw new InternalServerErrorException(GENERIC_ERROR, ERROR_SEND_INSTRUMENT_NOTIFY_MSG, e);
     }
     auditUtilities.logEnrollInstrumentComplete(instrument.getIdWallet(), channel);
   }
@@ -206,19 +221,15 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       List<PaymentMethodInfoList> paymentMethodInfoList) {
     PaymentMethodInfoList infoList = new PaymentMethodInfoList();
     WalletV2ListResponse walletV2ListResponse;
-    try {
-      DecryptCfDTO decryptedCfDTO = decryptRestConnector.getPiiByToken(userId);
-      Instant start = Instant.now();
-      log.debug("Calling PM service at: " + start);
-      walletV2ListResponse = pmRestClientConnector.getWalletList(decryptedCfDTO.getPii());
-      log.info(walletV2ListResponse.toString());
-      Instant finish = Instant.now();
-      long time = Duration.between(start, finish).toMillis();
-      log.info("PM's call finished at: " + finish + " The PM service took: " + time + "ms");
-    } catch (FeignException e) {
-      throw new PaymentInstrumentException(e.status(),
-          e.getMessage());
-    }
+
+    DecryptCfDTO decryptedCfDTO = decryptRestConnector.getPiiByToken(userId);
+    Instant start = Instant.now();
+    log.debug("Calling PM service at: " + start);
+    walletV2ListResponse = pmRestClientConnector.getWalletList(decryptedCfDTO.getPii());
+    log.info(walletV2ListResponse.toString());
+    Instant finish = Instant.now();
+    long time = Duration.between(start, finish).toMillis();
+    log.info("PM's call finished at: " + finish + " The PM service took: " + time + "ms");
 
     int countIdWallet = 0;
 
@@ -257,8 +268,8 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     }
 
     if (countIdWallet == walletV2ListResponse.getData().size()) {
-      throw new PaymentInstrumentException(HttpStatus.NOT_FOUND.value(),
-          PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_NOT_FOUND);
+      log.error("[PAYMENT_METHOD_INFO] The selected payment instrument has not been found for the user {}", userId);
+      throw new PaymentInstrumentNotFoundException(ERROR_INSTRUMENT_NOT_FOUND_MSG);
     }
     return infoList;
   }
@@ -295,8 +306,9 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       rewardCalculatorConnector.disableUserInitiativeInstruments(userId, initiativeId);
     } catch (Exception e) {
       this.rollback(initiativeId, userId);
+      log.error("[DISABLE_USER_INITIATIVE_INSTRUMENTS] An error occurred in the microservice reward-calculator");
       performanceLog(startTime, "DEACTIVATE_ALL_INSTRUMENTS");
-      throw new PaymentInstrumentException(HttpStatus.BAD_REQUEST.value(), e.getMessage());
+      throw new RewardCalculatorInvocationException(ERROR_INVOCATION_REWARD_MSG);
     }
     if (!PaymentInstrumentConstants.IDPAY_PAYMENT.equals(
         paymentInstrumentList.get(0).getChannel())) {
@@ -317,12 +329,13 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
         initiativeId, userId, instrumentId).orElse(null);
 
     if (instrument == null) {
-      throw new PaymentInstrumentException(HttpStatus.NOT_FOUND.value(),
-          PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_NOT_FOUND);
+      log.error("[DEACTIVATE_INSTRUMENT] The selected payment instrument has not been found for the user {}", userId);
+      throw new PaymentInstrumentNotFoundException(ERROR_INSTRUMENT_NOT_FOUND_MSG);
     }
 
     if(instrument.getInstrumentType().equals(PaymentInstrumentConstants.INSTRUMENT_TYPE_APP_IO_PAYMENT)){
-      throw new PaymentInstrumentException(403, "It's not possible to delete an instrument of AppIO payment types");
+      log.info("[DEACTIVATE_INSTRUMENT] It's not possible to delete an instrument of AppIO payment types");
+      throw new InstrumentDeleteNotAllowedException(ERROR_DELETE_NOT_ALLOWED_MSG);
     }
 
     if (instrument.getStatus().equals(PaymentInstrumentConstants.STATUS_ACTIVE)) {
@@ -345,7 +358,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
         instrument.setStatus(PaymentInstrumentConstants.STATUS_ACTIVE);
         paymentInstrumentRepository.save(instrument);
         performanceLog(startTime, "DEACTIVATE_INSTRUMENT");
-        throw new PaymentInstrumentException(HttpStatus.BAD_REQUEST.value(), e.getMessage());
+        throw new InternalServerErrorException(ERROR_DEACTIVATE_INSTRUMENT_NOTIFY_MSG);
       }
     }
     performanceLog(startTime, "DEACTIVATE_INSTRUMENT");
@@ -589,8 +602,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
         rtdProducer.sendInstrument(rtdOperationDTO);
       } catch (Exception exception) {
         if (operation.equals(PaymentInstrumentConstants.OPERATION_ADD)) {
-          throw new PaymentInstrumentException(HttpStatus.BAD_REQUEST.value(),
-              exception.getMessage());
+          throw exception;
         }
         final MessageBuilder<?> errorMessage = MessageBuilder.withPayload(rtdOperationDTO);
         this.sendToQueueError(exception, errorMessage, rtdServer, rtdTopic);
@@ -666,11 +678,10 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       log.error(
           "[ENROLL_FROM_ISSUER] The Payment Instrument is already associated to another citizen.");
       auditUtilities.logEnrollInstrFromIssuerKO(
-          PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_ALREADY_ASSOCIATED, body.getHpan(),
+          PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_ALREADY_ASSOCIATED_AUDIT, body.getHpan(),
           body.getChannel());
       performanceLog(startTime, ENROLL_FROM_ISSUER);
-      throw new PaymentInstrumentException(HttpStatus.FORBIDDEN.value(),
-          PaymentInstrumentConstants.ERROR_PAYMENT_INSTRUMENT_ALREADY_ASSOCIATED);
+      throw new UserNotAllowedException(ERROR_INSTRUMENT_ALREADY_ASSOCIATED_MSG);
     }
 
     for (PaymentInstrument pi : instrumentList) {
@@ -709,7 +720,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
           newInstrument.getChannel());
       paymentInstrumentRepository.delete(newInstrument);
       performanceLog(startTime, ENROLL_FROM_ISSUER);
-      throw new PaymentInstrumentException(HttpStatus.BAD_REQUEST.value(), e.getMessage());
+      throw new InternalServerErrorException(GENERIC_ERROR, ERROR_SEND_INSTRUMENT_NOTIFY_MSG, e);
     }
     auditUtilities.logEnrollInstrFromIssuerComplete(newInstrument.getHpan(),
         newInstrument.getChannel());
@@ -776,8 +787,14 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
           LocalDateTime.now());
       if(PaymentInstrumentConstants.INSTRUMENT_TYPE_CARD.equals(instrument.getInstrumentType())){
         log.info("[PROCESS_ACK_DEACTIVATE] Deactivation OK: sending to RTD.");
-        sendToRtd(List.of(hpanListDTO), ruleEngineAckDTO.getOperationType(),
+        try{
+          sendToRtd(List.of(hpanListDTO), ruleEngineAckDTO.getOperationType(),
             instrument.getInitiativeId());
+        } catch (Exception e) {
+          log.info(
+                  "[PROCESS_ACK_DEACTIVATE] Couldn't send to RTD: resetting the Instrument.");
+          throw new InternalServerErrorException(GENERIC_ERROR, ERROR_SEND_INSTRUMENT_NOTIFY_MSG, e);
+        }
       }
     }
 
@@ -966,7 +983,12 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     log.info("[ROLLBACK_INSTRUMENTS] Instrument rollbacked: {}", paymentInstrumentList.size());
     performanceLog(startTime, "ROLLBACK_INSTRUMENTS");
 
-    rewardCalculatorConnector.enableUserInitiativeInstruments(userId, initiativeId);
+    try{
+      rewardCalculatorConnector.enableUserInitiativeInstruments(userId, initiativeId);
+    }catch (Exception e) {
+      log.error("[ENABLE_USER_INITIATIVE_INSTRUMENTS] An error occurred in the microservice reward-calculator");
+      throw new RewardCalculatorInvocationException(ERROR_INVOCATION_REWARD_MSG);
+    }
   }
 
   @Override
