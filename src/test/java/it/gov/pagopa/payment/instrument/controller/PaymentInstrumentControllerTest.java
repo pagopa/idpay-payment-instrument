@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import it.gov.pagopa.common.web.dto.ErrorDTO;
 import it.gov.pagopa.common.web.exception.ServiceException;
+import it.gov.pagopa.payment.instrument.config.PaymentInstrumentErrorManagerConfig;
 import it.gov.pagopa.payment.instrument.config.ServiceExceptionConfig;
 import it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants;
 import it.gov.pagopa.payment.instrument.dto.*;
@@ -23,7 +24,6 @@ import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfi
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -43,7 +43,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @ExtendWith(MockitoExtension.class)
 @WebMvcTest(value = {
     PaymentInstrumentController.class}, excludeAutoConfiguration = SecurityAutoConfiguration.class)
-@Import(ServiceExceptionConfig.class)
+@Import({ServiceExceptionConfig.class, PaymentInstrumentErrorManagerConfig.class})
 class PaymentInstrumentControllerTest {
 
   private static final String BASE_URL = "http://localhost:8080/idpay/instrument";
@@ -206,7 +206,7 @@ class PaymentInstrumentControllerTest {
   void deactivate_ko_serviceException() throws Exception {
     ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
-    Mockito.doThrow(new ServiceException("DUMMY_EXCEPTION_CODE", "DUMMY_EXCEPTION_MESSAGE"))
+    Mockito.doThrow(new ServiceException("DUMMY_EXCEPTION_CODE", "DUMMY_EXCEPTION_MESSAGE",null))
             .when(paymentInstrumentServiceMock)
             .deactivateInstrument(INITIATIVE_ID, USER_ID, INSTRUMENT_ID);
 
