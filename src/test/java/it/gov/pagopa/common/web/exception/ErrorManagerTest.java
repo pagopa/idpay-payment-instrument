@@ -24,6 +24,8 @@ import org.springframework.web.bind.annotation.RestController;
 @ContextConfiguration(classes = {ErrorManagerTest.TestController.class, ErrorManager.class})
 class ErrorManagerTest {
 
+  public static final String EXPECTED_DEFAULT_ERROR = "{\"code\":\"Error\",\"message\":\"Something gone wrong\"}";
+
   @Autowired
   private MockMvc mockMvc;
 
@@ -85,7 +87,7 @@ class ErrorManagerTest {
                     .contentType(MediaType.APPLICATION_JSON))
             .andExpect(MockMvcResultMatchers.status().isInternalServerError())
             .andExpect(MockMvcResultMatchers.content()
-                    .json("{\"code\":\"PAYMENT_INSTRUMENT_GENERIC_ERROR\",\"message\":\"Something gone wrong\"}"));
+                    .json(EXPECTED_DEFAULT_ERROR));
 
     Mockito.doThrow(
                     new ClientException(HttpStatus.BAD_REQUEST, "ClientException with httpStatus and message"))
@@ -95,7 +97,7 @@ class ErrorManagerTest {
                     .contentType(MediaType.APPLICATION_JSON))
             .andExpect(MockMvcResultMatchers.status().isInternalServerError())
             .andExpect(MockMvcResultMatchers.content()
-                    .json("{\"code\":\"PAYMENT_INSTRUMENT_GENERIC_ERROR\",\"message\":\"Something gone wrong\"}"));
+                    .json(EXPECTED_DEFAULT_ERROR));
 
     Mockito.doThrow(new ClientException(HttpStatus.BAD_REQUEST,
                     "ClientException with httpStatus, message and throwable", new Throwable()))
@@ -105,7 +107,7 @@ class ErrorManagerTest {
                     .contentType(MediaType.APPLICATION_JSON))
             .andExpect(MockMvcResultMatchers.status().isInternalServerError())
             .andExpect(MockMvcResultMatchers.content()
-                    .json("{\"code\":\"PAYMENT_INSTRUMENT_GENERIC_ERROR\",\"message\":\"Something gone wrong\"}"));
+                    .json(EXPECTED_DEFAULT_ERROR));
   }
 
   @Test
@@ -117,6 +119,6 @@ class ErrorManagerTest {
                     .contentType(MediaType.APPLICATION_JSON))
             .andExpect(MockMvcResultMatchers.status().isInternalServerError())
             .andExpect(MockMvcResultMatchers.content()
-                    .json("{\"code\":\"PAYMENT_INSTRUMENT_GENERIC_ERROR\",\"message\":\"Something gone wrong\"}"));
+                    .json(EXPECTED_DEFAULT_ERROR));
   }
 }
