@@ -29,7 +29,7 @@ public class EncryptRestConnectorImpl implements EncryptRestConnector {
       encryptedCfDTO = encryptRest.upsertToken(cfdto,apikey);
     } catch (FeignException e) {
       log.error("[UPSERT_TOKEN] PDV: something went wrong when invoking the PDV API.");
-      throw new PDVInvocationException(ERROR_INVOCATION_PDV_ENCRYPT_MSG);
+      throw new PDVInvocationException(ERROR_INVOCATION_PDV_ENCRYPT_MSG,true,e);
     }
     return encryptedCfDTO;
   }

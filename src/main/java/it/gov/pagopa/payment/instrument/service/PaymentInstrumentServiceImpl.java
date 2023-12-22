@@ -29,7 +29,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import static it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants.ExceptionCode.GENERIC_ERROR;
 import static it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants.ExceptionMessage.*;
 
 @Slf4j
@@ -170,7 +169,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       auditUtilities.logEnrollInstrumentKO(e.getMessage(), newInstrument.getIdWallet(), channel);
       paymentInstrumentRepository.delete(newInstrument);
       performanceLog(startTime, ENROLL_INSTRUMENT);
-      throw new InternalServerErrorException(GENERIC_ERROR, ERROR_SEND_INSTRUMENT_NOTIFY_MSG, e);
+      throw new InternalServerErrorException(ERROR_SEND_INSTRUMENT_NOTIFY_MSG,true, e);
     }
     auditUtilities.logEnrollInstrumentComplete(newInstrument.getIdWallet(),
         newInstrument.getChannel());
@@ -192,7 +191,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
           "[ENROLL_INSTRUMENT] Couldn't send to RTD: resetting the Payment Instrument.");
       auditUtilities.logEnrollInstrumentKO(e.getMessage(), instrument.getIdWallet(), channel);
       paymentInstrumentRepository.delete(instrument);
-      throw new InternalServerErrorException(GENERIC_ERROR, ERROR_SEND_INSTRUMENT_NOTIFY_MSG, e);
+      throw new InternalServerErrorException(ERROR_SEND_INSTRUMENT_NOTIFY_MSG,true,e);
     }
     auditUtilities.logEnrollInstrumentComplete(instrument.getIdWallet(), channel);
   }
@@ -308,7 +307,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       this.rollback(initiativeId, userId);
       log.error("[DISABLE_USER_INITIATIVE_INSTRUMENTS] An error occurred in the microservice reward-calculator");
       performanceLog(startTime, "DEACTIVATE_ALL_INSTRUMENTS");
-      throw new RewardCalculatorInvocationException(ERROR_INVOCATION_REWARD_MSG);
+      throw new RewardCalculatorInvocationException(ERROR_INVOCATION_REWARD_MSG,true,e);
     }
     if (!PaymentInstrumentConstants.IDPAY_PAYMENT.equals(
         paymentInstrumentList.get(0).getChannel())) {
@@ -358,7 +357,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
         instrument.setStatus(PaymentInstrumentConstants.STATUS_ACTIVE);
         paymentInstrumentRepository.save(instrument);
         performanceLog(startTime, "DEACTIVATE_INSTRUMENT");
-        throw new InternalServerErrorException(ERROR_DEACTIVATE_INSTRUMENT_NOTIFY_MSG);
+        throw new InternalServerErrorException(ERROR_DEACTIVATE_INSTRUMENT_NOTIFY_MSG,true,e);
       }
     }
     performanceLog(startTime, "DEACTIVATE_INSTRUMENT");
@@ -720,7 +719,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
           newInstrument.getChannel());
       paymentInstrumentRepository.delete(newInstrument);
       performanceLog(startTime, ENROLL_FROM_ISSUER);
-      throw new InternalServerErrorException(GENERIC_ERROR, ERROR_SEND_INSTRUMENT_NOTIFY_MSG, e);
+      throw new InternalServerErrorException(ERROR_SEND_INSTRUMENT_NOTIFY_MSG, true, e);
     }
     auditUtilities.logEnrollInstrFromIssuerComplete(newInstrument.getHpan(),
         newInstrument.getChannel());
@@ -793,7 +792,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
         } catch (Exception e) {
           log.info(
                   "[PROCESS_ACK_DEACTIVATE] Couldn't send to RTD: resetting the Instrument.");
-          throw new InternalServerErrorException(GENERIC_ERROR, ERROR_SEND_INSTRUMENT_NOTIFY_MSG, e);
+          throw new InternalServerErrorException(ERROR_SEND_INSTRUMENT_NOTIFY_MSG,true, e);
         }
       }
     }
@@ -987,7 +986,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
       rewardCalculatorConnector.enableUserInitiativeInstruments(userId, initiativeId);
     }catch (Exception e) {
       log.error("[ENABLE_USER_INITIATIVE_INSTRUMENTS] An error occurred in the microservice reward-calculator");
-      throw new RewardCalculatorInvocationException(ERROR_INVOCATION_REWARD_MSG);
+      throw new RewardCalculatorInvocationException(ERROR_INVOCATION_REWARD_MSG,true,e);
     }
   }
 
