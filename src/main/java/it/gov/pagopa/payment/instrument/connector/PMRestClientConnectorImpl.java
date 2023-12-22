@@ -32,7 +32,7 @@ public class PMRestClientConnectorImpl implements PMRestClientConnector {
       walletV2ListResponse = pmRestClient.getWalletList(apimKey, apimTrace, userId);
     }catch(FeignException e){
       log.error("[GET_WALLET_LIST] PM: something went wrong when invoking the PM API.");
-      throw new PMInvocationException(ERROR_INVOCATION_PM_MSG);
+      throw new PMInvocationException(ERROR_INVOCATION_PM_MSG,true,e);
     }
     return walletV2ListResponse;
   }
