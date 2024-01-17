@@ -29,7 +29,7 @@ public class DecryptRestConnectorImpl implements DecryptRestConnector{
       decryptCfDTO = decryptRest.getPiiByToken(token, apikey);
     } catch (FeignException e) {
       log.error("[GET_PII_BY_TOKEN] PDV: something went wrong when invoking the PDV API.");
-      throw new PDVInvocationException(ERROR_INVOCATION_PDV_DECRYPT_MSG);
+      throw new PDVInvocationException(ERROR_INVOCATION_PDV_DECRYPT_MSG,true,e);
     }
     return decryptCfDTO;
   }

@@ -96,25 +96,26 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
         switch (errorDTO.getCode()) {
           case WALLET_TOO_MANY_REQUESTS -> {
             log.error("[ENROLL_INSTRUMENT_CODE] Too many requests on the ms wallet");
-            throw new TooManyRequestsException(ERROR_TOO_MANY_REQUESTS_WALLET_MSG);}
+            throw new TooManyRequestsException(ERROR_TOO_MANY_REQUESTS_WALLET_MSG,true,e);}
           case WALLET_USER_NOT_ONBOARDED -> {
             log.error("[ENROLL_INSTRUMENT_CODE] The user {} is not onboarded on initiative {}", userId, initiativeId);
-            throw new UserNotOnboardedException(String.format(ERROR_USER_NOT_ONBOARDED_MSG, initiativeId));}
+            throw new UserNotOnboardedException(String.format(ERROR_USER_NOT_ONBOARDED_MSG, initiativeId),true,e);
+          }
           case WALLET_ENROLL_INSTRUMENT_NOT_ALLOW_FOR_REFUND_INITIATIVE -> {
             log.error("[ENROLL_INSTRUMENT_CODE] It is not possible to enroll a idpayCode for a refund type initiative {}", initiativeId);
-            throw new EnrollmentNotAllowedException(String.format(ERROR_ENROLL_NOT_ALLOWED_FOR_REFUND_INITIATIVE_MSG, initiativeId));
+            throw new EnrollmentNotAllowedException(String.format(ERROR_ENROLL_NOT_ALLOWED_FOR_REFUND_INITIATIVE_MSG, initiativeId),true,e);
           }
           case WALLET_USER_UNSUBSCRIBED -> {
             log.error("[ENROLL_INSTRUMENT_CODE] The user {} has unsubscribed from initiative {}", userId, initiativeId);
-            throw new UserUnsubscribedException(String.format(ERROR_USER_UNSUBSCRIBED_MSG, initiativeId));
+            throw new UserUnsubscribedException(String.format(ERROR_USER_UNSUBSCRIBED_MSG, initiativeId),true,e);
           }
           case WALLET_INITIATIVE_ENDED -> {
             log.error("[ENROLL_INSTRUMENT_CODE] The operation is not allowed because the initiative {} has already ended", initiativeId);
-            throw new InitiativeInvalidException(String.format(ERROR_INITIATIVE_ENDED_MSG, initiativeId));
+            throw new InitiativeInvalidException(String.format(ERROR_INITIATIVE_ENDED_MSG, initiativeId),true,e);
           }
           default -> {
             log.error("[ENROLL_INSTRUMENT_CODE] An error occurred while invoking the wallet microservice");
-            throw new WalletInvocationException(ERROR_INVOCATION_WALLET_MSG);
+            throw new WalletInvocationException(ERROR_INVOCATION_WALLET_MSG,true,e);
           }
         }
       }

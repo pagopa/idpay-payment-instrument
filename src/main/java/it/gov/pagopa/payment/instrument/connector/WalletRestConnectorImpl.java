@@ -27,7 +27,7 @@ public class WalletRestConnectorImpl implements WalletRestConnector {
       walletRestClient.updateWallet(body);
     } catch (FeignException e) {
       log.error("[UPDATE_WALLET] An error occurred while invoking the wallet microservice");
-      throw new WalletInvocationException(ERROR_INVOCATION_WALLET_MSG);
+      throw new WalletInvocationException(ERROR_INVOCATION_WALLET_MSG,true,e);
     }
   }
 
@@ -38,10 +38,10 @@ public class WalletRestConnectorImpl implements WalletRestConnector {
     }catch (FeignException e){
       if(e.status() == 404){
         log.error("[PROCESS_ACK] The user {} is not onboarded on initiative {}", body.getUserId(), body.getInitiativeId());
-        throw new UserNotOnboardedException(String.format(ERROR_USER_NOT_ONBOARDED_MSG,body.getInitiativeId()));
+        throw new UserNotOnboardedException(String.format(ERROR_USER_NOT_ONBOARDED_MSG,body.getInitiativeId()),true,e);
       }
       log.error("[PROCESS_ACK] An error occurred while invoking the wallet microservice");
-      throw new WalletInvocationException(ERROR_INVOCATION_WALLET_MSG);
+      throw new WalletInvocationException(ERROR_INVOCATION_WALLET_MSG,true,e);
     }
 
   }
