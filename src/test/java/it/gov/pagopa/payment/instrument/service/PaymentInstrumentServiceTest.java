@@ -556,7 +556,7 @@ class PaymentInstrumentServiceTest {
                 .sendInstruments(Mockito.any());
 
         try {
-            paymentInstrumentService.deactivateInstrument(INITIATIVE_ID, USER_ID, INSTRUMENT_ID);
+            paymentInstrumentService.deactivateInstrument(INITIATIVE_ID, USER_ID, INSTRUMENT_ID, CHANNEL);
             Assertions.fail();
         } catch (InternalServerErrorException e) {
             assertEquals(GENERIC_ERROR, e.getCode());
@@ -708,7 +708,7 @@ class PaymentInstrumentServiceTest {
 
         doNothing().when(rtdProducer).sendInstrument(any());
 
-        paymentInstrumentService.deactivateInstrument(INITIATIVE_ID, USER_ID, INSTRUMENT_ID);
+        paymentInstrumentService.deactivateInstrument(INITIATIVE_ID, USER_ID, INSTRUMENT_ID, CHANNEL);
 
         assertEquals(PaymentInstrumentConstants.STATUS_PENDING_DEACTIVATION_REQUEST,
                 TEST_INSTRUMENT.getStatus());
@@ -720,7 +720,7 @@ class PaymentInstrumentServiceTest {
                         USER_ID, INSTRUMENT_ID))
                 .thenReturn(Optional.of(TEST_INACTIVE_INSTRUMENT));
 
-        paymentInstrumentService.deactivateInstrument(INITIATIVE_ID, USER_ID, INSTRUMENT_ID);
+        paymentInstrumentService.deactivateInstrument(INITIATIVE_ID, USER_ID, INSTRUMENT_ID, CHANNEL);
 
         Mockito.verify(paymentInstrumentRepositoryMock, Mockito.times(1))
                 .findByInitiativeIdAndUserIdAndId(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
@@ -734,7 +734,7 @@ class PaymentInstrumentServiceTest {
                 .thenReturn(Optional.empty());
 
         try {
-            paymentInstrumentService.deactivateInstrument(INITIATIVE_ID, USER_ID, INSTRUMENT_ID);
+            paymentInstrumentService.deactivateInstrument(INITIATIVE_ID, USER_ID, INSTRUMENT_ID, CHANNEL);
             Assertions.fail();
         } catch (PaymentInstrumentNotFoundException e) {
             assertEquals(INSTRUMENT_NOT_FOUND, e.getCode());
@@ -752,7 +752,7 @@ class PaymentInstrumentServiceTest {
                                 USER_ID, INSTRUMENT_ID))
                 .thenReturn(Optional.of(TEST_INSTRUMENT));
 
-        paymentInstrumentService.deactivateInstrument(INITIATIVE_ID, USER_ID, INSTRUMENT_ID);
+        paymentInstrumentService.deactivateInstrument(INITIATIVE_ID, USER_ID, INSTRUMENT_ID, CHANNEL);
 
         assertEquals(PaymentInstrumentConstants.STATUS_PENDING_DEACTIVATION_REQUEST,
                 TEST_INSTRUMENT.getStatus());
@@ -769,7 +769,7 @@ class PaymentInstrumentServiceTest {
                 .thenReturn(Optional.of(TEST_INSTRUMENT));
 
         try {
-            paymentInstrumentService.deactivateInstrument(INITIATIVE_ID, USER_ID, INSTRUMENT_ID);
+            paymentInstrumentService.deactivateInstrument(INITIATIVE_ID, USER_ID, INSTRUMENT_ID, CHANNEL);
         } catch (InstrumentDeleteNotAllowedException e) {
             assertEquals(DELETE_NOT_ALLOWED, e.getCode());
             assertEquals(ERROR_DELETE_NOT_ALLOWED_MSG, e.getMessage());
@@ -891,7 +891,7 @@ class PaymentInstrumentServiceTest {
 
 
         paymentInstrumentService.deactivateAllInstruments(INITIATIVE_ID, USER_ID,
-                LocalDateTime.now().toString());
+                LocalDateTime.now().toString(), CHANNEL);
         assertNotNull(TEST_INSTRUMENT.getDeactivationDate());
         assertEquals(PaymentInstrumentConstants.STATUS_INACTIVE, TEST_INSTRUMENT.getStatus());
     }
@@ -904,7 +904,7 @@ class PaymentInstrumentServiceTest {
                 .thenReturn(Collections.emptyList());
 
         paymentInstrumentService.deactivateAllInstruments(INITIATIVE_ID, USER_ID,
-                LocalDateTime.now().toString());
+                LocalDateTime.now().toString(), CHANNEL);
         Mockito.verify(rewardCalculatorConnector, never()).disableUserInitiativeInstruments(Mockito.anyString(), Mockito.anyString());
     }
 
@@ -929,7 +929,7 @@ class PaymentInstrumentServiceTest {
 
 
         paymentInstrumentService.deactivateAllInstruments(INITIATIVE_ID, USER_ID,
-                LocalDateTime.now().toString());
+                LocalDateTime.now().toString(), CHANNEL);
         assertNotNull(TEST_INSTRUMENT.getDeactivationDate());
         assertEquals(PaymentInstrumentConstants.STATUS_INACTIVE, TEST_INSTRUMENT.getStatus());
     }
@@ -963,7 +963,7 @@ class PaymentInstrumentServiceTest {
         String localDateNowString = LocalDateTime.now().toString();
         try {
             paymentInstrumentService.deactivateAllInstruments(INITIATIVE_ID, USER_ID,
-                    localDateNowString);
+                    localDateNowString, CHANNEL);
             fail();
         } catch (RewardCalculatorInvocationException e) {
             assertNull(TEST_INSTRUMENT.getDeactivationDate());
