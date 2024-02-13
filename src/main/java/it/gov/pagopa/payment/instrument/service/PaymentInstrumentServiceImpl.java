@@ -275,7 +275,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
 
   @Override
   public void deactivateAllInstruments(String initiativeId, String userId,
-      String deactivationDate) {
+      String deactivationDate, String channel) {
     long startTime = System.currentTimeMillis();
 
     List<PaymentInstrument> paymentInstrumentList = paymentInstrumentRepository.findByInitiativeIdAndUserIdAndStatus(
@@ -292,7 +292,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
 
       paymentInstrument.setDeactivationDate(LocalDateTime.parse(deactivationDate));
       paymentInstrument.setStatus(PaymentInstrumentConstants.STATUS_INACTIVE);
-      paymentInstrument.setDeleteChannel(PaymentInstrumentConstants.IO);
+      paymentInstrument.setDeleteChannel(channel);
       if (!PaymentInstrumentConstants.IDPAY_PAYMENT.equals(paymentInstrument.getChannel())) {
         rtdHpanListDTO.setHpan(paymentInstrument.getHpan());
         rtdHpanListDTO.setConsent(paymentInstrument.isConsent());
@@ -319,7 +319,7 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
 
   @Override
   public void deactivateInstrument(String initiativeId, String userId,
-      String instrumentId) {
+      String instrumentId, String channel) {
     long startTime = System.currentTimeMillis();
 
     log.info("[DEACTIVATE_INSTRUMENT] Deleting instrument");
@@ -340,13 +340,13 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     if (instrument.getStatus().equals(PaymentInstrumentConstants.STATUS_ACTIVE)) {
       instrument.setStatus(PaymentInstrumentConstants.STATUS_PENDING_DEACTIVATION_REQUEST);
       instrument.setUpdateDate(LocalDateTime.now());
-      instrument.setDeleteChannel(PaymentInstrumentConstants.IO);
+      instrument.setDeleteChannel(channel);
       paymentInstrumentRepository.save(instrument);
       PaymentMethodInfoList infoList = new PaymentMethodInfoList(instrument.getHpan(),
           instrument.getMaskedPan(), instrument.getBrandLogo(), instrument.getBrand(),
           instrument.isConsent());
       try {
-        sendToRuleEngine(userId, initiativeId, PaymentInstrumentConstants.IO,
+        sendToRuleEngine(userId, initiativeId, channel,
             List.of(infoList),
             PaymentInstrumentConstants.OPERATION_DELETE);
       } catch (Exception e) {
