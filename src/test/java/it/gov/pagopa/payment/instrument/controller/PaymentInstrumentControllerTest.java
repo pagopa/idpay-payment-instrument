@@ -68,14 +68,14 @@ class PaymentInstrumentControllerTest {
   private static final EnrollmentBodyDTO ENROLLMENT_BODY_DTO_EMPTY = new EnrollmentBodyDTO("", "",
       "", "", "");
   private static final DeactivationBodyDTO DEACTIVATION_BODY_DTO = new DeactivationBodyDTO(USER_ID,
-      INITIATIVE_ID, INSTRUMENT_ID);
+      INITIATIVE_ID, INSTRUMENT_ID, CHANNEL);
 
   private static final BaseEnrollmentBodyDTO BASE_ENROLLMENT_BODY_DTO = new BaseEnrollmentBodyDTO(USER_ID,
           INITIATIVE_ID, CHANNEL, INSTRUMENT_TYPE);
   private static final BaseEnrollmentBodyDTO BASE_ENROLLMENT_BODY_DTO_EMPTY = new BaseEnrollmentBodyDTO("",
           "", "", "");
   private static final DeactivationBodyDTO DEACTIVATION_BODY_DTO_EMPTY = new DeactivationBodyDTO("",
-      "", "");
+      "", "", "");
 
   private static final HpanDTO HPAN_DTO_TEST = new HpanDTO(HPAN, CHANNEL, BRAND_LOGO, BRAND_LOGO, ID_WALLET,
       INSTRUMENT_ID, CHANNEL, PaymentInstrumentConstants.INSTRUMENT_TYPE_CARD, LocalDateTime.now());
@@ -189,7 +189,7 @@ class PaymentInstrumentControllerTest {
 
     Mockito.doThrow(new PaymentInstrumentNotFoundException(ERROR_INSTRUMENT_NOT_FOUND_MSG))
         .when(paymentInstrumentServiceMock)
-        .deactivateInstrument(INITIATIVE_ID, USER_ID, INSTRUMENT_ID);
+        .deactivateInstrument(INITIATIVE_ID, USER_ID, INSTRUMENT_ID, CHANNEL);
 
     MvcResult res = mvc.perform(MockMvcRequestBuilders.delete(BASE_URL + DEACTIVATE_URL)
             .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -208,7 +208,7 @@ class PaymentInstrumentControllerTest {
 
     Mockito.doThrow(new ServiceException("DUMMY_EXCEPTION_CODE", "DUMMY_EXCEPTION_MESSAGE",null))
             .when(paymentInstrumentServiceMock)
-            .deactivateInstrument(INITIATIVE_ID, USER_ID, INSTRUMENT_ID);
+            .deactivateInstrument(INITIATIVE_ID, USER_ID, INSTRUMENT_ID, CHANNEL);
 
     MvcResult res = mvc.perform(MockMvcRequestBuilders.delete(BASE_URL + DEACTIVATE_URL)
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -242,10 +242,10 @@ class PaymentInstrumentControllerTest {
   void disableAllInstrument_ok() throws Exception {
     ObjectMapper objectMapper = new ObjectMapper();
     UnsubscribeBodyDTO unsubscribeBodyDTO = new UnsubscribeBodyDTO(INITIATIVE_ID, USER_ID,
-        LocalDateTime.now().toString());
+        LocalDateTime.now().toString(), CHANNEL);
 
     Mockito.doNothing().when(paymentInstrumentServiceMock)
-        .deactivateAllInstruments(INITIATIVE_ID, USER_ID, LocalDateTime.now().toString());
+        .deactivateAllInstruments(INITIATIVE_ID, USER_ID, LocalDateTime.now().toString(), CHANNEL);
 
     mvc.perform(
             MockMvcRequestBuilders.delete(BASE_URL + DISABLE_ALL_URL)

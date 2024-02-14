@@ -10,9 +10,9 @@ public interface PaymentInstrumentService {
   void enrollInstrument(String initiativeId, String userId, String idWallet,
       String channel, String instrumentType);
 
-  void deactivateInstrument(String initiativeId, String userId, String instrumentId);
+  void deactivateInstrument(String initiativeId, String userId, String instrumentId, String channel);
   void processRtdMessage(RTDEventsDTO dto);
-  void deactivateAllInstruments(String initiativeId, String userId, String deactivationDate);
+  void deactivateAllInstruments(String initiativeId, String userId, String deactivationDate, String channel);
   HpanGetDTO getHpan(String initiativeId, String userId);
   void processAck(RuleEngineAckDTO ruleEngineAckDTO);
   HpanGetDTO getHpanFromIssuer(String initiativeId, String userId, String channel);
