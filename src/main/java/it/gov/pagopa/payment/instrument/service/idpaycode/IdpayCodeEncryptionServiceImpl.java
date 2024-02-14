@@ -74,8 +74,11 @@ public class IdpayCodeEncryptionServiceImpl implements IdpayCodeEncryptionServic
         throw new PinBlockSizeException(ERROR_PIN_LENGTH_NOT_VALID_MSG);
       }
 
-      // Standardizes code (adds padding with "F" to reach 16 digits)
-      final String codeData = StringUtils.rightPad(code, 16,'F');
+      // Standardizes code (adds prefix 0 + code length and padding with "F" to reach 16 digits)
+      String starter = "0";
+      char padding = 'F';
+      code = starter.concat(String.valueOf(code.length())).concat(code);
+      final String codeData = StringUtils.rightPad(code, 16,padding);
 
       // Combine CODE and SECOND_FACTOR with XOR
       final byte[] codeBytes = Hex.decodeHex(codeData.toCharArray());
