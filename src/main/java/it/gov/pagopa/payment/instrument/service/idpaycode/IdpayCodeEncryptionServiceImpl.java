@@ -167,7 +167,7 @@ public class IdpayCodeEncryptionServiceImpl implements IdpayCodeEncryptionServic
   /**  Decrypt(AES) PinBlock with symmetric key */
   @NonNull
   private String decryptPinBlockWithSymmetricKey(String encryptedPinBlock, String encryptedKey) {
-    SecretKeySpec secretKeySpec = new SecretKeySpec(encryptedKey.getBytes(), "AES");
+    SecretKeySpec secretKeySpec = new SecretKeySpec(encryptedKey.getBytes(StandardCharsets.UTF_8), "AES");
 
     try {
       byte[] decryptedBytes = decrypt(secretKeySpec, Hex.decodeHex(encryptedPinBlock));
