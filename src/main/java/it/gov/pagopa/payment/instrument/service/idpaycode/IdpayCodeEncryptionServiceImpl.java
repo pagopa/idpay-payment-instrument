@@ -121,7 +121,7 @@ public class IdpayCodeEncryptionServiceImpl implements IdpayCodeEncryptionServic
     CryptographyClient cryptographyClient = cryptoClientCache.computeIfAbsent(
         key.getId(), AzureEncryptUtils::buildCryptographyClient);
 
-    return new EncryptedDataBlock(AzureEncryptUtils.encrypt(dataBlock, EncryptionAlgorithm.RSA_OAEP, cryptographyClient), key.getId());
+    return new EncryptedDataBlock(AzureEncryptUtils.encrypt(dataBlock, EncryptionAlgorithm.RSA_OAEP_256, cryptographyClient), key.getId());
   }
 
   @Override
@@ -130,7 +130,7 @@ public class IdpayCodeEncryptionServiceImpl implements IdpayCodeEncryptionServic
 
     CryptographyClient cryptographyClient = cryptoClientCache.computeIfAbsent(
         key.getId(), AzureEncryptUtils::buildCryptographyClient);
-    return AzureEncryptUtils.decrypt(symmetricKey, EncryptionAlgorithm.RSA_OAEP, cryptographyClient);
+    return AzureEncryptUtils.decrypt(symmetricKey, EncryptionAlgorithm.RSA_OAEP_256, cryptographyClient);
   }
 
   /**  Hashing pinBlock with algorithm SHA-256 */
@@ -161,7 +161,7 @@ public class IdpayCodeEncryptionServiceImpl implements IdpayCodeEncryptionServic
         encryptedDataBlock.getKeyId(), AzureEncryptUtils::buildCryptographyClient);
 
     return AzureEncryptUtils.decrypt(
-        encryptedDataBlock.getEncryptedDataBlock(), EncryptionAlgorithm.RSA_OAEP, cryptographyClient);
+        encryptedDataBlock.getEncryptedDataBlock(), EncryptionAlgorithm.RSA_OAEP_256, cryptographyClient);
   }
 
   /**  Decrypt(AES) PinBlock with symmetric key */

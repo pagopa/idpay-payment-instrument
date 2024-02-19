@@ -15,7 +15,7 @@ import java.nio.charset.StandardCharsets;
 
 class AzureEncryptUtilsTest {
 
-    public static final EncryptionAlgorithm ENCRYPTION_ALGORITHM = EncryptionAlgorithm.RSA_OAEP;
+    public static final EncryptionAlgorithm ENCRYPTION_ALGORITHM = EncryptionAlgorithm.RSA_OAEP_256;
 
     @Test
     void testGetKeyClient(){
