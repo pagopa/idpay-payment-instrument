@@ -16,7 +16,7 @@ class AzureEncryptUtilsTestIntegrated {
     @Test
     void test(){
         String plainvalue = "PLAINVALUE";
-        EncryptionAlgorithm encryptionAlgorithm = EncryptionAlgorithm.RSA_OAEP;
+        EncryptionAlgorithm encryptionAlgorithm = EncryptionAlgorithm.RSA_OAEP_256;
 
         KeyClient keyClient = AzureEncryptUtils.getKeyClient("https://cstar-d-idpay-kv.vault.azure.net");
         CryptographyClient cryptographyClient = AzureEncryptUtils.buildCryptographyClient(keyClient.getKey("idpay-mil-key"));
