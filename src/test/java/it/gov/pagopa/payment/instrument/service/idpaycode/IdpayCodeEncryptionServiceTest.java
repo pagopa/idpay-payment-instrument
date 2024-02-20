@@ -38,7 +38,7 @@ class IdpayCodeEncryptionServiceTest {
   private static final String keyVaultUrl = "https://KEYVAULTNAME.vault.azure.net";
   private static final String keyNameDataBlock = "keyNameDataBlock";
   private static final String keyNameSecretKey = "testSecretKeyName";
-  public static final EncryptionAlgorithm ENCRYPTION_ALGORITHM = EncryptionAlgorithm.RSA_OAEP;
+  public static final EncryptionAlgorithm ENCRYPTION_ALGORITHM = EncryptionAlgorithm.RSA_OAEP_256;
 
   @Mock
   private KeyClient keyClientMock;
