@@ -1,6 +1,5 @@
 package it.gov.pagopa.payment.instrument.service.idpaycode;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import feign.FeignException;
 import feign.Request;
 import feign.Request.HttpMethod;
@@ -52,8 +51,9 @@ class PaymentInstrumentCodeServiceTest {
       .idpayCode(IDPAY_CODE)
       .keyId(KEY_ID)
       .build();
-  public static final String SHA256_CODE = "sha256";
-  public static final String PIN_BLOCK = "12345";
+  public static final byte[] SHA256_CODE = new byte[20];
+  public static final byte[] DATA_BLOCK = new byte[5];
+  public static final String PIN_BLOCK = "12643";
   public static final String ENCRYPTED_KEY = "test-key";
   private PaymentInstrumentCodeService paymentInstrumentCodeService;
   @Mock
@@ -78,9 +78,9 @@ class PaymentInstrumentCodeServiceTest {
   void generateCode_initiativeId_not_empty() {
     Mockito.when(
             idpayCodeEncryptionService.buildHashedDataBlock(anyString(), anyString(), anyString()))
-        .thenReturn(PIN_BLOCK);
+        .thenReturn(DATA_BLOCK);
 
-    Mockito.when(idpayCodeEncryptionService.encryptSHADataBlock(PIN_BLOCK))
+    Mockito.when(idpayCodeEncryptionService.encryptSHADataBlock(DATA_BLOCK))
         .thenReturn(ENCRYPTED_DATA_BLOCK);
 
     GenerateCodeRespDTO generateCodeRespDTO =
@@ -93,9 +93,9 @@ class PaymentInstrumentCodeServiceTest {
   void generateCode_initiativeId_empty() {
     Mockito.when(
             idpayCodeEncryptionService.buildHashedDataBlock(anyString(), anyString(), anyString()))
-        .thenReturn(PIN_BLOCK);
+        .thenReturn(DATA_BLOCK);
 
-    Mockito.when(idpayCodeEncryptionService.encryptSHADataBlock(PIN_BLOCK))
+    Mockito.when(idpayCodeEncryptionService.encryptSHADataBlock(DATA_BLOCK))
         .thenReturn(ENCRYPTED_DATA_BLOCK);
 
     GenerateCodeRespDTO generateCodeRespDTO =
@@ -109,9 +109,9 @@ class PaymentInstrumentCodeServiceTest {
   void generateCode_initiativeId_null() {
     Mockito.when(
             idpayCodeEncryptionService.buildHashedDataBlock(anyString(), anyString(), anyString()))
-        .thenReturn(PIN_BLOCK);
+        .thenReturn(DATA_BLOCK);
 
-    Mockito.when(idpayCodeEncryptionService.encryptSHADataBlock(PIN_BLOCK))
+    Mockito.when(idpayCodeEncryptionService.encryptSHADataBlock(DATA_BLOCK))
         .thenReturn(ENCRYPTED_DATA_BLOCK);
 
     GenerateCodeRespDTO generateCodeRespDTO =
@@ -125,9 +125,9 @@ class PaymentInstrumentCodeServiceTest {
   void generateCode_enrollKo_notFound(){
     Mockito.when(
             idpayCodeEncryptionService.buildHashedDataBlock(anyString(), anyString(), anyString()))
-        .thenReturn(PIN_BLOCK);
+        .thenReturn(DATA_BLOCK);
 
-    Mockito.when(idpayCodeEncryptionService.encryptSHADataBlock(PIN_BLOCK))
+    Mockito.when(idpayCodeEncryptionService.encryptSHADataBlock(DATA_BLOCK))
         .thenReturn(ENCRYPTED_DATA_BLOCK);
 
     Mockito.doNothing().when(paymentInstrumentCodeRepository).deleteById(USERID);
@@ -156,9 +156,9 @@ class PaymentInstrumentCodeServiceTest {
   void generateCode_enrollKo_tooManyRequests() {
     Mockito.when(
             idpayCodeEncryptionService.buildHashedDataBlock(anyString(), anyString(), anyString()))
-        .thenReturn(PIN_BLOCK);
+        .thenReturn(DATA_BLOCK);
 
-    Mockito.when(idpayCodeEncryptionService.encryptSHADataBlock(PIN_BLOCK))
+    Mockito.when(idpayCodeEncryptionService.encryptSHADataBlock(DATA_BLOCK))
         .thenReturn(ENCRYPTED_DATA_BLOCK);
 
     Mockito.doNothing().when(paymentInstrumentCodeRepository).deleteById(USERID);
@@ -185,9 +185,9 @@ class PaymentInstrumentCodeServiceTest {
   void generateCode_enrollKo_internalServerError() {
     Mockito.when(
             idpayCodeEncryptionService.buildHashedDataBlock(anyString(), anyString(), anyString()))
-        .thenReturn(PIN_BLOCK);
+        .thenReturn(DATA_BLOCK);
 
-    Mockito.when(idpayCodeEncryptionService.encryptSHADataBlock(PIN_BLOCK))
+    Mockito.when(idpayCodeEncryptionService.encryptSHADataBlock(DATA_BLOCK))
         .thenReturn(ENCRYPTED_DATA_BLOCK);
 
     Mockito.doNothing().when(paymentInstrumentCodeRepository).deleteById(USERID);
@@ -215,9 +215,9 @@ class PaymentInstrumentCodeServiceTest {
   void generateCode_enrollKo_instrumentNotAllowForRefundInitiative(){
     Mockito.when(
                     idpayCodeEncryptionService.buildHashedDataBlock(anyString(), anyString(), anyString()))
-            .thenReturn(PIN_BLOCK);
+            .thenReturn(DATA_BLOCK);
 
-    Mockito.when(idpayCodeEncryptionService.encryptSHADataBlock(PIN_BLOCK))
+    Mockito.when(idpayCodeEncryptionService.encryptSHADataBlock(DATA_BLOCK))
             .thenReturn(ENCRYPTED_DATA_BLOCK);
 
     Mockito.doNothing().when(paymentInstrumentCodeRepository).deleteById(USERID);
@@ -246,9 +246,9 @@ class PaymentInstrumentCodeServiceTest {
   void generateCode_enrollKo_userUnsubscribe(){
     Mockito.when(
                     idpayCodeEncryptionService.buildHashedDataBlock(anyString(), anyString(), anyString()))
-            .thenReturn(PIN_BLOCK);
+            .thenReturn(DATA_BLOCK);
 
-    Mockito.when(idpayCodeEncryptionService.encryptSHADataBlock(PIN_BLOCK))
+    Mockito.when(idpayCodeEncryptionService.encryptSHADataBlock(DATA_BLOCK))
             .thenReturn(ENCRYPTED_DATA_BLOCK);
 
     Mockito.doNothing().when(paymentInstrumentCodeRepository).deleteById(USERID);
@@ -277,9 +277,9 @@ class PaymentInstrumentCodeServiceTest {
   void generateCode_enrollKo_initiativeEnded(){
     Mockito.when(
                     idpayCodeEncryptionService.buildHashedDataBlock(anyString(), anyString(), anyString()))
-            .thenReturn(PIN_BLOCK);
+            .thenReturn(DATA_BLOCK);
 
-    Mockito.when(idpayCodeEncryptionService.encryptSHADataBlock(PIN_BLOCK))
+    Mockito.when(idpayCodeEncryptionService.encryptSHADataBlock(DATA_BLOCK))
             .thenReturn(ENCRYPTED_DATA_BLOCK);
 
     Mockito.doNothing().when(paymentInstrumentCodeRepository).deleteById(USERID);
@@ -387,7 +387,7 @@ class PaymentInstrumentCodeServiceTest {
         .thenReturn(SHA256_CODE);
 
     Mockito.when(idpayCodeEncryptionService.decryptIdpayCode(ENCRYPTED_DATA_BLOCK))
-        .thenReturn("SHA256_CODE_INCORRECT");
+        .thenReturn("SHA256_CODE_INCORRECT".getBytes());
 
     boolean pinBlockVerified = paymentInstrumentCodeService.verifyPinBlock(
         USERID, new PinBlockDTO(PIN_BLOCK, ENCRYPTED_KEY));

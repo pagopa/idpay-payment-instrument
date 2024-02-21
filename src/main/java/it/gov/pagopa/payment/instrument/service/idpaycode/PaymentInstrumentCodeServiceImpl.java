@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 
 import static it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants.ExceptionMessage.*;
 
@@ -67,7 +68,7 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
     String secondFactorWithLeftPad = StringUtils.leftPad(secondFactor, 16, '0');
 
     // hash and encrypt plain code
-    String hashedDataBlock = idpayCodeEncryptionService.buildHashedDataBlock(plainCode, secondFactorWithLeftPad, salt);
+    byte[] hashedDataBlock = idpayCodeEncryptionService.buildHashedDataBlock(plainCode, secondFactorWithLeftPad, salt);
     EncryptedDataBlock encryptedDataBlock = idpayCodeEncryptionService.encryptSHADataBlock(hashedDataBlock);
     log.info("[{}] Code generated successfully on userId: {}", GENERATED_CODE, userId);
 
@@ -148,14 +149,14 @@ public class PaymentInstrumentCodeServiceImpl implements PaymentInstrumentCodeSe
       throw new IDPayCodeNotFoundException(ERROR_IDPAYCODE_NOT_FOUND_MSG);
     }
 
-    String inputPlainIdpayCode = idpayCodeEncryptionService.hashSHADecryptedDataBlock(userId, pinBlockDTO,
+    byte[] inputPlainIdpayCode = idpayCodeEncryptionService.hashSHADecryptedDataBlock(userId, pinBlockDTO,
         paymentInstrumentCode.getSalt());
 
-    String expectedPlainIdpayCode = idpayCodeEncryptionService.decryptIdpayCode(
+    byte[] expectedPlainIdpayCode = idpayCodeEncryptionService.decryptIdpayCode(
         new EncryptedDataBlock(paymentInstrumentCode.getIdpayCode(), paymentInstrumentCode.getKeyId()));
 
     performanceLog(startTime, "VERIFY_IDPAY_CODE", userId, null);
-    return inputPlainIdpayCode.equals(expectedPlainIdpayCode);
+    return Arrays.equals(inputPlainIdpayCode, expectedPlainIdpayCode);
   }
 
   @Override
