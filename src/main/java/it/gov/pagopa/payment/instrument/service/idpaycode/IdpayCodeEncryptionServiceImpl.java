@@ -10,7 +10,6 @@ import it.gov.pagopa.payment.instrument.dto.PinBlockDTO;
 import it.gov.pagopa.payment.instrument.exception.custom.IdpayCodeEncryptOrDecryptException;
 import it.gov.pagopa.payment.instrument.exception.custom.PinBlockException;
 import it.gov.pagopa.payment.instrument.exception.custom.PinBlockSizeException;
-import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
@@ -26,7 +25,6 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -59,14 +57,14 @@ public class IdpayCodeEncryptionServiceImpl implements IdpayCodeEncryptionServic
   }
 
   @Override
-  public String buildHashedDataBlock(String code, String secondFactor, String salt) {
-    String dataBlock = calculateDataBlock(secondFactor, code);
+  public byte[] buildHashedDataBlock(String code, String secondFactor, String salt) {
+    byte[] dataBlock = calculateDataBlock(secondFactor, code);
     return createSHA256Digest(dataBlock, salt);
   }
 
 
   /** Calculate Data Block from plain code and second factor */
-  private String calculateDataBlock(String secondFactor, String code) {
+  private byte[] calculateDataBlock(String secondFactor, String code) {
     long startTime = System.currentTimeMillis();
     // Control code length, must be at least 5
     try {
@@ -88,11 +86,8 @@ public class IdpayCodeEncryptionServiceImpl implements IdpayCodeEncryptionServic
         xorResult[i] = (byte) (codeBytes[i] ^ secondFactorBytes[i]);
       }
 
-      // Converts the result to a hexadecimal representation
-      String dataBlock = Hex.encodeHexString(xorResult);
       performanceLog(startTime, GENERATE_PIN_BLOCK);
-
-      return dataBlock;
+      return xorResult;
     } catch (DecoderException ex) {
       log.error("[GENERATE_PIN_BLOCK] Something went wrong while creating pinBlock");
       throw new PinBlockException(ERROR_CREATING_PINBLOCK_MSG,true,ex);
@@ -106,16 +101,16 @@ public class IdpayCodeEncryptionServiceImpl implements IdpayCodeEncryptionServic
    * Third step: Hash decrypted pinBlock with SHA256
    */
   @Override
-  public String hashSHADecryptedDataBlock(String userId, PinBlockDTO pinBlockDTO, String salt) {
-    String decryptedSymmetricKey = decryptSymmetricKey(pinBlockDTO.getEncryptedKey());
-    String dataBlock = decryptPinBlockWithSymmetricKey(pinBlockDTO.getPinBlock(), decryptedSymmetricKey);
+  public byte[] hashSHADecryptedDataBlock(String userId, PinBlockDTO pinBlockDTO, String salt) {
+    byte[] decryptedSymmetricKey = decryptSymmetricKey(pinBlockDTO.getEncryptedKey());
+    byte[] dataBlock = decryptPinBlockWithSymmetricKey(pinBlockDTO.getPinBlock(), decryptedSymmetricKey);
 
     return createSHA256Digest(dataBlock, salt);
   }
 
   /**  Encrypt hashed(SHA256) Data Block with Azure API */
   @Override
-  public EncryptedDataBlock encryptSHADataBlock(String dataBlock) {
+  public EncryptedDataBlock encryptSHADataBlock(byte[] dataBlock) {
     KeyVaultKey key = keyClient.getKey(keyNameDataBlock);
 
     CryptographyClient cryptographyClient = cryptoClientCache.computeIfAbsent(
@@ -125,7 +120,7 @@ public class IdpayCodeEncryptionServiceImpl implements IdpayCodeEncryptionServic
   }
 
   @Override
-  public String decryptSymmetricKey(String symmetricKey) {
+  public byte[] decryptSymmetricKey(String symmetricKey) {
     KeyVaultKey key = keyClient.getKey(keyNameSecretKey);
 
     CryptographyClient cryptographyClient = cryptoClientCache.computeIfAbsent(
@@ -133,20 +128,20 @@ public class IdpayCodeEncryptionServiceImpl implements IdpayCodeEncryptionServic
     return AzureEncryptUtils.decrypt(symmetricKey, EncryptionAlgorithm.RSA_OAEP_256, cryptographyClient);
   }
 
-  /**  Hashing pinBlock with algorithm SHA-256 */
+  /**
+   * Hashing pinBlock with algorithm SHA-256
+   */
   @Override
-  public String createSHA256Digest(String dataBlock, String salt) {
+  public byte[] createSHA256Digest(byte[] dataBlock, String salt) {
     long startTime = System.currentTimeMillis();
     try {
       MessageDigest md = MessageDigest.getInstance("SHA-256");
       md.update(salt.getBytes(StandardCharsets.UTF_8));
-      byte[] hash = md.digest(dataBlock.getBytes(StandardCharsets.UTF_8));
-
-      String hashedPinBlock = Base64.getEncoder().encodeToString(hash);
+      byte[] hash = md.digest(dataBlock);
 
       log.debug("[{}] pinBlock hashing done successfully", HASH_PIN_BLOCK);
       performanceLog(startTime, HASH_PIN_BLOCK);
-      return hashedPinBlock;
+      return hash;
     } catch (NoSuchAlgorithmException e) {
       performanceLog(startTime, HASH_PIN_BLOCK);
       log.error("[{}] Something went wrong creating SHA256 digest", HASH_PIN_BLOCK);
@@ -155,7 +150,7 @@ public class IdpayCodeEncryptionServiceImpl implements IdpayCodeEncryptionServic
   }
 
   @Override
-  public String decryptIdpayCode(EncryptedDataBlock encryptedDataBlock) {
+  public byte[] decryptIdpayCode(EncryptedDataBlock encryptedDataBlock) {
 
     CryptographyClient cryptographyClient = cryptoClientCache.computeIfAbsent(
         encryptedDataBlock.getKeyId(), AzureEncryptUtils::buildCryptographyClient);
@@ -165,13 +160,10 @@ public class IdpayCodeEncryptionServiceImpl implements IdpayCodeEncryptionServic
   }
 
   /**  Decrypt(AES) PinBlock with symmetric key */
-  @NonNull
-  private String decryptPinBlockWithSymmetricKey(String encryptedPinBlock, String encryptedKey) {
+  private byte[] decryptPinBlockWithSymmetricKey(String encryptedPinBlock, byte[] encryptedKey) {
     try {
-      SecretKeySpec secretKeySpec = new SecretKeySpec(encryptedKey.getBytes(StandardCharsets.UTF_8), "AES");
-      byte[] decryptedBytes = decrypt(secretKeySpec, Hex.decodeHex(encryptedPinBlock));
-
-      return Hex.encodeHexString(decryptedBytes);
+      SecretKeySpec secretKeySpec = new SecretKeySpec(encryptedKey, "AES");
+      return decrypt(secretKeySpec, Hex.decodeHex(encryptedPinBlock));
     } catch (DecoderException
              | IllegalStateException e){
       throw new IdpayCodeEncryptOrDecryptException(DECRYPTION_ERROR, DECRYPTION_ERROR_MSG, true, e);
