@@ -6,6 +6,8 @@ import com.azure.security.keyvault.keys.cryptography.models.EncryptionAlgorithm;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.nio.charset.StandardCharsets;
+
 /**
  * In order to be allowed to execute this test, you must have AZ cli installed and logged into DEV-CSTAR subscription.<br />
  * Run the following command:
@@ -20,8 +22,8 @@ class AzureEncryptUtilsTestIntegrated {
 
         KeyClient keyClient = AzureEncryptUtils.getKeyClient("https://cstar-d-idpay-kv.vault.azure.net");
         CryptographyClient cryptographyClient = AzureEncryptUtils.buildCryptographyClient(keyClient.getKey("idpay-mil-key"));
-        String encryptedValue = AzureEncryptUtils.encrypt(plainvalue, encryptionAlgorithm, cryptographyClient);
-        String decryptedValue = AzureEncryptUtils.decrypt(encryptedValue, encryptionAlgorithm, cryptographyClient);
-        Assertions.assertEquals(plainvalue, decryptedValue);
+        String encryptedValue = AzureEncryptUtils.encrypt(plainvalue.getBytes(StandardCharsets.UTF_8), encryptionAlgorithm, cryptographyClient);
+        byte[] decryptedValue = AzureEncryptUtils.decrypt(encryptedValue, encryptionAlgorithm, cryptographyClient);
+        Assertions.assertEquals(plainvalue, new String(decryptedValue));
     }
 }
