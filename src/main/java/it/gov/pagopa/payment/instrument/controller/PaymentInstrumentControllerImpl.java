@@ -43,7 +43,7 @@ public class PaymentInstrumentControllerImpl implements PaymentInstrumentControl
   @Override
   public ResponseEntity<Void> deleteInstrument(DeactivationBodyDTO body) {
     paymentInstrumentService.deactivateInstrument(body.getInitiativeId(), body.getUserId(),
-        body.getInstrumentId());
+        body.getInstrumentId(), body.getChannel());
     return new ResponseEntity<>(HttpStatus.OK);
   }
 
@@ -51,7 +51,7 @@ public class PaymentInstrumentControllerImpl implements PaymentInstrumentControl
   @Override
   public ResponseEntity<Void> disableAllInstrument(UnsubscribeBodyDTO body) {
     paymentInstrumentService.deactivateAllInstruments(body.getInitiativeId(), body.getUserId(),
-        body.getUnsubscribeDate());
+        body.getUnsubscribeDate(), body.getChannel());
     return new ResponseEntity<>(HttpStatus.NO_CONTENT);
   }
 

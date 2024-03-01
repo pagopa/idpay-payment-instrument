@@ -38,7 +38,7 @@ class IdpayCodeEncryptionServiceTest {
   private static final String keyVaultUrl = "https://KEYVAULTNAME.vault.azure.net";
   private static final String keyNameDataBlock = "keyNameDataBlock";
   private static final String keyNameSecretKey = "testSecretKeyName";
-  public static final EncryptionAlgorithm ENCRYPTION_ALGORITHM = EncryptionAlgorithm.RSA_OAEP;
+  public static final EncryptionAlgorithm ENCRYPTION_ALGORITHM = EncryptionAlgorithm.RSA_OAEP_256;
 
   @Mock
   private KeyClient keyClientMock;
@@ -76,7 +76,7 @@ class IdpayCodeEncryptionServiceTest {
 
   @Test
   void encryptIdpayCode(){
-    String idpayCode = idpayCodeEncryptionService.buildHashedDataBlock(
+    byte[] idpayCode = idpayCodeEncryptionService.buildHashedDataBlock(
         "12345","0000FFFFFFFFFFFF", "salt");
 
     assertNotNull(idpayCode);
@@ -116,10 +116,10 @@ class IdpayCodeEncryptionServiceTest {
     Mockito.when(secretKeyCryptographyClientMock.decrypt(ENCRYPTION_ALGORITHM, cipherValue.getBytes(StandardCharsets.UTF_8)))
         .thenReturn(new DecryptResult(plainValue.getBytes(StandardCharsets.UTF_8), ENCRYPTION_ALGORITHM, SECRET_KEY_KEY_ID));
 
-    String decryptedValue = idpayCodeEncryptionService.decryptSymmetricKey(cipherValueEncoded);
+    byte[] decryptedValue = idpayCodeEncryptionService.decryptSymmetricKey(cipherValueEncoded);
 
     // Then
-    assertEquals(plainValue, decryptedValue);
+    assertEquals(plainValue, new String(decryptedValue));
   }
 
   @Test
@@ -133,7 +133,7 @@ class IdpayCodeEncryptionServiceTest {
         .thenReturn(new EncryptResult(decodedPlainValue, ENCRYPTION_ALGORITHM, DATA_BLOCK_KEY_ID));
 
     // when
-    EncryptedDataBlock encryptedDataBlock = idpayCodeEncryptionService.encryptSHADataBlock(plainValue);
+    EncryptedDataBlock encryptedDataBlock = idpayCodeEncryptionService.encryptSHADataBlock(plainValue.getBytes(StandardCharsets.UTF_8));
 
     // Then
     assertEquals(encodedPlainValue, encryptedDataBlock.getEncryptedDataBlock());
@@ -151,10 +151,10 @@ class IdpayCodeEncryptionServiceTest {
     Mockito.when(dataBlockCryptographyClientMock.decrypt(ENCRYPTION_ALGORITHM, cipherValue.getBytes(StandardCharsets.UTF_8)))
         .thenReturn(new DecryptResult(plainValue.getBytes(StandardCharsets.UTF_8), ENCRYPTION_ALGORITHM, DATA_BLOCK_KEY_ID));
 
-    String decryptedValue = idpayCodeEncryptionService.decryptIdpayCode(new EncryptedDataBlock(cipherValueEncoded, DATA_BLOCK_KEY_ID));
+    byte[] decryptedValue = idpayCodeEncryptionService.decryptIdpayCode(new EncryptedDataBlock(cipherValueEncoded, DATA_BLOCK_KEY_ID));
 
     // Then
-    assertEquals(plainValue, decryptedValue);
+    assertEquals(plainValue, new String(decryptedValue));
   }
 
 }

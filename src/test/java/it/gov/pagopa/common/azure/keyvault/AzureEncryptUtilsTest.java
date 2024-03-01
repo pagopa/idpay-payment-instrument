@@ -15,7 +15,7 @@ import java.nio.charset.StandardCharsets;
 
 class AzureEncryptUtilsTest {
 
-    public static final EncryptionAlgorithm ENCRYPTION_ALGORITHM = EncryptionAlgorithm.RSA_OAEP;
+    public static final EncryptionAlgorithm ENCRYPTION_ALGORITHM = EncryptionAlgorithm.RSA_OAEP_256;
 
     @Test
     void testGetKeyClient(){
@@ -60,11 +60,11 @@ class AzureEncryptUtilsTest {
                 .thenReturn(new DecryptResult(plainvalue.getBytes(StandardCharsets.UTF_8), ENCRYPTION_ALGORITHM, keyId));
 
         // When
-        String encryptedValue = AzureEncryptUtils.encrypt(plainvalue, ENCRYPTION_ALGORITHM, cryptographyClientMock);
+        String encryptedValue = AzureEncryptUtils.encrypt(plainvalue.getBytes(StandardCharsets.UTF_8), ENCRYPTION_ALGORITHM, cryptographyClientMock);
         Assertions.assertNotNull(encryptedValue);
-        String decryptedValue = AzureEncryptUtils.decrypt(encryptedValue, ENCRYPTION_ALGORITHM, cryptographyClientMock);
+        byte[] decryptedValue = AzureEncryptUtils.decrypt(encryptedValue, ENCRYPTION_ALGORITHM, cryptographyClientMock);
 
         // Then
-        Assertions.assertEquals(plainvalue, decryptedValue);
+        Assertions.assertEquals(plainvalue, new String(decryptedValue));
     }
 }
