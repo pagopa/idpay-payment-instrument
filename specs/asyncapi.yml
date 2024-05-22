@@ -29,7 +29,7 @@ tags:
     description: "Send instrument to RTD"
   - name: "deactivateAllInstrumentsToRtd"
     description: "Send instrument to RTD"
-  - name: "istrumentNotActiveToRtd"
+  - name: "instrumentNotActiveToRtd"
     description: "Send instrument to RTD"
   - name: "checkAndDeleteToRtd"
     description: "Send instrument to RTD"
@@ -123,140 +123,129 @@ channels:
   instrument-enrollInstrument-to-rtd:
     publish:
       message:
-        $ref: '#/components/messages/SendInstrumentToRtd'
+        $ref: '#/components/messages/EnrollInstrumentToRtd'
       bindings:
         kafka:
           topic: rtd_pi_from_app_topic
       tags:
-        - name: "sendInstrumentToRtd"
+        - name: "enrollInstrumentToRtd"
   instrument-enrollInstrumentFailed-to-rtd:
     publish:
       message:
-        $ref: '#/components/messages/SendInstrumentToRtd'
+        $ref: '#/components/messages/EnrollInstrumentFailedToRtd'
       bindings:
         kafka:
           topic: rtd_pi_from_app_topic
       tags:
-        - name: "sendInstrumentToRtd"
+        - name: "enrollInstrumentFailedToRtd"
   instrument-deactivateAllInstruments-to-rtd:
     publish:
       message:
-        $ref: '#/components/messages/SendInstrumentToRtd'
+        $ref: '#/components/messages/DeactivateAllInstrumentsToRtd'
       bindings:
         kafka:
           topic: rtd_pi_from_app_topic
       tags:
-        - name: "sendInstrumentToRtd"
-  instrument-istrumentNotActive-to-rtd:
+        - name: "deactivateAllInstrumentsToRtd"
+  instrument-instrumentNotActive-to-rtd:
     publish:
       message:
-        $ref: '#/components/messages/SendInstrumentToRtd'
+        $ref: '#/components/messages/InstrumentNotActiveToRtd'
       bindings:
         kafka:
           topic: rtd_pi_from_app_topic
       tags:
-        - name: "sendInstrumentToRtd"
+        - name: "instrumentNotActiveToRtd"
   instrument-checkAndDelete-to-rtd:
     publish:
       message:
-        $ref: '#/components/messages/SendInstrumentToRtd'
+        $ref: '#/components/messages/CheckAndDeleteToRtd'
       bindings:
         kafka:
           topic: rtd_pi_from_app_topic
       tags:
-        - name: "sendInstrumentToRtd"
+        - name: "checkAndDeleteToRtd"
   instrument-enrollInstrumentFromIssuer-to-rtd:
     publish:
       message:
-        $ref: '#/components/messages/SendInstrumentToRtd'
+        $ref: '#/components/messages/EnrollInstrumentFromIssuerToRtd'
       bindings:
         kafka:
           topic: rtd_pi_from_app_topic
       tags:
-        - name: "sendInstrumentToRtd"
+        - name: "enrollInstrumentFromIssuerToRtd"
   instrument-processAckDeactivate-to-rtd:
     publish:
       message:
-        $ref: '#/components/messages/SendInstrumentToRtd'
+        $ref: '#/components/messages/ProcessAckDeactivateToRtd'
       bindings:
         kafka:
           topic: rtd_pi_from_app_topic
       tags:
-        - name: "sendInstrumentToRtd"
+        - name: "processAckDeactivateToRtd"
   instrument-processAckEnroll-to-rtd:
     publish:
       message:
-        $ref: '#/components/messages/SendInstrumentToRtd'
+        $ref: '#/components/messages/ProcessAckEnrollToRtd'
       bindings:
         kafka:
           topic: rtd_pi_from_app_topic
       tags:
-        - name: "sendInstrumentToRtd"
-
-  instrument-instruments-to-rule-engine:
-    publish:
-      message:
-        $ref: '#/components/messages/SendInstrumentsToRuleEngine'
-      bindings:
-        kafka:
-          topic: idpay_hpan_update_topic
-      tags:
-        - name: "sendInstrumentsToRuleEngine"
-
+        - name: "processAckEnrollToRtd"
   instrument-deactivateInstrument-to-rule-engine:
     publish:
       message:
-        $ref: '#/components/messages/SendInstrumentsToRuleEngine'
+        $ref: '#/components/messages/DeactivateInstrumentToRuleEngine'
       bindings:
         kafka:
           topic: idpay_hpan_update_topic
       tags:
-        - name: "sendInstrumentsToRuleEngine"
+        - name: "deactivateInstrumentToRuleEngine"
   instrument-saveAckFromRTD-to-rule-engine:
     publish:
       message:
-        $ref: '#/components/messages/SendInstrumentsToRuleEngine'
+        $ref: '#/components/messages/SaveAckFromRTDToRuleEngine'
       bindings:
         kafka:
           topic: idpay_hpan_update_topic
       tags:
-        - name: "sendInstrumentsToRuleEngine"
+        - name: "saveAckFromRTDToRuleEngine"
   instrument-deleteInstrument-to-rule-engine:
     publish:
       message:
-        $ref: '#/components/messages/SendInstrumentsToRuleEngine'
+        $ref: '#/components/messages/DeleteInstrumentToRuleEngine'
       bindings:
         kafka:
           topic: idpay_hpan_update_topic
       tags:
-        - name: "sendInstrumentsToRuleEngine"
+        - name: "deleteInstrumentToRuleEngine"
   instrument-checkAndDelete-to-rule-engine:
     publish:
       message:
-        $ref: '#/components/messages/SendInstrumentsToRuleEngine'
+        $ref: '#/components/messages/CheckAndDeleteToRuleEngine'
       bindings:
         kafka:
           topic: idpay_hpan_update_topic
       tags:
-        - name: "sendInstrumentsToRuleEngine"
+        - name: "checkAndDeleteToRuleEngine"
   instrument-enrollDiscountInitiative-to-rule-engine:
     publish:
       message:
-        $ref: '#/components/messages/SendInstrumentsToRuleEngine'
+        $ref: '#/components/messages/EnrollDiscountInitiativeToRuleEngine'
       bindings:
         kafka:
           topic: idpay_hpan_update_topic
       tags:
-        - name: "sendInstrumentsToRuleEngine"
+        - name: "enrollDiscountInitiativeToRuleEngine"
   instrument-enrollInstrumentCode-to-rule-engine:
     publish:
       message:
-        $ref: '#/components/messages/SendInstrumentsToRuleEngine'
+        $ref: '#/components/messages/EnrollInstrumentCodeToRuleEngine'
       bindings:
         kafka:
           topic: idpay_hpan_update_topic
       tags:
-        - name: "sendInstrumentsToRuleEngine"
+        - name: "enrollInstrumentCodeToRuleEngine"
 
 
 components:
@@ -272,53 +261,145 @@ components:
     DeactivateInstrumentFromPM:
       contentType: application/json
       description: >-
-        Event sent to the application when
-      summary: Informs the application of
+        Event sent to the application when a card is revoked
+      summary: Informs the application of a card revocation
       payload:
         $ref: "#/components/schemas/RTDRevokeCardDTO"
     SaveAckFromRTD:
       contentType: application/json
       description: >-
-        Event sent to the application when
-      summary: Informs the application of
+        Event sent to the application when a physical card enrollment arrives
+      summary: Informs the application of a physical card enrollment events
       payload:
         $ref: "#/components/schemas/RTDEnrollAckDTO"
     ProcessAckEnroll:
       contentType: application/json
       description: >-
-        Event sent to the application when
-      summary: Informs the application of
+        Event sent to the application when processing ACK for an enrollment request
+      summary: Informs the application of an ACK for an enrollment request
       payload:
         $ref: "#/components/schemas/RuleEngineAckDTO"
     ProcessAckDeactivate:
       contentType: application/json
       description: >-
-        Event sent to the application when
-      summary: Informs the application of
+        Event sent to the application when processing ACK for a deactivation request
+      summary: Informs the application of an ACK for a deactivation request
       payload:
         $ref: "#/components/schemas/RuleEngineAckDTO"
     SendToRtdError:
       contentType: application/json
       description: >-
-        Event sent to the application when
-      summary: Informs the application of
+        Event sent to error queue when an error occured
+        while sendind message to RTD
+      summary: Send to error queue informationo on an error occured during sending message to RTD
+      headers:
+        $ref: "#/components/schemas/ErrorQueueHeader"
       payload:
         $ref: "#/components/schemas/RTDOperationDTO"
     SendToRuleEngineError:
+      contentType: application/json
+      description: >-
+        Event sent to error queue when an error occured
+        while sendind message to RuleEngine
+      summary: Send to error queue information on an error occured during sending message to RuleEngine
+      headers:
+        $ref: "#/components/schemas/ErrorQueueHeader"
+      payload:
+        $ref: "#/components/schemas/RuleEngineRequestDTO"
+    EnrollInstrumentToRtd:
+      contentType: application/json
+      description: >-
+        Event sent to the RTD queue when an enrollInstrument occurs
+      summary: Send enrollInstrument operation information
+      payload:
+        $ref: "#/components/schemas/RTDOperationDTO"
+    EnrollInstrumentFailedToRtd:
+      contentType: application/json
+      description: >-
+        Event sent to the RTD queue when an enrollInstrument failure occurs
+      summary: Send enrollInstrument failure operation information
+      payload:
+        $ref: "#/components/schemas/RTDOperationDTO"
+    DeactivateAllInstrumentsToRtd:
+      contentType: application/json
+      description: >-
+        Event sent to the RTD queue when an deactivateAllInstruments occurs with operationType DELETE_INSTRUMENT
+      summary: Send deactivateAllInstruments operation information
+      payload:
+        $ref: "#/components/schemas/RTDOperationDTO"
+    InstrumentNotActiveToRtd:
+      contentType: application/json
+      description: >-
+        Event sent to the RTD queue when an instument is inactive with operationType DELETE_INSTRUMENT
+      summary: Send instrument not active information
+      payload:
+        $ref: "#/components/schemas/RTDOperationDTO"
+    CheckAndDeleteToRtd:
+      contentType: application/json
+      description: >-
+        Event sent to the RTD queue when an instrument transitions from active to inactive and its deletion is requested.
+      summary: Send delete operation
+      payload:
+        $ref: "#/components/schemas/RTDOperationDTO"
+    EnrollInstrumentFromIssuerToRtd:
+      contentType: application/json
+      description: >-
+        Event sent to the RTD queue when an enrollInstrumentFromIssuer occurs with operationType ADD_INSTRUMENT
+      summary: Send enrollInstrumentFromIssuer information
+      payload:
+        $ref: "#/components/schemas/RTDOperationDTO"
+    ProcessAckDeactivateToRtd:
+      contentType: application/json
+      description: >-
+        Event sent to the RTD queue whenProcessing ACK deactivation request with operationType DELETE_INSTRUMENT
+      summary: Send deactivation request information
+      payload:
+        $ref: "#/components/schemas/RTDOperationDTO"
+    ProcessAckEnrollToRtd:
+      contentType: application/json
+      description: >-
+        Event sent to the RTD queue whenProcessing ACK enrollment request with operationType ADD_INSTRUMENT
+      summary: Send enrollment request information
+      payload:
+        $ref: "#/components/schemas/RTDOperationDTO"
+    DeactivateInstrumentToRuleEngine:
+      contentType: application/json
+      description: >-
+        Event sent to the RuleEngine when an delete instument occurs with operationType DELETE_INSTRUMENT
+      summary: Send delete instrument operation
+      headers:
+        $ref: "#/components/schemas/ErrorKafkaHeader"
+      payload:
+        $ref: "#/components/schemas/RuleEngineRequestDTO"
+    SaveAckFromRTDToRuleEngine:
       contentType: application/json
       description: >-
         Event sent to the application when
       summary: Informs the application of
       payload:
         $ref: "#/components/schemas/RuleEngineRequestDTO"
-    SendInstrumentToRtd:
+    DeleteInstrumentToRuleEngine:
       contentType: application/json
       description: >-
         Event sent to the application when
       summary: Informs the application of
       payload:
-        $ref: "#/components/schemas/RTDOperationDTO"
-    SendInstrumentsToRuleEngine:
+        $ref: "#/components/schemas/RuleEngineRequestDTO"
+    CheckAndDeleteToRuleEngine:
+      contentType: application/json
+      description: >-
+        Event sent to the application when
+      summary: Informs the application of
+      payload:
+        $ref: "#/components/schemas/RuleEngineRequestDTO"
+    EnrollDiscountInitiativeToRuleEngine:
+      contentType: application/json
+      description: >-
+        Event sent to the application when
+      summary: Informs the application of
+      payload:
+        $ref: "#/components/schemas/RuleEngineRequestDTO"
+    EnrollInstrumentCodeToRuleEngine:
       contentType: application/json
       description: >-
         Event sent to the application when
@@ -356,8 +437,12 @@ components:
       properties:
         type:
           type: string
+          description: "Operation type"
+          example: "EnrollAck"
         correlationId:
           type: string
+          description: initiativeId
+          example: 661626073785876cb5aa7601
         data:
           type: object
           $ref: "#/components/schemas/RTDMessage"
@@ -366,6 +451,8 @@ components:
       properties:
         type:
           type: string
+          description: "Operation type"
+          example: "RevokeCard"
         data:
           type: object
           $ref: "#/components/schemas/RTDMessage"
@@ -374,18 +461,30 @@ components:
       properties:
         fiscalCode:
           type: string
+          description: fiscal code
+          example: LDFREW92S34L087K
         hpan:
           type: string
+          description: hash personal account number
+          example: 5c6bda1b1f5f6238dcba70f9f4b5a77671eb2b1563b0ca6d15d14c649a9b7ce0
         htoken:
           type: string
+          description: tokenized card info
+          example: eb2b1563b0ca6d15d14c649a9
         par:
           type: string
+          description: transaction info
+          example: par2
         application:
           type: string
+          description: provenance application
+          example: ID_PAY
         applications:
           type: array
-          additionalProperties:
+          description: list of applications
+          items:
             type: string
+            examples: ["ID_PAY"]
         timestamp:
           type: string
           format: date-time
@@ -396,18 +495,31 @@ components:
       properties:
         initiativeId:
           type: string
+          description: Id of the initiative
+          example: 661626073785876cb5aa7601
         userId:
           type: string
+          description: id of user
+          example: bcf3651c-d2d3-4998-81a9-5f24302ab674
         operationType:
           type: string
+          enum:
+            - ADD_INSTRUMENT
+            - DELETE_INSTRUMENT
+          description: operation type
+          example: ADD_INSTRUMENT
         hpanList:
           type: array
-          additionalProperties:
+          description: list of hpan
+          items:
             type: string
+            examples: ["5c6bda1b1f5f6238dcba70f9f4b5a77671eb2b1563b0ca6d15d14c649a9b7ce0"]
         rejectedHpanList:
           type: array
-          additionalProperties:
+          description: list of rejected operationType
+          items:
             type: string
+            examples: ["REJECTED_ADD_INSTRUMENT","REJECTED_DELETE_INSTRUMENT"]
         timestamp:
           type: string
           format: date-time
@@ -418,53 +530,132 @@ components:
       properties:
         userId:
           type: string
+          description: id of user
+          example: bcf3651c-d2d3-4998-81a9-5f24302ab674
         initiativeId:
           type: string
+          description: Id of the initiative
+          example: 661626073785876cb5aa7601
         channel:
           type: string
+          enum:
+            - PAYMENT_MANAGER
+            - IDPAY_PAYMENT
+          description: >-
+            Channel from which the request takes place
+        infoList:
+          type: array
+          items:
+            $ref: '#/components/schemas/PaymentMethodInfoList'
+          description: List of PaymentMethodInfoList
         operationType:
           type: string
+          enum:
+            - ADD_INSTRUMENT
+            - DELETE_INSTRUMENT
+          description: operation type
+          example: ADD_INSTRUMENT
         operationDate:
           type: string
           format: date-time
           description: Date and time of elaboration
           example: "2024-04-10T07:41:46.773672195"
-        infoList:
-          type: array
-          additionalProperties:
-            type: object
-            $ref: "#/components/schemas/PaymentMethodInfoList"
     PaymentMethodInfoList:
       type: object
       properties:
         hpan:
           type: string
+          description: hash personal account number
+          example: 5c6bda1b1f5f6238dcba70f9f4b5a77671eb2b1563b0ca6d15d14c649a9b7ce0
         maskedPan:
           type: string
+          description: masked card number
+          example: "1234 **** **** 3456"
         brandLogo:
           type: string
-        logo:
+          description: Card's brand logo URL
+          example: https://example.com/logos/visa.png
+        brand:
           type: string
+          description: Card's brand
+          example: Visa
         consent:
           type: boolean
+          description: boolean that identify the consent
+          example: true
     RTDOperationDTO:
       type: object
       properties:
+        hpanList:
+          type: array
+          items:
+            $ref: '#/components/schemas/RTDHpanListDTO'
+          description: List of RTDHpanListDTO
         correlationId:
           type: string
+          description: initiativeId
+          example: 661626073785876cb5aa7601
         operationType:
           type: string
+          enum:
+            - ADD_INSTRUMENT
+            - DELETE_INSTRUMENT
+          description: operation type
+          example: ADD_INSTRUMENT
         application:
           type: string
-      hpanList:
-        type: array
-        additionalProperties:
-          type: object
-          $ref: "#/components/schemas/RTDHpanListDTO"
+          description: provenance application
+          example: ID_PAY
     RTDHpanListDTO:
       type: object
       properties:
         hpan:
           type: string
+          description: hash personal account number
+          example: 5c6bda1b1f5f6238dcba70f9f4b5a77671eb2b1563b0ca6d15d14c649a9b7ce0
         consent:
-          type: boolean  
+          type: boolean
+          description: boolean that identify the consent
+          example: true
+    ErrorQueueHeader:
+      type: object
+      properties:
+        srcType:
+          type: string
+          description: The type of the source of the error message.
+          example: "kafka"
+        srcServer:
+          type: string
+          description: The source server of the error message.
+          example: cstar-u-idpay-evh-ns-00.servicebus.windows.net:9093
+        srcTopic:
+          type: string
+          description: The Kafka topic of the source of the error message.
+          example: rtd_pi_from_app_topic
+        description:
+          type: string
+          description: Description of the error.
+          example: "Error sending message to queue"
+        retryable:
+          type: boolean
+          description: Indicates whether the error is retryable or not.
+          example: true
+        stacktrace:
+          type: string
+          description: The stack trace of the error.
+          example: "SocketTimeoutException -> Connection timed out"
+        rootCauseClass:
+          type: string
+          description: "Class name of the root cause exception."
+          example: "java.net.SocketTimeoutException"
+        routeCauseMessage:
+          type: string
+          description: "Message of the root cause exception."
+          example: "Connection timed out"
+    ErrorKafkaHeader:
+      type: object
+      properties:
+        kafka_messageKey:
+          type: string
+          description: concatenation of userId and initiativeId
+          example: bcf3651c-d2d3-4998-81a9-5f24302ab674661626073785876cb5aa7601
