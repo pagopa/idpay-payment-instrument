@@ -50,7 +50,7 @@ tags:
     description: "Send instruments to Rule Engine"
   - name: "enrollDiscountInitiativeToRuleEngine"
     description: "Send instruments to Rule Engine"
-  - name: enrollInstrumentCodeToRuleEngine"
+  - name: "enrollInstrumentCodeToRuleEngine"
     description: "Send instruments to Rule Engine"
 
 
@@ -358,7 +358,7 @@ components:
     ProcessAckEnrollToRtd:
       contentType: application/json
       description: >-
-        Event sent to the RTD queue whenProcessing ACK enrollment request with operationType ADD_INSTRUMENT
+        Event sent to the RTD queue when processing ACK enrollment request with operationType ADD_INSTRUMENT
       summary: Send enrollment request information
       payload:
         $ref: "#/components/schemas/RTDOperationDTO"
@@ -371,39 +371,44 @@ components:
         $ref: "#/components/schemas/ErrorKafkaHeader"
       payload:
         $ref: "#/components/schemas/RuleEngineRequestDTO"
+
     SaveAckFromRTDToRuleEngine:
       contentType: application/json
       description: >-
-        Event sent to the application when
-      summary: Informs the application of
+        Event sent to the RuleEngine when an ACK from RTD occurs with operationType ADD_INSTRUMENT
+      summary: Send add instrument operation
       payload:
         $ref: "#/components/schemas/RuleEngineRequestDTO"
+
     DeleteInstrumentToRuleEngine:
       contentType: application/json
       description: >-
-        Event sent to the application when
-      summary: Informs the application of
+        Event sent to the RuleEngine when an pending time limit expired occurs with operationType DELETE_INSTRUMENT
+      summary: Send delete instrument operation
       payload:
         $ref: "#/components/schemas/RuleEngineRequestDTO"
+
     CheckAndDeleteToRuleEngine:
       contentType: application/json
       description: >-
-        Event sent to the application when
-      summary: Informs the application of
+        Event sent to the RuleEngine when a inactive status setting occurs with operationType DELETE_INSTRUMENT
+      summary: Send delete instrument operation
       payload:
         $ref: "#/components/schemas/RuleEngineRequestDTO"
+
     EnrollDiscountInitiativeToRuleEngine:
       contentType: application/json
       description: >-
-        Event sent to the application when
-      summary: Informs the application of
+        Event sent to the RuleEngine when an enroll instrument for discount initiative occurs with operationType ADD_INSTRUMENT
+      summary: Send add instrument operation
       payload:
         $ref: "#/components/schemas/RuleEngineRequestDTO"
+
     EnrollInstrumentCodeToRuleEngine:
       contentType: application/json
       description: >-
-        Event sent to the application when
-      summary: Informs the application of
+        Event sent to the RuleEngine when an IDPayCode enrollment occurs with operationType ADD_INSTRUMENT
+      summary: Send add instrument operation
       payload:
         $ref: "#/components/schemas/RuleEngineRequestDTO"
 
