@@ -257,7 +257,7 @@ components:
         Event sent to the application when an initiative is deleted
       summary: Informs the application of an initiative delete
       payload:
-        $ref: "#/components/schemas/QueueCommandOperationDTO"
+        $ref: "https://raw.githubusercontent.com/pagopa/idpay-portal-welfare-backend-initiative/main/specs/asyncapi.yml#/components/schemas/QueueCommandOperationDTO"
     DeactivateInstrumentFromPM:
       contentType: application/json
       description: >-
@@ -278,14 +278,14 @@ components:
         Event sent to the application when processing ACK for an enrollment request
       summary: Informs the application of an ACK for an enrollment request
       payload:
-        $ref: "#/components/schemas/RuleEngineAckDTO"
+        $ref: "https://raw.githubusercontent.com/pagopa/idpay-reward-calculator/main/specs/asyncapi.yaml#/components/schemas/HpanUpdateOutcomeDTO"
     ProcessAckDeactivate:
       contentType: application/json
       description: >-
         Event sent to the application when processing ACK for a deactivation request
       summary: Informs the application of an ACK for a deactivation request
       payload:
-        $ref: "#/components/schemas/RuleEngineAckDTO"
+        $ref: "https://raw.githubusercontent.com/pagopa/idpay-reward-calculator/main/specs/asyncapi.yaml#/components/schemas/HpanUpdateOutcomeDTO"
     SendToRtdError:
       contentType: application/json
       description: >-
@@ -413,30 +413,6 @@ components:
         $ref: "#/components/schemas/RuleEngineRequestDTO"
 
   schemas:
-    QueueCommandOperationDTO:
-      type: object
-      properties:
-        operationType:
-          type: string
-          description: Constant that define operation type
-          example: DELETE_INITIATIVE
-        entityId:
-          type: string
-          description: familyId if the initiative is family-based or userId otherwise
-          example: 66176f4e3785876cb5aa764d
-        operationTime:
-          type: string
-          format: date-time
-          description: operation time
-          example: "2024-04-11T07:23:08.874869466"
-        additionalParams:
-          type: object
-          additionalProperties:
-            type: string
-          description: A map of additional parameters
-          example:
-            key: "KEY1"
-            value: "VALUE1"
     RTDEnrollAckDTO:
       type: object
       properties:
@@ -490,41 +466,6 @@ components:
           items:
             type: string
             examples: ["ID_PAY"]
-        timestamp:
-          type: string
-          format: date-time
-          description: Date and time of elaboration
-          example: "2024-04-10T07:41:46.773672195"
-    RuleEngineAckDTO:
-      type: object
-      properties:
-        initiativeId:
-          type: string
-          description: Id of the initiative
-          example: 661626073785876cb5aa7601
-        userId:
-          type: string
-          description: id of user
-          example: bcf3651c-d2d3-4998-81a9-5f24302ab674
-        operationType:
-          type: string
-          enum:
-            - ADD_INSTRUMENT
-            - DELETE_INSTRUMENT
-          description: operation type
-          example: ADD_INSTRUMENT
-        hpanList:
-          type: array
-          description: list of hpan
-          items:
-            type: string
-            examples: ["5c6bda1b1f5f6238dcba70f9f4b5a77671eb2b1563b0ca6d15d14c649a9b7ce0"]
-        rejectedHpanList:
-          type: array
-          description: list of rejected operationType
-          items:
-            type: string
-            examples: ["REJECTED_ADD_INSTRUMENT","REJECTED_DELETE_INSTRUMENT"]
         timestamp:
           type: string
           format: date-time
