@@ -28,13 +28,10 @@ public class PaymentInstrumentControllerImpl implements PaymentInstrumentControl
   @Override
   public ResponseEntity<Void> enrollInstrument(EnrollmentBodyDTO body)
       {
-    paymentInstrumentService.enrollInstrument(
-        body.getInitiativeId(),
-        body.getUserId(),
-        body.getIdWallet(),
-        body.getChannel(),
-        body.getInstrumentType()
-    );
+        InstrumentFromDiscountDTO discount = new InstrumentFromDiscountDTO();
+        discount.setInitiativeId(body.getInitiativeId());
+        discount.setUserId(body.getUserId());
+        paymentInstrumentDiscountService.enrollDiscountInitiative(discount);
 
     return new ResponseEntity<>(HttpStatus.OK);
   }
