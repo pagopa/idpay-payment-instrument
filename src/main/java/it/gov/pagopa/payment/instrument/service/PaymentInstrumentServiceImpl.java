@@ -1,5 +1,6 @@
 package it.gov.pagopa.payment.instrument.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import it.gov.pagopa.payment.instrument.connector.*;
 import it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants;
 import it.gov.pagopa.payment.instrument.dto.*;
@@ -23,6 +24,8 @@ import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
+import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -217,14 +220,23 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
   }
 
   private PaymentMethodInfoList getPaymentMethodInfoList(String userId, String idWallet,
-      List<PaymentMethodInfoList> paymentMethodInfoList) {
+      List<PaymentMethodInfoList> paymentMethodInfoList)  {
     PaymentMethodInfoList infoList = new PaymentMethodInfoList();
     WalletV2ListResponse walletV2ListResponse;
 
     DecryptCfDTO decryptedCfDTO = decryptRestConnector.getPiiByToken(userId);
     Instant start = Instant.now();
     log.debug("Calling PM service at: " + start);
-    walletV2ListResponse = pmRestClientConnector.getWalletList(decryptedCfDTO.getPii());
+ //   walletV2ListResponse = pmRestClientConnector.getWalletList(decryptedCfDTO.getPii());
+    ObjectMapper mapper = new ObjectMapper();
+    try {
+      walletV2ListResponse = mapper.readValue(new File("card.json"), WalletV2ListResponse.class);
+
+    }catch (IOException e){
+      throw new InternalServerErrorException("Something went wrong", true, e);
+
+    }
+
     log.info(walletV2ListResponse.toString());
     Instant finish = Instant.now();
     long time = Duration.between(start, finish).toMillis();

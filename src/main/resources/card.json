@@ -1,0 +1,115 @@
+{
+  "data": [
+    {
+      "idWallet": 67717,
+      "walletType": "Satispay",
+      "enableableFunctions": [
+        "BPD"
+      ],
+      "pagoPA": false,
+      "onboardingChannel": "EXT",
+      "favourite": false,
+      "createDate": "2021-02-15 11:54:59",
+      "info": {
+        "type": "SatispayInfo",
+        "uuid": "553b9daa76b3f62722955b8721927b5b6af2dce106e8b74afd15a5b494b89854",
+        "brandLogo": "https://uat.wisp2.pagopa.gov.it/wallet/assets/img/externalps/satispay.png"
+      }
+    },
+    {
+      "idWallet": 94185,
+      "walletType": "Card",
+      "enableableFunctions": [
+        "pagoPA",
+        "BPD",
+        "FA"
+      ],
+      "pagoPA": true,
+      "onboardingChannel": "IO",
+      "favourite": true,
+      "createDate": "2022-01-17 11:37:31",
+      "info": {
+        "type": "CardInfo",
+        "holder": "Test",
+        "blurredNumber": "0101",
+        "hashPan": "5b36d4329c1fe15c5020743fe47e636fb39d1b610c9b4e64df6bbee5c7ebcf8e",
+        "expireMonth": "12",
+        "expireYear": "2030",
+        "brand": "VISA",
+        "brandLogo": "https://uat.wisp2.pagopa.gov.it/wallet/assets/img/creditcard/carta_visa.png"
+      }
+    },
+    {
+      "idWallet": 88517,
+      "walletType": "Card",
+      "enableableFunctions": [
+        "pagoPA",
+        "BPD",
+        "FA"
+      ],
+      "pagoPA": true,
+      "onboardingChannel": "IO",
+      "favourite": false,
+      "createDate": "2021-10-28 10:11:04",
+      "info": {
+        "type": "CardInfo",
+        "holder": "Xpay Ok",
+        "blurredNumber": "0002",
+        "hashPan": "911e206d1b373118dd70dfa03485f7b38cca58ba91ac3e526420d9f20bc0ef42",
+        "expireMonth": "12",
+        "expireYear": "2030",
+        "brand": "VISA",
+        "brandLogo": "https://uat.wisp2.pagopa.gov.it/wallet/assets/img/creditcard/carta_visa.png"
+      }
+    },
+    {
+      "idWallet": 110454,
+      "walletType": "BPay",
+      "enableableFunctions": [
+        "pagoPA",
+        "BPD",
+        "FA"
+      ],
+      "pagoPA": true,
+      "onboardingChannel": "IO",
+      "favourite": false,
+      "createDate": "2022-05-03 11:30:08",
+      "info": {
+        "type": "BPayInfo",
+        "instituteCode": "05704",
+        "bankName": "CEDACRI - Banca popolare di Spoleto S.P.A.",
+        "numberObfuscated": "+3938*******202",
+        "uidHash": "0e9c646a34cfe6da5687c618297007e2e5c85846c0e2d4800163f8c8d451a8f8",
+        "paymentInstruments": [
+          {
+            "defaultSend": true,
+            "defaultReceive": true
+          }
+        ],
+        "brandLogo": "https://uat.wisp2.pagopa.gov.it/wallet/assets/img/externalps/bpay.png"
+      }
+    },
+    {
+      "idWallet": 125695,
+      "walletType": "Card",
+      "enableableFunctions": [
+        "BPD",
+        "FA"
+      ],
+      "pagoPA": false,
+      "onboardingChannel": "EXT",
+      "favourite": false,
+      "createDate": "2022-12-23 16:39:38",
+      "info": {
+        "type": "CardInfo",
+        "holder": "io test",
+        "blurredNumber": "7848",
+        "hashPan": "28d24d90174cecfd50117150f879474f836e19a09c4a4e344fbd9e8b3da68eb3",
+        "expireMonth": "12",
+        "expireYear": "2024",
+        "brand": "VISA",
+        "brandLogo": "https://uat.wisp2.pagopa.gov.it/wallet/assets/img/creditcard/carta_visa.png"
+      }
+    }
+  ]
+}
