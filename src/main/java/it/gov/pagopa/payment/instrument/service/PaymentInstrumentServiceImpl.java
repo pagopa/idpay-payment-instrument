@@ -1,6 +1,9 @@
 package it.gov.pagopa.payment.instrument.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nimbusds.jose.shaded.gson.Gson;
+import com.nimbusds.jose.shaded.gson.JsonObject;
+import com.nimbusds.jose.shaded.gson.JsonParser;
 import it.gov.pagopa.payment.instrument.connector.*;
 import it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants;
 import it.gov.pagopa.payment.instrument.dto.*;
@@ -24,8 +27,7 @@ import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.FileReader;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -229,12 +231,15 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
     log.debug("Calling PM service at: " + start);
  //   walletV2ListResponse = pmRestClientConnector.getWalletList(decryptedCfDTO.getPii());
     ObjectMapper mapper = new ObjectMapper();
-    try {
-      walletV2ListResponse = mapper.readValue(new File("card.json"), WalletV2ListResponse.class);
 
-    }catch (IOException e){
+    try (FileReader reader = new FileReader("src/main/resources/card.json")) {
+      Gson gson = new Gson();
+
+      JsonObject jsonObject = JsonParser.parseReader(reader).getAsJsonObject();
+      walletV2ListResponse = gson.fromJson(jsonObject, WalletV2ListResponse.class);
+
+    } catch (Exception e) {
       throw new InternalServerErrorException("Something went wrong", true, e);
-
     }
 
     log.info(walletV2ListResponse.toString());
