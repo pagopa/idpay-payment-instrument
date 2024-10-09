@@ -27,7 +27,9 @@ import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.io.FileReader;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -232,10 +234,17 @@ public class PaymentInstrumentServiceImpl implements PaymentInstrumentService {
  //   walletV2ListResponse = pmRestClientConnector.getWalletList(decryptedCfDTO.getPii());
     ObjectMapper mapper = new ObjectMapper();
 
-    try (FileReader reader = new FileReader("src/main/resources/card.json")) {
+    try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream("card.json")) {
+      if (inputStream == null) {
+        throw new FileNotFoundException("File non trovato: card.json");
+      }
+
       Gson gson = new Gson();
 
-      JsonObject jsonObject = JsonParser.parseReader(reader).getAsJsonObject();
+      // Usa InputStreamReader per leggere il file JSON
+      JsonObject jsonObject = JsonParser.parseReader(new InputStreamReader(inputStream)).getAsJsonObject();
+
+      // Deserializza l'oggetto WalletV2ListResponse
       walletV2ListResponse = gson.fromJson(jsonObject, WalletV2ListResponse.class);
 
     } catch (Exception e) {
