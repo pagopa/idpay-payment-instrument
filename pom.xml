@@ -123,39 +123,6 @@
       <version>1.1.15</version>
     </dependency>
 
-    <!-- Fix per GHSA-gvpg-vgmx-xg6w (nimbus-jose-jwt) -->
-    <dependency>
-      <groupId>com.nimbusds</groupId>
-      <artifactId>nimbus-jose-jwt</artifactId>
-      <version>9.37.3</version>
-    </dependency>
-
-    <!-- Fix per GHSA-5jpm-x58v-624v (netty-codec-http) -->
-    <dependency>
-      <groupId>io.netty</groupId>
-      <artifactId>netty-codec-http</artifactId>
-      <version>4.1.115.Final</version>
-    </dependency>
-
-    <!-- Fix per CVE-2024-29025 (reactor-netty) -->
-    <dependency>
-      <groupId>io.projectreactor.netty</groupId>
-      <artifactId>reactor-netty-http</artifactId>
-      <version>1.1.15</version>
-    </dependency>
-    <dependency>
-      <groupId>io.projectreactor.netty</groupId>
-      <artifactId>reactor-netty-core</artifactId>
-      <version>1.1.15</version>
-    </dependency>
-
-    <!-- Fix per CVE-2023-35116 (jackson-databind) -->
-    <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-databind</artifactId>
-      <version>2.16.0</version>
-    </dependency>
-
     <!--TEST-->
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -198,6 +165,39 @@
         <version>4.1.113.Final</version>
         <type>pom</type>
         <scope>import</scope>
+      </dependency>
+
+      <!-- Fix per GHSA-gvpg-vgmx-xg6w (nimbus-jose-jwt) -->
+      <dependency>
+        <groupId>com.nimbusds</groupId>
+        <artifactId>nimbus-jose-jwt</artifactId>
+        <version>9.37.3</version>
+      </dependency>
+
+      <!-- Fix per GHSA-5jpm-x58v-624v (netty-codec-http) -->
+      <dependency>
+        <groupId>io.netty</groupId>
+        <artifactId>netty-codec-http</artifactId>
+        <version>4.1.115.Final</version>
+      </dependency>
+
+      <!-- Fix per CVE-2024-29025 (reactor-netty) -->
+      <dependency>
+        <groupId>io.projectreactor.netty</groupId>
+        <artifactId>reactor-netty-http</artifactId>
+        <version>1.1.15</version>
+      </dependency>
+      <dependency>
+        <groupId>io.projectreactor.netty</groupId>
+        <artifactId>reactor-netty-core</artifactId>
+        <version>1.1.15</version>
+      </dependency>
+
+      <!-- Fix per CVE-2023-35116 (jackson-databind) -->
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-databind</artifactId>
+        <version>2.18.2</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
