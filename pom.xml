@@ -87,11 +87,6 @@
     </dependency>
     <dependency>
       <groupId>com.azure</groupId>
-      <artifactId>azure-identity</artifactId>
-      <version>1.11.1</version>
-    </dependency>
-    <dependency>
-      <groupId>com.azure</groupId>
       <artifactId>azure-security-keyvault-keys</artifactId>
       <version>4.7.3</version>
     </dependency>
@@ -115,12 +110,6 @@
       <artifactId>snakeyaml</artifactId>
       <!-- Forced to > 2.0 due to https://nvd.nist.gov/vuln/detail/CVE-2022-1471 -->
       <version>2.2</version>
-    </dependency>
-    <dependency>
-      <groupId>io.projectreactor.netty</groupId>
-      <artifactId>reactor-netty-http</artifactId>
-      <!-- Forced to 1.1.12 due to https://nvd.nist.gov/vuln/detail/CVE-2023-44487 -->
-      <version>1.1.15</version>
     </dependency>
 
     <!--TEST-->
@@ -168,12 +157,6 @@
       </dependency>
 
       <dependency>
-        <groupId>com.jayway.jsonpath</groupId>
-        <artifactId>json-smart</artifactId>
-        <version>2.5.2</version>
-      </dependency>
-
-      <dependency>
         <groupId>commons-io</groupId>
         <artifactId>commons-io</artifactId>
         <version>2.18.0</version>
@@ -198,12 +181,6 @@
       </dependency>
 
       <dependency>
-        <groupId>com.azure</groupId>
-        <artifactId>azure-identity</artifactId>
-        <version>1.15.2</version>
-      </dependency>
-
-      <dependency>
         <groupId>io.projectreactor.netty</groupId>
         <artifactId>reactor-netty-http</artifactId>
         <version>1.2.3</version>
@@ -220,6 +197,31 @@
         <artifactId>spring-core</artifactId>
         <version>6.2.2</version>
       </dependency>
+
+      <dependency>
+        <groupId>org.apache.tomcat.embed</groupId>
+        <artifactId>tomcat-embed-core</artifactId>
+        <version>11.0.4</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.nimbusds</groupId>
+        <artifactId>nimbus-jose-jwt</artifactId>
+        <version>10.0.1</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.azure</groupId>
+        <artifactId>azure-identity</artifactId>
+        <version>1.15.2</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.jayway.jsonpath</groupId>
+        <artifactId>json-smart</artifactId>
+        <version>2.5.2</version>
+      </dependency>
+
     </dependencies>
   </dependencyManagement>
 
