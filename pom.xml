@@ -180,12 +180,6 @@
       </dependency>
 
       <dependency>
-        <groupId>ch.qos.logback</groupId>
-        <artifactId>logback-core</artifactId>
-        <version>1.5.16</version>
-      </dependency>
-
-      <dependency>
         <groupId>io.projectreactor.netty</groupId>
         <artifactId>reactor-netty-http</artifactId>
         <version>1.2.3</version>
@@ -198,21 +192,9 @@
       </dependency>
 
       <dependency>
-        <groupId>org.springframework</groupId>
-        <artifactId>spring-core</artifactId>
-        <version>6.2.2</version>
-      </dependency>
-
-      <dependency>
         <groupId>org.apache.tomcat.embed</groupId>
         <artifactId>tomcat-embed-core</artifactId>
         <version>11.0.4</version>
-      </dependency>
-
-      <dependency>
-        <groupId>com.nimbusds</groupId>
-        <artifactId>nimbus-jose-jwt</artifactId>
-        <version>10.0.1</version>
       </dependency>
 
       <dependency>
@@ -226,7 +208,6 @@
         <artifactId>json-smart</artifactId>
         <version>2.5.2</version>
       </dependency>
-
 
     </dependencies>
   </dependencyManagement>
