@@ -23,6 +23,7 @@ public class Utilities {
     } catch (JsonProcessingException ex) {
       errorDTO = new ErrorDTO(GENERIC_ERROR, null);}
     return errorDTO;
+
   }
 
 }
