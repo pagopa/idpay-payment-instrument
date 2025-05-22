@@ -120,4 +120,5 @@ public class PaymentInstrumentControllerImpl implements PaymentInstrumentControl
   public ResponseEntity<SecondFactorDTO> secondFactor(String userId) {
     return new ResponseEntity<>(new SecondFactorDTO(paymentInstrumentCodeService.getSecondFactor(userId)), HttpStatus.OK);
   }
+  
 }
