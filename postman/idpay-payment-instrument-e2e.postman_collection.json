@@ -1,9 +1,9 @@
 {
 	"info": {
-		"_postman_id": "7aca5057-7c4d-4987-a190-4acf48d67097",
+		"_postman_id": "110b3208-fe65-4119-a368-a79d73cb2725",
 		"name": "Payment Instrument - e2e",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "15747968"
+		"_exporter_id": "32491499"
 	},
 	"item": [
 		{
@@ -114,12 +114,11 @@
 							}
 						},
 						"url": {
-							"raw": "{{baseUrl}}/idpay/wallet/{{initiativeId}}/instruments/",
+							"raw": "{{baseUrlIdPay}}/wallet/{{initiativeId}}/instruments/",
 							"host": [
-								"{{baseUrl}}"
+								"{{baseUrlIdPay}}"
 							],
 							"path": [
-								"idpay",
 								"wallet",
 								"{{initiativeId}}",
 								"instruments",
@@ -183,12 +182,11 @@
 							}
 						},
 						"url": {
-							"raw": "{{baseUrl}}/idpay/wallet/test_initiative_fail/instruments/",
+							"raw": "{{baseUrlIdPay}}/wallet/test_initiative_fail/instruments/",
 							"host": [
-								"{{baseUrl}}"
+								"{{baseUrlIdPay}}"
 							],
 							"path": [
-								"idpay",
 								"wallet",
 								"test_initiative_fail",
 								"instruments",
