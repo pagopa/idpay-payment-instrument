@@ -140,6 +140,17 @@
       <artifactId>azure-identity</artifactId>
       <version>1.16.2</version>
     </dependency>
+    <dependency>
+      <groupId>com.azure</groupId>
+      <artifactId>azure-core</artifactId>
+      <version>1.45.1</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.azure</groupId>
+      <artifactId>azure-core-http-netty</artifactId>
+      <version>1.13.9</version>
+    </dependency>
   </dependencies>
 
   <dependencyManagement>
@@ -202,6 +213,18 @@
         <groupId>org.apache.tomcat.embed</groupId>
         <artifactId>tomcat-embed-core</artifactId>
         <version>10.1.36</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.azure</groupId>
+        <artifactId>azure-core</artifactId>
+        <version>1.45.1</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.azure</groupId>
+        <artifactId>azure-core-http-netty</artifactId>
+        <version>1.13.9</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
