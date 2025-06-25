@@ -13,4 +13,5 @@ public class CommandConsumer {
     public Consumer<QueueCommandOperationDTO> consumerCommands(PaymentInstrumentService paymentInstrumentService) {
         return paymentInstrumentService::processOperation;
     }
+
 }
