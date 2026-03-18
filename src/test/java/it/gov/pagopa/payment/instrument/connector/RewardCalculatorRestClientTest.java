@@ -44,7 +44,7 @@ class RewardCalculatorRestClientTest {
         try {
             rewardCalculatorConnector.disableUserInitiativeInstruments(USER_ID,INITIATIVE_ID);
 
-        } catch (Exception e) {
+        } catch (Exception exception) {
             Assertions.fail();
         }
     }
@@ -54,7 +54,7 @@ class RewardCalculatorRestClientTest {
         try {
             rewardCalculatorConnector.enableUserInitiativeInstruments(USER_ID,INITIATIVE_ID);
 
-        } catch (Exception e) {
+        } catch (Exception exception) {
             Assertions.fail();
         }
     }

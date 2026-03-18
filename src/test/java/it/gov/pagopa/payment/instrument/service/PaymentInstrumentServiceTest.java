@@ -745,7 +745,7 @@ class PaymentInstrumentServiceTest {
 
     @Test
     void getHpan_status_active_ok() {
-        final PaymentInstrument INSTRUMENT = PaymentInstrument.builder()
+        final PaymentInstrument instrument = PaymentInstrument.builder()
                 .initiativeId(INITIATIVE_ID)
                 .userId(USER_ID)
                 .idWallet(ID_WALLET)
@@ -756,7 +756,7 @@ class PaymentInstrumentServiceTest {
                 .status(PaymentInstrumentConstants.STATUS_ACTIVE)
                 .channel(CHANNEL)
                 .build();
-        List<PaymentInstrument> paymentInstruments = List.of(INSTRUMENT);
+        List<PaymentInstrument> paymentInstruments = List.of(instrument);
 
         Mockito.when(paymentInstrumentRepositoryMock.findByInitiativeIdAndUserIdAndStatusIn(
                         INITIATIVE_ID,
@@ -773,7 +773,7 @@ class PaymentInstrumentServiceTest {
 
     @Test
     void getHpan_status_pending_enrollment_ok() {
-        final PaymentInstrument INSTRUMENT = PaymentInstrument.builder()
+        final PaymentInstrument instrument = PaymentInstrument.builder()
                 .initiativeId(INITIATIVE_ID)
                 .userId(USER_ID)
                 .idWallet(ID_WALLET)
@@ -784,7 +784,7 @@ class PaymentInstrumentServiceTest {
                 .status(PaymentInstrumentConstants.STATUS_PENDING_RE)
                 .channel(CHANNEL)
                 .build();
-        List<PaymentInstrument> paymentInstruments = List.of(INSTRUMENT);
+        List<PaymentInstrument> paymentInstruments = List.of(instrument);
 
         Mockito.when(paymentInstrumentRepositoryMock.findByInitiativeIdAndUserIdAndStatusIn(
                         INITIATIVE_ID,
@@ -796,9 +796,9 @@ class PaymentInstrumentServiceTest {
 
         HpanGetDTO hpanGetDTO = paymentInstrumentService.getHpan(INITIATIVE_ID, USER_ID);
         HpanDTO actual = hpanGetDTO.getInstrumentList().get(0);
-        assertEquals(INSTRUMENT.getId(), actual.getInstrumentId());
-        assertEquals(INSTRUMENT.getChannel(), actual.getChannel());
-        assertEquals(INSTRUMENT.getMaskedPan(), actual.getMaskedPan());
+        assertEquals(instrument.getId(), actual.getInstrumentId());
+        assertEquals(instrument.getChannel(), actual.getChannel());
+        assertEquals(instrument.getMaskedPan(), actual.getMaskedPan());
         assertEquals(PaymentInstrumentConstants.STATUS_PENDING_ENROLLMENT_REQUEST, actual.getStatus());
         assertFalse(hpanGetDTO.getInstrumentList().isEmpty());
 
@@ -806,7 +806,7 @@ class PaymentInstrumentServiceTest {
 
     @Test
     void getHpan_status_pending_deactivation_ok() {
-        final PaymentInstrument INSTRUMENT = PaymentInstrument.builder()
+        final PaymentInstrument instrument = PaymentInstrument.builder()
                 .initiativeId(INITIATIVE_ID)
                 .userId(USER_ID)
                 .idWallet(ID_WALLET)
@@ -817,7 +817,7 @@ class PaymentInstrumentServiceTest {
                 .status(PaymentInstrumentConstants.STATUS_PENDING_DEACTIVATION_REQUEST)
                 .channel(CHANNEL)
                 .build();
-        List<PaymentInstrument> paymentInstruments = List.of(INSTRUMENT);
+        List<PaymentInstrument> paymentInstruments = List.of(instrument);
 
         Mockito.when(paymentInstrumentRepositoryMock.findByInitiativeIdAndUserIdAndStatusIn(
                         INITIATIVE_ID,
@@ -829,11 +829,11 @@ class PaymentInstrumentServiceTest {
 
         HpanGetDTO hpanGetDTO = paymentInstrumentService.getHpan(INITIATIVE_ID, USER_ID);
         HpanDTO actual = hpanGetDTO.getInstrumentList().get(0);
-        assertEquals(INSTRUMENT.getId(), actual.getInstrumentId());
-        assertEquals(INSTRUMENT.getChannel(), actual.getChannel());
-        assertEquals(INSTRUMENT.getMaskedPan(), actual.getMaskedPan());
-        assertEquals(INSTRUMENT.getInstrumentType(), actual.getInstrumentType());
-        assertEquals(INSTRUMENT.getBrandLogo(), actual.getBrandLogo());
+        assertEquals(instrument.getId(), actual.getInstrumentId());
+        assertEquals(instrument.getChannel(), actual.getChannel());
+        assertEquals(instrument.getMaskedPan(), actual.getMaskedPan());
+        assertEquals(instrument.getInstrumentType(), actual.getInstrumentType());
+        assertEquals(instrument.getBrandLogo(), actual.getBrandLogo());
         assertFalse(hpanGetDTO.getInstrumentList().isEmpty());
 
     }

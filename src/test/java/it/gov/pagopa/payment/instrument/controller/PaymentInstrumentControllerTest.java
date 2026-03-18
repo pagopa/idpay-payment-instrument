@@ -107,15 +107,15 @@ class PaymentInstrumentControllerTest {
   protected MockMvc mvc;
 
   @Autowired
-  JsonMapper objectMapper;
+  JsonMapper jsonMapper;
 
   @Test
   void enroll_ok() throws Exception {
-    JsonMapper objectMapper = new JsonMapper();
+    JsonMapper jsonMapper = new JsonMapper();
 
     mvc.perform(MockMvcRequestBuilders.put(BASE_URL + ENROLL_URL)
             .contentType(MediaType.APPLICATION_JSON_VALUE)
-            .content(objectMapper.writeValueAsString(ENROLLMENT_BODY_DTO))
+            .content(jsonMapper.writeValueAsString(ENROLLMENT_BODY_DTO))
             .accept(MediaType.APPLICATION_JSON_VALUE)).andExpect(MockMvcResultMatchers.status().isOk())
         .andReturn();
 
@@ -123,15 +123,15 @@ class PaymentInstrumentControllerTest {
 
   @Test
   void enroll_empty_body() throws Exception {
-    JsonMapper objectMapper = new JsonMapper();
+    JsonMapper jsonMapper = new JsonMapper();
 
     MvcResult res = mvc.perform(MockMvcRequestBuilders.put(BASE_URL + ENROLL_URL)
             .contentType(MediaType.APPLICATION_JSON_VALUE)
-            .content(objectMapper.writeValueAsString(ENROLLMENT_BODY_DTO_EMPTY))
+            .content(jsonMapper.writeValueAsString(ENROLLMENT_BODY_DTO_EMPTY))
             .accept(MediaType.APPLICATION_JSON_VALUE))
         .andExpect(MockMvcResultMatchers.status().isBadRequest()).andReturn();
 
-    ErrorDTO error = objectMapper.readValue(res.getResponse().getContentAsString(), ErrorDTO.class);
+    ErrorDTO error = jsonMapper.readValue(res.getResponse().getContentAsString(), ErrorDTO.class);
 
     assertEquals(INVALID_REQUEST, error.getCode());
     assertTrue(error.getMessage().contains(PaymentInstrumentConstants.ERROR_MANDATORY_FIELD));
@@ -139,7 +139,7 @@ class PaymentInstrumentControllerTest {
 
   @Test
   void enroll_already_active() throws Exception {
-    JsonMapper objectMapper = new JsonMapper();
+    JsonMapper jsonMapper = new JsonMapper();
 
     Mockito.doThrow(new UserNotAllowedException(ERROR_INSTRUMENT_ALREADY_ASSOCIATED_MSG))
         .when(paymentInstrumentServiceMock)
@@ -147,11 +147,11 @@ class PaymentInstrumentControllerTest {
 
     MvcResult res = mvc.perform(MockMvcRequestBuilders.put(BASE_URL + ENROLL_URL)
             .contentType(MediaType.APPLICATION_JSON_VALUE)
-            .content(objectMapper.writeValueAsString(ENROLLMENT_BODY_DTO))
+            .content(jsonMapper.writeValueAsString(ENROLLMENT_BODY_DTO))
             .accept(MediaType.APPLICATION_JSON_VALUE))
         .andExpect(MockMvcResultMatchers.status().isForbidden()).andReturn();
 
-    ErrorDTO errorResult = objectMapper.readValue(res.getResponse().getContentAsString(), ErrorDTO.class);
+    ErrorDTO errorResult = jsonMapper.readValue(res.getResponse().getContentAsString(), ErrorDTO.class);
 
     assertEquals(new ErrorDTO(INSTRUMENT_ALREADY_ASSOCIATED,ERROR_INSTRUMENT_ALREADY_ASSOCIATED_MSG), errorResult);
 
@@ -159,11 +159,11 @@ class PaymentInstrumentControllerTest {
 
   @Test
   void deactivate_ok() throws Exception {
-    JsonMapper objectMapper = new JsonMapper();
+    JsonMapper jsonMapper = new JsonMapper();
 
     mvc.perform(MockMvcRequestBuilders.delete(BASE_URL + DEACTIVATE_URL)
             .contentType(MediaType.APPLICATION_JSON_VALUE)
-            .content(objectMapper.writeValueAsString(DEACTIVATION_BODY_DTO))
+            .content(jsonMapper.writeValueAsString(DEACTIVATION_BODY_DTO))
             .accept(MediaType.APPLICATION_JSON_VALUE)).andExpect(MockMvcResultMatchers.status().isOk())
         .andReturn();
 
@@ -171,15 +171,15 @@ class PaymentInstrumentControllerTest {
 
   @Test
   void deactivate_empty_body() throws Exception {
-    JsonMapper objectMapper = new JsonMapper();
+    JsonMapper jsonMapper = new JsonMapper();
 
     MvcResult res = mvc.perform(MockMvcRequestBuilders.delete(BASE_URL + DEACTIVATE_URL)
             .contentType(MediaType.APPLICATION_JSON_VALUE)
-            .content(objectMapper.writeValueAsString(DEACTIVATION_BODY_DTO_EMPTY))
+            .content(jsonMapper.writeValueAsString(DEACTIVATION_BODY_DTO_EMPTY))
             .accept(MediaType.APPLICATION_JSON_VALUE))
         .andExpect(MockMvcResultMatchers.status().isBadRequest()).andReturn();
 
-    ErrorDTO error = objectMapper.readValue(res.getResponse().getContentAsString(), ErrorDTO.class);
+    ErrorDTO error = jsonMapper.readValue(res.getResponse().getContentAsString(), ErrorDTO.class);
 
     assertEquals(INVALID_REQUEST, error.getCode());
     assertTrue(error.getMessage().contains(PaymentInstrumentConstants.ERROR_MANDATORY_FIELD));
@@ -187,7 +187,7 @@ class PaymentInstrumentControllerTest {
 
   @Test
   void deactivate_not_found() throws Exception {
-    JsonMapper objectMapper = new JsonMapper();
+    JsonMapper jsonMapper = new JsonMapper();
 
     Mockito.doThrow(new PaymentInstrumentNotFoundException(ERROR_INSTRUMENT_NOT_FOUND_MSG))
         .when(paymentInstrumentServiceMock)
@@ -195,18 +195,18 @@ class PaymentInstrumentControllerTest {
 
     MvcResult res = mvc.perform(MockMvcRequestBuilders.delete(BASE_URL + DEACTIVATE_URL)
             .contentType(MediaType.APPLICATION_JSON_VALUE)
-            .content(objectMapper.writeValueAsString(DEACTIVATION_BODY_DTO))
+            .content(jsonMapper.writeValueAsString(DEACTIVATION_BODY_DTO))
             .accept(MediaType.APPLICATION_JSON_VALUE))
         .andExpect(MockMvcResultMatchers.status().isNotFound()).andReturn();
 
-    ErrorDTO error = objectMapper.readValue(res.getResponse().getContentAsString(), ErrorDTO.class);
+    ErrorDTO error = jsonMapper.readValue(res.getResponse().getContentAsString(), ErrorDTO.class);
 
     assertEquals(new ErrorDTO(INSTRUMENT_NOT_FOUND, ERROR_INSTRUMENT_NOT_FOUND_MSG), error);
   }
 
   @Test
   void deactivate_ko_serviceException() throws Exception {
-    JsonMapper objectMapper = new JsonMapper();
+    JsonMapper jsonMapper = new JsonMapper();
 
     Mockito.doThrow(new ServiceException("DUMMY_EXCEPTION_CODE", "DUMMY_EXCEPTION_MESSAGE",null))
             .when(paymentInstrumentServiceMock)
@@ -214,11 +214,11 @@ class PaymentInstrumentControllerTest {
 
     MvcResult res = mvc.perform(MockMvcRequestBuilders.delete(BASE_URL + DEACTIVATE_URL)
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
-                    .content(objectMapper.writeValueAsString(DEACTIVATION_BODY_DTO))
+                    .content(jsonMapper.writeValueAsString(DEACTIVATION_BODY_DTO))
                     .accept(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(MockMvcResultMatchers.status().isInternalServerError()).andReturn();
 
-    ErrorDTO error = objectMapper.readValue(res.getResponse().getContentAsString(), ErrorDTO.class);
+    ErrorDTO error = jsonMapper.readValue(res.getResponse().getContentAsString(), ErrorDTO.class);
 
     assertEquals(new ErrorDTO("DUMMY_EXCEPTION_CODE", "DUMMY_EXCEPTION_MESSAGE"), error);
   }
@@ -242,7 +242,7 @@ class PaymentInstrumentControllerTest {
   
   @Test
   void disableAllInstrument_ok() throws Exception {
-    JsonMapper objectMapper = new JsonMapper();
+    JsonMapper jsonMapper = new JsonMapper();
     UnsubscribeBodyDTO unsubscribeBodyDTO = new UnsubscribeBodyDTO(INITIATIVE_ID, USER_ID,
         LocalDateTime.now().toString(), CHANNEL);
 
@@ -252,7 +252,7 @@ class PaymentInstrumentControllerTest {
     mvc.perform(
             MockMvcRequestBuilders.delete(BASE_URL + DISABLE_ALL_URL)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(objectMapper.writeValueAsString(unsubscribeBodyDTO))
+                .content(jsonMapper.writeValueAsString(unsubscribeBodyDTO))
                 .accept(MediaType.APPLICATION_JSON_VALUE))
         .andExpect(MockMvcResultMatchers.status().isNoContent())
         .andReturn();
@@ -277,11 +277,11 @@ class PaymentInstrumentControllerTest {
 
   @Test
   void enroll_issuer_ok() throws Exception {
-    JsonMapper objectMapper = new JsonMapper();
+    JsonMapper jsonMapper = new JsonMapper();
 
     mvc.perform(MockMvcRequestBuilders.put(BASE_URL + ENROLL_ISSUER_URL)
             .contentType(MediaType.APPLICATION_JSON_VALUE)
-            .content(objectMapper.writeValueAsString(ENROLLMENT_ISSUER_BODY_DTO))
+            .content(jsonMapper.writeValueAsString(ENROLLMENT_ISSUER_BODY_DTO))
             .accept(MediaType.APPLICATION_JSON_VALUE)).andExpect(MockMvcResultMatchers.status().isOk())
         .andReturn();
 
@@ -289,15 +289,15 @@ class PaymentInstrumentControllerTest {
 
   @Test
   void enroll_issuer_empty_body() throws Exception {
-    JsonMapper objectMapper = new JsonMapper();
+    JsonMapper jsonMapper = new JsonMapper();
 
     MvcResult res = mvc.perform(MockMvcRequestBuilders.put(BASE_URL + ENROLL_ISSUER_URL)
             .contentType(MediaType.APPLICATION_JSON_VALUE)
-            .content(objectMapper.writeValueAsString(ENROLLMENT_ISSUER_BODY_DTO_EMPTY))
+            .content(jsonMapper.writeValueAsString(ENROLLMENT_ISSUER_BODY_DTO_EMPTY))
             .accept(MediaType.APPLICATION_JSON_VALUE))
         .andExpect(MockMvcResultMatchers.status().isBadRequest()).andReturn();
 
-    ErrorDTO error = objectMapper.readValue(res.getResponse().getContentAsString(), ErrorDTO.class);
+    ErrorDTO error = jsonMapper.readValue(res.getResponse().getContentAsString(), ErrorDTO.class);
 
     assertEquals(INVALID_REQUEST, error.getCode());
     assertTrue(error.getMessage().contains(PaymentInstrumentConstants.ERROR_MANDATORY_FIELD));
@@ -305,7 +305,7 @@ class PaymentInstrumentControllerTest {
 
   @Test
   void enroll_issuer_already_active() throws Exception {
-    JsonMapper objectMapper = new JsonMapper();
+    JsonMapper jsonMapper = new JsonMapper();
 
     Mockito.doThrow(new UserNotAllowedException(ERROR_INSTRUMENT_ALREADY_ASSOCIATED_MSG))
         .when(paymentInstrumentServiceMock)
@@ -313,11 +313,11 @@ class PaymentInstrumentControllerTest {
 
     MvcResult res = mvc.perform(MockMvcRequestBuilders.put(BASE_URL + ENROLL_ISSUER_URL)
             .contentType(MediaType.APPLICATION_JSON_VALUE)
-            .content(objectMapper.writeValueAsString(ENROLLMENT_ISSUER_BODY_DTO))
+            .content(jsonMapper.writeValueAsString(ENROLLMENT_ISSUER_BODY_DTO))
             .accept(MediaType.APPLICATION_JSON_VALUE))
         .andExpect(MockMvcResultMatchers.status().isForbidden()).andReturn();
 
-    ErrorDTO error = objectMapper.readValue(res.getResponse().getContentAsString(), ErrorDTO.class);
+    ErrorDTO error = jsonMapper.readValue(res.getResponse().getContentAsString(), ErrorDTO.class);
 
     assertEquals(new ErrorDTO(INSTRUMENT_ALREADY_ASSOCIATED, ERROR_INSTRUMENT_ALREADY_ASSOCIATED_MSG), error);
   }
@@ -337,11 +337,11 @@ class PaymentInstrumentControllerTest {
 
   @Test
   void enroll_discount_ok() throws Exception {
-    JsonMapper objectMapper = new JsonMapper();
+    JsonMapper jsonMapper = new JsonMapper();
 
     mvc.perform(MockMvcRequestBuilders.put(BASE_URL + ENROLL_DISCOUNT_URL)
             .contentType(MediaType.APPLICATION_JSON_VALUE)
-            .content(objectMapper.writeValueAsString(InstrumentFromDiscountDTOFaker.mockInstance(1)))
+            .content(jsonMapper.writeValueAsString(InstrumentFromDiscountDTOFaker.mockInstance(1)))
             .accept(MediaType.APPLICATION_JSON_VALUE)).andExpect(MockMvcResultMatchers.status().isOk())
         .andReturn();
 
@@ -349,7 +349,7 @@ class PaymentInstrumentControllerTest {
 
   @Test
   void enroll_discount_empty_body() throws Exception {
-    JsonMapper objectMapper = new JsonMapper();
+    JsonMapper jsonMapper = new JsonMapper();
 
     mvc.perform(MockMvcRequestBuilders.put(BASE_URL + ENROLL_DISCOUNT_URL)
             .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -370,11 +370,11 @@ class PaymentInstrumentControllerTest {
 
   @Test
   void enroll_code_ok() throws Exception {
-    JsonMapper objectMapper = new JsonMapper();
+    JsonMapper jsonMapper = new JsonMapper();
 
     mvc.perform(MockMvcRequestBuilders.put(BASE_URL + CODE_ENROLL_URL)
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
-                    .content(objectMapper.writeValueAsString(BASE_ENROLLMENT_BODY_DTO))
+                    .content(jsonMapper.writeValueAsString(BASE_ENROLLMENT_BODY_DTO))
                     .accept(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(MockMvcResultMatchers.status().isOk())
             .andReturn();
@@ -383,16 +383,16 @@ class PaymentInstrumentControllerTest {
 
   @Test
   void enroll_code_ko() throws Exception {
-    JsonMapper objectMapper = new JsonMapper();
+    JsonMapper jsonMapper = new JsonMapper();
 
     MvcResult result = mvc.perform(MockMvcRequestBuilders.put(BASE_URL + CODE_ENROLL_URL)
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
-                    .content(objectMapper.writeValueAsString(BASE_ENROLLMENT_BODY_DTO_EMPTY))
+                    .content(jsonMapper.writeValueAsString(BASE_ENROLLMENT_BODY_DTO_EMPTY))
                     .accept(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(MockMvcResultMatchers.status().isBadRequest())
             .andReturn();
 
-    ErrorDTO error = objectMapper.readValue(result.getResponse().getContentAsString(), ErrorDTO.class);
+    ErrorDTO error = jsonMapper.readValue(result.getResponse().getContentAsString(), ErrorDTO.class);
 
     assertEquals(INVALID_REQUEST, error.getCode());
     assertTrue(error.getMessage().contains(PaymentInstrumentConstants.ERROR_MANDATORY_FIELD));
@@ -401,11 +401,11 @@ class PaymentInstrumentControllerTest {
 
   @Test
   void enroll_idpayCode_ok() throws Exception {
-    JsonMapper objectMapper = new JsonMapper();
+    JsonMapper jsonMapper = new JsonMapper();
 
     mvc.perform(MockMvcRequestBuilders.post(BASE_URL + ENROLL_CODE_URL)
             .contentType(MediaType.APPLICATION_JSON_VALUE)
-            .content(objectMapper.writeValueAsString(GenerateCodeReqDTO.mockInstance(1, true)))
+            .content(jsonMapper.writeValueAsString(GenerateCodeReqDTO.mockInstance(1, true)))
             .accept(MediaType.APPLICATION_JSON_VALUE))
         .andExpect(MockMvcResultMatchers.status().isOk())
         .andReturn();
@@ -440,11 +440,11 @@ class PaymentInstrumentControllerTest {
 
   @Test
   void verify_pinBlock_ok() throws Exception {
-    JsonMapper objectMapper = new JsonMapper();
+    JsonMapper jsonMapper = new JsonMapper();
 
     mvc.perform(MockMvcRequestBuilders.put(BASE_URL + VERIFY_PIN_BLOCK_URL)
             .contentType(MediaType.APPLICATION_JSON_VALUE)
-            .content(objectMapper.writeValueAsString(new PinBlockDTO("test", "test")))
+            .content(jsonMapper.writeValueAsString(new PinBlockDTO("test", "test")))
             .accept(MediaType.APPLICATION_JSON_VALUE))
         .andExpect(MockMvcResultMatchers.status().isOk())
         .andReturn();

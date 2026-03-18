@@ -20,7 +20,7 @@ public class Utilities {
     ErrorDTO errorDTO;
     try {
       errorDTO = objectMapper.readValue(e.contentUTF8(), ErrorDTO.class);
-    } catch (JacksonException ex) {
+    } catch (JacksonException jacksonException) {
       errorDTO = new ErrorDTO(GENERIC_ERROR, null);}
     return errorDTO;
   }

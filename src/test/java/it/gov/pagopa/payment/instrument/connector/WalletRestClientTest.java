@@ -87,7 +87,7 @@ class WalletRestClientTest {
     try {
       walletRestConnector.updateWallet(WALLET_CALL_DTO);
 
-    } catch (Exception e) {
+    } catch (Exception exception) {
       Assertions.fail();
     }
   }
@@ -100,9 +100,9 @@ class WalletRestClientTest {
 
     try {
       walletRestConnector.updateWallet(WALLET_CALL_DTO);
-    } catch (WalletInvocationException e) {
-      Assertions.assertEquals(GENERIC_ERROR, e.getCode());
-      Assertions.assertEquals(ERROR_INVOCATION_WALLET_MSG, e.getMessage());
+    } catch (WalletInvocationException walletInvocationException) {
+      Assertions.assertEquals(GENERIC_ERROR, walletInvocationException.getCode());
+      Assertions.assertEquals(ERROR_INVOCATION_WALLET_MSG, walletInvocationException.getMessage());
     }
   }
   @Test
@@ -128,9 +128,9 @@ class WalletRestClientTest {
             .when(walletRestClient).processAck(Mockito.any());
     try {
       walletRestConnector.processAck(INSTRUMENT_ACK_DTO);
-    } catch (UserNotOnboardedException e) {
-      Assertions.assertEquals(USER_NOT_ONBOARDED,e.getCode());
-      Assertions.assertEquals(String.format(ERROR_USER_NOT_ONBOARDED_MSG,INSTRUMENT_ACK_DTO.getInitiativeId()), e.getMessage());
+    } catch (UserNotOnboardedException userNotOnboardedException) {
+      Assertions.assertEquals(USER_NOT_ONBOARDED,userNotOnboardedException.getCode());
+      Assertions.assertEquals(String.format(ERROR_USER_NOT_ONBOARDED_MSG,INSTRUMENT_ACK_DTO.getInitiativeId()), userNotOnboardedException.getMessage());
     }
   }
 
@@ -145,9 +145,9 @@ class WalletRestClientTest {
             .when(walletRestClient).processAck(Mockito.any());
     try {
       walletRestConnector.processAck(INSTRUMENT_ACK_DTO);
-    } catch (WalletInvocationException e) {
-      Assertions.assertEquals(GENERIC_ERROR,e.getCode());
-      Assertions.assertEquals(ERROR_INVOCATION_WALLET_MSG, e.getMessage());
+    } catch (WalletInvocationException walletInvocationException) {
+      Assertions.assertEquals(GENERIC_ERROR,walletInvocationException.getCode());
+      Assertions.assertEquals(ERROR_INVOCATION_WALLET_MSG, walletInvocationException.getMessage());
     }
   }
 
@@ -155,7 +155,7 @@ class WalletRestClientTest {
   void enrollInstrumentCode() {
     try {
       walletRestConnector.enrollInstrumentCode(INITIATIVE_ID, USER_ID);
-    } catch (Exception e) {
+    } catch (Exception exception) {
       Assertions.fail();
     }
   }
