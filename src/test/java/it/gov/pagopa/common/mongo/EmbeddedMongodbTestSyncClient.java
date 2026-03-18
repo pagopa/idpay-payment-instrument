@@ -16,7 +16,7 @@ public class EmbeddedMongodbTestSyncClient implements EmbeddedMongodbTestClient 
     private final String dbName;
 
     public EmbeddedMongodbTestSyncClient(Environment env) {
-        this.dbName = Objects.requireNonNull(env.getProperty("spring.data.mongodb.database"));
+        this.dbName = Objects.requireNonNull(env.getProperty("spring.mongodb.database"));
     }
 
     @Override
@@ -25,6 +25,7 @@ public class EmbeddedMongodbTestSyncClient implements EmbeddedMongodbTestClient 
 
         try(MongoClient mongoClient = MongoClients.create(mongodbUrl)){
             mongoClient.getDatabase(dbName).drop();
+            log.info("Database {} dropped", dbName);
         }
     }
 

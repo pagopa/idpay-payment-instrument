@@ -1,18 +1,18 @@
 package it.gov.pagopa.payment.instrument.utils;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import feign.FeignException;
 import it.gov.pagopa.common.web.dto.ErrorDTO;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.json.JsonMapper;
 
 import static it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants.ExceptionCode.GENERIC_ERROR;
 
 @Component
 public class Utilities {
-  private final ObjectMapper objectMapper;
+  private final JsonMapper objectMapper;
 
-  public Utilities(ObjectMapper objectMapper) {
+  public Utilities(JsonMapper objectMapper) {
     this.objectMapper = objectMapper;
   }
 
@@ -20,7 +20,7 @@ public class Utilities {
     ErrorDTO errorDTO;
     try {
       errorDTO = objectMapper.readValue(e.contentUTF8(), ErrorDTO.class);
-    } catch (JsonProcessingException ex) {
+    } catch (JacksonException ex) {
       errorDTO = new ErrorDTO(GENERIC_ERROR, null);}
     return errorDTO;
   }

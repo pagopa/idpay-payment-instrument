@@ -1,44 +1,11 @@
 package it.gov.pagopa.payment.instrument.service;
 
-import static it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants.ExceptionCode.*;
-import static it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants.ExceptionMessage.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import feign.FeignException;
 import feign.Request;
 import feign.RequestTemplate;
-import it.gov.pagopa.payment.instrument.connector.DecryptRestConnector;
-import it.gov.pagopa.payment.instrument.connector.EncryptRestConnector;
-import it.gov.pagopa.payment.instrument.connector.PMRestClientConnector;
-import it.gov.pagopa.payment.instrument.connector.RewardCalculatorConnector;
-import it.gov.pagopa.payment.instrument.connector.WalletRestConnector;
+import it.gov.pagopa.payment.instrument.connector.*;
 import it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants;
-import it.gov.pagopa.payment.instrument.dto.CFDTO;
-import it.gov.pagopa.payment.instrument.dto.DecryptCfDTO;
-import it.gov.pagopa.payment.instrument.dto.EncryptedCfDTO;
-import it.gov.pagopa.payment.instrument.dto.HpanDTO;
-import it.gov.pagopa.payment.instrument.dto.HpanGetDTO;
-import it.gov.pagopa.payment.instrument.dto.InstrumentAckDTO;
-import it.gov.pagopa.payment.instrument.dto.InstrumentDetailDTO;
-import it.gov.pagopa.payment.instrument.dto.InstrumentIssuerDTO;
-import it.gov.pagopa.payment.instrument.dto.QueueCommandOperationDTO;
-import it.gov.pagopa.payment.instrument.dto.RuleEngineAckDTO;
-import it.gov.pagopa.payment.instrument.dto.RuleEngineRequestDTO;
-import it.gov.pagopa.payment.instrument.dto.WalletCallDTO;
+import it.gov.pagopa.payment.instrument.dto.*;
 import it.gov.pagopa.payment.instrument.dto.mapper.AckMapper;
 import it.gov.pagopa.payment.instrument.dto.mapper.MessageMapper;
 import it.gov.pagopa.payment.instrument.dto.pm.PaymentMethodInfo;
@@ -57,16 +24,6 @@ import it.gov.pagopa.payment.instrument.model.PaymentInstrument;
 import it.gov.pagopa.payment.instrument.repository.PaymentInstrumentRepository;
 import it.gov.pagopa.payment.instrument.repository.PaymentInstrumentRepositoryExtended;
 import it.gov.pagopa.payment.instrument.utils.AuditUtilities;
-
-import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Stream;
-
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -77,12 +34,22 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.HttpStatus;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.util.*;
+import java.util.stream.Stream;
+
+import static it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants.ExceptionCode.*;
+import static it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConstants.ExceptionMessage.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 @ExtendWith({SpringExtension.class, MockitoExtension.class})
 @ContextConfiguration(classes = PaymentInstrumentServiceImpl.class)
@@ -94,33 +61,33 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
         })
 class PaymentInstrumentServiceTest {
 
-    @MockBean
+    @MockitoBean
     PaymentInstrumentRepository paymentInstrumentRepositoryMock;
-    @MockBean
+    @MockitoBean
     RuleEngineProducer producer;
-    @MockBean
+    @MockitoBean
     RTDProducer rtdProducer;
-    @MockBean
+    @MockitoBean
     ErrorProducer errorProducer;
-    @MockBean
+    @MockitoBean
     PMRestClientConnector pmRestClientConnector;
-    @MockBean
+    @MockitoBean
     EncryptRestConnector encryptRestConnector;
-    @MockBean
+    @MockitoBean
     WalletRestConnector walletRestConnector;
-    @MockBean
+    @MockitoBean
     DecryptRestConnector decryptRestConnector;
-    @MockBean
+    @MockitoBean
     RewardCalculatorConnector rewardCalculatorConnector;
     @Autowired
     PaymentInstrumentService paymentInstrumentService;
-    @MockBean
+    @MockitoBean
     MessageMapper messageMapper;
-    @MockBean
+    @MockitoBean
     AckMapper ackMapper;
-    @MockBean
+    @MockitoBean
     AuditUtilities auditUtilities;
-    @MockBean
+    @MockitoBean
     PaymentInstrumentRepositoryExtended paymentInstrumentRepositoryExtended;
     private static final String USER_ID = "TEST_USER_ID";
     private static final String USER_ID_FAIL = "TEST_USER_ID_FAIL";
