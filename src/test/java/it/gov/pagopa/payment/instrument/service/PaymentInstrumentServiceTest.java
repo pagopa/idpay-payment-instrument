@@ -1355,11 +1355,11 @@ class PaymentInstrumentServiceTest {
     @Test
     void checkPendingTimeLimit_ok_activeInstrument_isNotEmpty() {
         PaymentInstrument paymentInstrument = TEST_ENROLLMENT_FAILED;
-        paymentInstrument.setUpdateDate(TEST_TIMESTAMP);
-
+        paymentInstrument.setUpdateDate(TEST_DATE);
         paymentInstrumentService.getHpan(INITIATIVE_ID, USER_ID);
         assertNotEquals(TEST_TIMESTAMP, paymentInstrument.getUpdateDate());
 
+        paymentInstrument.setUpdateDate(TEST_TIMESTAMP);
         List<PaymentInstrument> paymentInstrumentList = new ArrayList<>();
         paymentInstrumentList.add(paymentInstrument);
         when(paymentInstrumentRepositoryMock.findByStatusRegex(any())).thenReturn(paymentInstrumentList);
