@@ -346,8 +346,6 @@ class PaymentInstrumentControllerTest {
 
   @Test
   void enroll_discount_empty_body() throws Exception {
-    JsonMapper jsonMapper = new JsonMapper();
-
     mvc.perform(MockMvcRequestBuilders.put(BASE_URL + ENROLL_DISCOUNT_URL)
             .contentType(MediaType.APPLICATION_JSON_VALUE)
             .accept(MediaType.APPLICATION_JSON_VALUE)).andExpect(MockMvcResultMatchers.status().isInternalServerError())

@@ -37,7 +37,7 @@ class UtilitiesTest {
     private static final String BAD_REQUEST = "BAD REQUEST";
 
     @Test
-    void exceptionConverter_ok() throws JsonProcessingException {
+    void exceptionConverter_ok() {
         Request request =
                 Request.create(Request.HttpMethod.PUT, "url", new HashMap<>(), null, new RequestTemplate());
         FeignException.BadRequest e = new FeignException.BadRequest(BAD_REQUEST, request, new byte[0], null);
