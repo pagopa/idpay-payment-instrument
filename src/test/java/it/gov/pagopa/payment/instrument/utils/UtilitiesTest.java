@@ -1,6 +1,5 @@
 package it.gov.pagopa.payment.instrument.utils;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import feign.FeignException;
 import feign.Request;
 import feign.RequestTemplate;
