@@ -22,15 +22,15 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.http.HttpMessageConvertersAutoConfiguration;
+import org.springframework.boot.http.converter.autoconfigure.HttpMessageConvertersAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.cloud.openfeign.FeignAutoConfiguration;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.support.TestPropertySourceUtils;
 
@@ -54,7 +54,7 @@ import static it.gov.pagopa.payment.instrument.constants.PaymentInstrumentConsta
     properties = {"spring.application.name=idpay-initiative-integration"})
 class WalletRestClientTest {
 
-  @MockBean
+  @MockitoBean
   private WalletRestClient walletRestClient;
   private static final String INITIATIVE_ID = "INITIATIVE_ID";
   private static final String HPAN = "TEST_HPAN";
@@ -87,7 +87,7 @@ class WalletRestClientTest {
     try {
       walletRestConnector.updateWallet(WALLET_CALL_DTO);
 
-    } catch (Exception e) {
+    } catch (Exception _) {
       Assertions.fail();
     }
   }
@@ -100,9 +100,9 @@ class WalletRestClientTest {
 
     try {
       walletRestConnector.updateWallet(WALLET_CALL_DTO);
-    } catch (WalletInvocationException e) {
-      Assertions.assertEquals(GENERIC_ERROR, e.getCode());
-      Assertions.assertEquals(ERROR_INVOCATION_WALLET_MSG, e.getMessage());
+    } catch (WalletInvocationException walletInvocationException) {
+      Assertions.assertEquals(GENERIC_ERROR, walletInvocationException.getCode());
+      Assertions.assertEquals(ERROR_INVOCATION_WALLET_MSG, walletInvocationException.getMessage());
     }
   }
   @Test
@@ -128,9 +128,9 @@ class WalletRestClientTest {
             .when(walletRestClient).processAck(Mockito.any());
     try {
       walletRestConnector.processAck(INSTRUMENT_ACK_DTO);
-    } catch (UserNotOnboardedException e) {
-      Assertions.assertEquals(USER_NOT_ONBOARDED,e.getCode());
-      Assertions.assertEquals(String.format(ERROR_USER_NOT_ONBOARDED_MSG,INSTRUMENT_ACK_DTO.getInitiativeId()), e.getMessage());
+    } catch (UserNotOnboardedException userNotOnboardedException) {
+      Assertions.assertEquals(USER_NOT_ONBOARDED,userNotOnboardedException.getCode());
+      Assertions.assertEquals(String.format(ERROR_USER_NOT_ONBOARDED_MSG,INSTRUMENT_ACK_DTO.getInitiativeId()), userNotOnboardedException.getMessage());
     }
   }
 
@@ -145,9 +145,9 @@ class WalletRestClientTest {
             .when(walletRestClient).processAck(Mockito.any());
     try {
       walletRestConnector.processAck(INSTRUMENT_ACK_DTO);
-    } catch (WalletInvocationException e) {
-      Assertions.assertEquals(GENERIC_ERROR,e.getCode());
-      Assertions.assertEquals(ERROR_INVOCATION_WALLET_MSG, e.getMessage());
+    } catch (WalletInvocationException walletInvocationException) {
+      Assertions.assertEquals(GENERIC_ERROR,walletInvocationException.getCode());
+      Assertions.assertEquals(ERROR_INVOCATION_WALLET_MSG, walletInvocationException.getMessage());
     }
   }
 
@@ -155,7 +155,7 @@ class WalletRestClientTest {
   void enrollInstrumentCode() {
     try {
       walletRestConnector.enrollInstrumentCode(INITIATIVE_ID, USER_ID);
-    } catch (Exception e) {
+    } catch (Exception _) {
       Assertions.fail();
     }
   }
