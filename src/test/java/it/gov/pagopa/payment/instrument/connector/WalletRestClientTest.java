@@ -87,7 +87,7 @@ class WalletRestClientTest {
     try {
       walletRestConnector.updateWallet(WALLET_CALL_DTO);
 
-    } catch (Exception exception) {
+    } catch (Exception _) {
       Assertions.fail();
     }
   }
@@ -155,7 +155,7 @@ class WalletRestClientTest {
   void enrollInstrumentCode() {
     try {
       walletRestConnector.enrollInstrumentCode(INITIATIVE_ID, USER_ID);
-    } catch (Exception exception) {
+    } catch (Exception _) {
       Assertions.fail();
     }
   }

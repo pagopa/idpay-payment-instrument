@@ -106,9 +106,6 @@ class PaymentInstrumentControllerTest {
   @Autowired
   protected MockMvc mvc;
 
-  @Autowired
-  JsonMapper jsonMapper;
-
   @Test
   void enroll_ok() throws Exception {
     JsonMapper jsonMapper = new JsonMapper();
